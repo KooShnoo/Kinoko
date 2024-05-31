@@ -21,6 +21,7 @@ KartModel::KartModel() {
 KartModel::~KartModel() = default;
 
 /// @addr{0x807CD32C}
+/// @todo check that any of the changes for karts are legit, also the other unnmaed func
 void KartModel::vf_1c() {
     _58 *= 0.9f;
     f32 xStick = inputs()->currentState().stick.x;
@@ -59,7 +60,7 @@ void KartModel::vf_1c() {
             dVar13 = m_isInsideDrift ? 5.0f : 20.0f;
         }
     } else {
-        K_PANIC("NOT IMPLEMENTED FOR KARTS YET");
+        dVar13 = 15.0f;
     }
 
     f32 dVar12 = 0.0f;
@@ -84,7 +85,11 @@ void KartModel::vf_1c() {
             }
         }
     } else {
-        K_PANIC("NOT IMPLEMENTED FOR KARTS YET");
+        if (!m_somethingLeft && m_somethingRight) {
+            dVar12 -=  5.0f;
+        } else {
+            dVar12 += 5.0f;
+        }
     }
 
     if (dVar12 <= _5c) {

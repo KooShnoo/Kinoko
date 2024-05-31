@@ -33,6 +33,38 @@ KartObject::~KartObject() {
     }
 }
 
+/// @addr{0x8058EA0C}
+void KartObject::createTires() {
+    // const u16 tireCount = this->tireCount();
+    const auto wheelCount = m_pointers.param->stats().body;
+    if (wheelCount == KartParam::Stats::Body::Three_Wheel_Kart) {
+        K_PANIC("Blue falcon not supported!");
+        return;
+    }
+
+    // todo: mirrors
+
+
+    // i=0? ??? ghidra wraps this loop in if != 0... sus! kartsus! mariokartsus!
+    for (u16 wheelIdx = 0; wheelIdx < m_pointers.param->tireCount(); wheelIdx += 1) {
+        KartSuspension *sus = nullptr;
+        KartTire *tire = nullptr;
+
+        if (wheelIdx == 0 || wheelIdx == 1) {
+            sus = new KartSuspension;
+            tire = new KartTireFront(0);
+        } else {
+            sus = new KartSuspension;
+            tire = new KartTire(1);
+        }
+
+        m_pointers.suspensions.push_back(sus);
+        m_pointers.tires.push_back(tire);
+
+        sus->init(wheelIdx, wheelIdx);
+    }
+}
+
 /// @addr{0x8058E5F8}
 KartBody *KartObject::createBody(KartPhysics *physics) {
     return new KartBodyKart(physics);

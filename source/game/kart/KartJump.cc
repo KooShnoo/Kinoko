@@ -20,6 +20,37 @@ KartJump::KartJump(KartMove *move) : m_move(move) {
 /// @addr{0x80575AA8}
 KartJump::~KartJump() = default;
 
+/// @addr{0x805764FC}
+void KartJump::calcRot() {
+    /// @brief Computed using double precision, so we hard-code it.
+    constexpr f32 PI_OVER_9 = 0.34906584f;
+    /// @brief Computed using double precision, so we hard-code it.
+    constexpr f32 PI_OVER_3 = 1.0471976f;
+
+    m_angleDelta *= m_angleDeltaFactor;
+    m_angleDelta = std::max(m_angleDelta, m_properties.angleDeltaMin);
+    m_angleDeltaFactor -= m_angleDeltaFactorDec;
+    m_angleDeltaFactor = std::max(m_angleDeltaFactor, m_properties.angleDeltaFactorMin);
+    m_angle += m_angleDelta;
+    m_angle = std::min(m_angle, m_finalAngle);
+
+    switch (m_type) {
+    case TrickType::KartFlipTrickZ: {
+        EGG::Vector3f angles = EGG::Vector3f(-(m_angle * DEG2RAD) * m_rotSign, 0.0f, 0.0f);
+        m_rot.setRPY(angles);
+    } break;
+    case TrickType::FlipTrickYLeft:
+    case TrickType::FlipTrickYRight: {
+        EGG::Vector3f angles = EGG::Vector3f(0.0f, m_angle * DEG2RAD * m_rotSign, 0.0f);
+        m_rot.setRPY(angles);
+    } break;
+    default:
+        break;
+    }
+
+    physics()->composeStuntRot(m_rot);
+}
+
 /// @addr{0x80576460}
 void KartJump::setupProperties() {
     static constexpr std::array<TrickProperties, 3> TRICK_PROPERTIES = {{
@@ -195,6 +226,35 @@ SurfaceVariant KartJump::variant() const {
 
 s16 KartJump::cooldown() const {
     return m_cooldown;
+}
+
+/// @addr{0x80575EE8}
+void KartJump::start(const EGG::Vector3f &left) {
+    init();
+    setAngle(left);
+    state()->setInATrick(true);
+    m_cooldown = 5;
+}
+
+/// @addr{0x8057616C}
+void KartJump::init() {
+    if (m_variant == SurfaceVariant::StuntTrick) {
+        if (m_nextTrick < System::Trick::Left) {
+            return;
+        }
+
+        m_type = TrickType::KartFlipTrickZ;
+        m_rotSign = (m_nextTrick == System::Trick::Up) ? -1.0f : 1.0f;
+    } else {
+        m_type = static_cast<TrickType>(m_nextTrick);
+        m_rotSign =
+                (m_type == TrickType::FlipTrickYRight) ?
+                -1.0f :
+                1.0f;
+    }
+    setupProperties();
+
+    state()->setTrickRot(true);
 }
 
 KartJumpBike::KartJumpBike(KartMove *move) : KartJump(move) {}

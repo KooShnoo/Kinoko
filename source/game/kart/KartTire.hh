@@ -1,12 +1,13 @@
 #pragma once
 
 #include "game/kart/KartSuspensionPhysics.hh"
+#include <game/kart/KartObjectProxy.hh>
 
 namespace Kart {
 
 /// @brief A holder for a wheel's physics data.
 /// @nosubgrouping
-class KartTire {
+class KartTire : KartObjectProxy{
 public:
     KartTire(u16 bspWheelIdx);
     virtual ~KartTire();
@@ -23,6 +24,15 @@ public:
 protected:
     u16 m_bspWheelIdx;
     WheelPhysics *m_wheelPhysics;
+};
+
+/// @brief A holder for a kart's front tire's physics data?
+class KartTireFront : public KartTire {
+public:
+    KartTireFront(u16 bspWheelIdx);
+    ~KartTireFront();
+
+    void createPhysics(u16 tireIdx) override;
 };
 
 /// @brief A holder for a bike's front tire's physics data.

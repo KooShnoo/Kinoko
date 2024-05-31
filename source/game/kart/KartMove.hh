@@ -12,7 +12,7 @@ public:
     KartMove();
     virtual ~KartMove();
 
-    virtual void createSubsystems() {}
+    virtual void createSubsystems();
     virtual void calcTurn();
     virtual void calcWheelie() {}
     virtual void setTurnParams();

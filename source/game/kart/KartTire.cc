@@ -2,13 +2,12 @@
 
 namespace Kart {
 
+// todo? what is mirror?
 /// @addr{0x8059AA44}
 KartTire::KartTire(u16 bspWheelIdx) : m_bspWheelIdx(bspWheelIdx) {}
 
 /// @addr{0x8058EC08}
-KartTire::~KartTire() {
-    delete m_wheelPhysics;
-}
+KartTire::~KartTire() { delete m_wheelPhysics; }
 
 /// @addr{0x8059AB14}
 void KartTire::createPhysics(u16 tireIdx) {
@@ -22,12 +21,19 @@ void KartTire::init(u16 tireIdx) {
 }
 
 /// @addr{0x8059AB68}
-void KartTire::initBsp() {
-    m_wheelPhysics->initBsp();
-}
+void KartTire::initBsp() { m_wheelPhysics->initBsp(); }
 
-WheelPhysics *KartTire::wheelPhysics() {
-    return m_wheelPhysics;
+WheelPhysics *KartTire::wheelPhysics() { return m_wheelPhysics; }
+
+// todo, inline?
+KartTireFront::KartTireFront(u16 bspWheelIdx) : KartTire(bspWheelIdx) {}
+
+/// @addr{0x8058F4AC}
+KartTireFront::~KartTireFront() = default;
+
+/// @addr{0x8059AC1C}
+void KartTireFront::createPhysics(u16 tireIdx) {
+    m_wheelPhysics = new WheelPhysics(tireIdx, 0);
 }
 
 KartTireFrontBike::KartTireFrontBike(u16 bspWheelIdx) : KartTire(bspWheelIdx) {}

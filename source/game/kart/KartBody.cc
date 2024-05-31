@@ -10,9 +10,10 @@ KartBody::KartBody(KartPhysics *physics) : m_physics(physics) {
 }
 
 /// @addr{0x8056C604}
-/// @todo: Implement for karts
 EGG::Matrix34f KartBody::wheelMatrix(u16) {
-    return EGG::Matrix34f::ident;
+    EGG::Matrix34f mat;
+    mat.makeQT(fullRot(), pos());
+    return mat;
 }
 
 /// @addr{0x8056C4B4}

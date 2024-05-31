@@ -43,6 +43,11 @@ KartMove::KartMove() : m_smoothedUp(EGG::Vector3f::ey), m_scale(1.0f, 1.0f, 1.0f
 /// @addr{0x80587B78}
 KartMove::~KartMove() = default;
 
+/// @addr{0x8057821C}
+void KartMove::createSubsystems() {
+    m_jump = new KartJump(this);
+}
+
 /// @stage All
 /// @brief Each frame, looks at player input and kart stats. Saves turn-related info.
 /// @addr{0x8057A8B4}
