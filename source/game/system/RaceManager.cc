@@ -82,6 +82,12 @@ int RaceManager::getCountdownTimer() const {
     return STAGE_COUNTDOWN_DURATION - m_timer;
 }
 
+u32 RaceManager::getTimer() const {
+    return m_timer > STAGE_COUNTDOWN_DURATION 
+        ? m_timer - STAGE_COUNTDOWN_DURATION 
+        : 0;
+}
+
 const RaceManagerPlayer &RaceManager::player() const {
     return m_player;
 }

@@ -28,6 +28,7 @@ void DvdArchive::decompress() {
 /// @addr{0x80519420}
 void *DvdArchive::getFile(const char *filename, size_t *size) const {
     if (m_state != State::Mounted) {
+        exit(42);
         return nullptr;
     }
 
@@ -42,6 +43,7 @@ void *DvdArchive::getFile(const char *filename, size_t *size) const {
     Abstract::ArchiveHandle::FileInfo fileInfo{0, 0};
     s32 entryId = m_archive->convertPathToEntryId(buffer);
     if (entryId == -1) {
+        exit(42);
         return nullptr;
     }
 

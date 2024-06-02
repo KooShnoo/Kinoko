@@ -102,11 +102,13 @@ s32 ArchiveHandle::convertPathToEntryId(const char *path) const {
 /// @addr{0x80124844}
 bool ArchiveHandle::open(s32 entryId, FileInfo &info) const {
     if (entryId < 0 || static_cast<u32>(entryId) >= m_count) {
+        exit(42);
         return false;
     }
 
     auto *node_ = node(entryId);
     if (node_->isDirectory()) {
+        exit(42);
         return false;
     }
 

@@ -43,7 +43,7 @@ public:
 
     void init();
     void initRace();
-    void initControllers(const GhostFile &ghost);
+    void initGhostController(const GhostFile &ghost);
 
     [[nodiscard]] const Scenario &raceScenario() const {
         return m_raceScenario;

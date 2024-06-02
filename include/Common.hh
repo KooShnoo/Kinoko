@@ -26,6 +26,15 @@ typedef uint64_t u64;
 typedef float f32;
 typedef double f64;
 
+namespace Button {
+enum Button: u16 {
+    ACCELERATE = 0x1,
+    BRAKE = 0x2,
+    ITEM = 0x4,
+    DRIFT = 0x8,
+};
+}
+
 enum class Course {
     Mario_Circuit = 0,
     Moo_Moo_Meadows = 1,

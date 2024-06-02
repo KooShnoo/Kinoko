@@ -82,6 +82,7 @@ public:
 
     /// @beginGetters
     [[nodiscard]] int getCountdownTimer() const;
+    [[nodiscard]] u32 getTimer() const;
     [[nodiscard]] const RaceManagerPlayer &player() const;
     [[nodiscard]] Stage stage() const;
     /// @endGetters

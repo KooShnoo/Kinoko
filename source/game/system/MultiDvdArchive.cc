@@ -50,7 +50,7 @@ void *MultiDvdArchive::getFile(const char *filename, size_t *size) const {
             break;
         }
     }
-
+    if (!file) {exit(42);}
     return file;
 }
 

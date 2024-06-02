@@ -1,4 +1,5 @@
 #include "KPadDirector.hh"
+#include <game/system/KPadController.hh>
 
 namespace System {
 
@@ -10,7 +11,7 @@ void KPadDirector::calc() {
 
 /// @addr{0x805237E8}
 void KPadDirector::calcPads() {
-    m_ghostController->calc();
+    m_controller->calc();
 }
 
 /// @addr{0x80523724}
@@ -37,13 +38,22 @@ const KPadPlayer &KPadDirector::playerInput() const {
 
 /// @addr{0x8052453C}
 void KPadDirector::setGhostPad(const u8 *inputs, bool driftIsAuto) {
-    m_playerInput.setGhostController(m_ghostController, inputs, driftIsAuto);
+    m_playerInput.setGhostController(new KPadGhostController, inputs, driftIsAuto);
+    SetController(m_playerInput.m_controller);
 }
 
 /// @addr{0x8052313C}
 KPadDirector *KPadDirector::CreateInstance() {
     assert(!s_instance);
     return s_instance = new KPadDirector;
+}
+
+/// @addr{none lol, i made it up}
+void KPadDirector::SetController(KPadController *controller) {
+    // Bruv y r there two of theses, like fr fr y ?? did nintenedo do this? 
+    // shaking my smh haed mman
+    Instance()->m_controller = controller;
+    Instance()->m_playerInput.setController(controller);
 }
 
 /// @addr{0x8052318C}
@@ -58,10 +68,7 @@ KPadDirector *KPadDirector::Instance() {
 }
 
 /// @addr{0x805232F0}
-KPadDirector::KPadDirector() {
-    m_ghostController = new KPadGhostController;
-}
-
+KPadDirector::KPadDirector() = default;
 /// @addr{0x805231DC}
 KPadDirector::~KPadDirector() = default;
 

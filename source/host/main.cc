@@ -12,6 +12,11 @@ static void FlushDenormalsToZero() {
 static void FlushDenormalsToZero() {
     _MM_SET_DENORMALS_ZERO_MODE(_MM_DENORMALS_ZERO_ON);
 }
+#elif defined(__wasm)
+// we don't care about syncing lol
+static void FlushDenormalsToZero() {}
+#else
+#error Unsupported platform; no implementation for FlushDenormalsToZero
 #endif
 
 int main(int argc, char **argv) {
