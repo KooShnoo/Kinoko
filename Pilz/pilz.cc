@@ -1,7 +1,10 @@
 #include "Common.hh"
 #include "game/system/KPadController.hh"
+#include <cassert>
+#include <cstddef>
 #include <game/kart/KartObjectProxy.hh>
-#include <string>
+#include <game/system/RaceConfig.hh>
+#include <optional>
 
 #include <array>
 #include <cstdio>
@@ -14,6 +17,14 @@
 #include <host/SceneCreatorDynamic.hh>
 
 void JSlog(const char* msg);
+
+static EGG::SceneManager *sceneMgr;
+constexpr const auto defaultRaceSelections = System::RaceConfig::RaceSelections{
+    .course = Course::N64_DKs_Jungle_Parkway,
+    .character = Character::Mario,
+    .vehicle = Vehicle::Mach_Bike,
+    .type = System::RaceConfig::Player::Type::Local,
+};
 
 class PilzController: public System::KPadController {
 public:
@@ -30,71 +41,68 @@ public:
         m_raceInputState.stick = EGG::Vector2f(stickX, stickY);
     }
     u16 getButtons() { return m_raceInputState.buttons; }
-
-    static PilzController *Instance() { return static_cast<PilzController*>(System::KPadDirector::Instance()->m_controller); }
     // u16 JSButtons;
+};
+
+struct PilzPlayerTransform {
+    s32 timer;
+    std::array<f32, 3> pos;
+    std::array<f32, 3> rot;
+};
+
+static PilzController *sController;
+class Pilz {
+public:
+    static void init() {
+        sPlayerTransform = new PilzPlayerTransform;
+        sController = new PilzController;
+        sSelections = std::nullopt;
+        auto *sceneCreator = new Host::SceneCreatorDynamic;
+        assert(sceneCreator);
+        sceneMgr = new EGG::SceneManager(sceneCreator);
+
+        sController->setDriftIsAuto(false);
+        System::RaceConfig::setSelections(defaultRaceSelections);
+    }
+
+    static void updateTransform() {
+        const auto player = Kart::KartObjectManager::Instance()->object(0);
+        const auto &pos = player->pos();
+        const auto &mainRot = player->mainRot();
+        auto rot = mainRot.rotateVector(EGG::Vector3f::unit);
+        rot.normalise();
+        sPlayerTransform->timer = System::RaceManager::Instance()->getTimer();
+        sPlayerTransform->pos = {pos.x, pos.y, pos.z};
+        sPlayerTransform->rot = {rot.x, rot.y, rot.z};
+    }
+
+    static PilzPlayerTransform *sPlayerTransform;
+    
+    static std::optional<System::RaceConfig::RaceSelections> sSelections;
 };
 
 __attribute__((export_name("alloc")))
 u8* alloc(u32 size) { return new u8[size]; }
 
 __attribute__((export_name("setButtons")))
-void setButtons(u16 buttons, f32 stickX, f32 stickY) { PilzController::Instance()->setButtons(buttons, stickX, stickY); }
-
-__attribute__((export_name("logRots")))
-const char* logRots() {
-    const auto &fullRot = Kart::KartObjectManager::Instance()->object(0)->fullRot();
-    const auto &mainRot = Kart::KartObjectManager::Instance()->object(0)->mainRot();
-    const auto msg = std::format("fullRot:{:08.2f} {:08.2f} {:08.2f} {:08.2f}\nmainRot: {:08.2f} {:08.2f} {:08.2f} {:08.2f}",
-        fullRot.v.x,
-        fullRot.v.y,
-        fullRot.v.z,
-        fullRot.w,
-        mainRot.v.x,
-        mainRot.v.y,
-        mainRot.v.z,
-        mainRot.w
-    );
-    const auto str = new std::string(msg);
-    return str->c_str();
-}
-
-static EGG::SceneManager *sceneMgr;
-struct PilzPlayerTransform {
-    PilzPlayerTransform(): pos({0}), timer(0) {}
-
-    std::array<f32, 3> pos;
-    s32 timer;
-    std::array<f32, 3> rot;
-    static PilzPlayerTransform *instance;
-
-    static void updateTransform() {
-        const auto &pos = Kart::KartObjectManager::Instance()->object(0)->pos();
-        PilzPlayerTransform::instance->pos = {pos.x, pos.y, pos.z};
-        // const auto front = Kart::KartObjectManager::Instance()->object(0)->bodyFront();
-        // PilzPlayerTransform::instance->rot = {front.x, front.y, front.z};
-        PilzPlayerTransform::instance->timer = System::RaceManager::Instance()->getTimer();
-    }
-};
+void setButtons(u16 buttons, f32 stickX, f32 stickY) { sController->setButtons(buttons, stickX, stickY); }
 
 __attribute__((export_name("calc")))
 void* calc() {
     sceneMgr->calc();
-    PilzPlayerTransform::updateTransform();
-    return PilzPlayerTransform::instance;
+    Pilz::updateTransform();
+    return Pilz::sPlayerTransform;
 }
 
 
 int main() {
-    auto *sceneCreator = new Host::SceneCreatorDynamic;
-    sceneMgr = new EGG::SceneManager(sceneCreator);
+    JSlog("1");
+    Pilz::init();
+    JSlog("2");
     sceneMgr->changeScene(0);
-
-    auto controller = new PilzController;
-    controller->setDriftIsAuto(false);
-    System::KPadDirector::SetController(controller);
-
-    PilzPlayerTransform::instance = new PilzPlayerTransform();
+    JSlog("3");
+    System::KPadDirector::setController(sController);
+    JSlog("4");
 
     setbuf(stdout, NULL);
     JSlog("initialized!");

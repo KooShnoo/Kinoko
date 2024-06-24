@@ -17,10 +17,10 @@ public:
 
     [[nodiscard]] const KPadPlayer &playerInput() const;
 
+    static void setController(KPadController* controller);
     void setGhostPad(const u8 *inputs, bool driftIsAuto);
 
     static KPadDirector *CreateInstance();
-    static void SetController(KPadController* controller);
     static void DestroyInstance();
     [[nodiscard]] static KPadDirector *Instance();
 

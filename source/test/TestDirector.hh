@@ -4,6 +4,10 @@
 
 #include <egg/util/Stream.hh>
 
+#include <game/system/GhostFile.hh>
+#include <game/system/RaceConfig.hh>
+#include <Common.hh>
+#include <abstract/File.hh>
 #include <queue>
 #include <span>
 
@@ -25,11 +29,12 @@ struct TestCase {
 /// important datapoints against those defined in the KRKG. If a desync is detected, the
 /// TestDirector will log the desyncs from that frame, and move onto the next test case in the
 /// queue. After all test cases have been iterated, Kinoko will exit.
-class TestDirector {
+class TestDirector{
 public:
     TestDirector(const std::span<u8> &suiteData);
     ~TestDirector();
 
+    System::GhostFile ghost();
     void parseSuite(EGG::RamStream &stream);
     void init();
     [[nodiscard]] bool calc();

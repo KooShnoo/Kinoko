@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Common.hh>
+#include <optional>
 
 #include "game/system/GhostFile.hh"
 
@@ -41,8 +42,17 @@ public:
         Course course;
     };
 
+    struct RaceSelections {
+        Course course;
+        Character character;
+        Vehicle vehicle;
+        Player::Type type;
+    };
+
     void init();
     void initRace();
+    static void setSelections(RaceSelections selections);
+    static void setGhost(GhostFile ghost);
     void initGhostController(const GhostFile &ghost);
 
     [[nodiscard]] const Scenario &raceScenario() const {
@@ -58,8 +68,9 @@ private:
     ~RaceConfig();
 
     Scenario m_raceScenario;
-    RawGhostFile m_ghost;
 
+    inline static std::optional<RaceSelections> s_selections;
+    inline static std::optional<GhostFile> s_ghost;
     static RaceConfig *s_instance; ///< @addr{0x809BD728}
 };
 

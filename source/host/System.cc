@@ -7,6 +7,7 @@
 #include <cstring>
 #include <game/system/KPadController.hh>
 #include <game/system/KPadDirector.hh>
+#include <game/system/RaceConfig.hh>
 
 namespace Host {
 
