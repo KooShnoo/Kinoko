@@ -64,7 +64,7 @@ struct PilzPlayerTransform {
     PilzPlayerTransform(): pos({0}), timer(0) {}
 
     std::array<f32, 3> pos;
-    u32 timer;
+    s32 timer;
     std::array<f32, 3> rot;
     static PilzPlayerTransform *instance;
 
@@ -90,7 +90,9 @@ int main() {
     sceneMgr = new EGG::SceneManager(sceneCreator);
     sceneMgr->changeScene(0);
 
-    System::KPadDirector::SetController(new PilzController);
+    auto controller = new PilzController;
+    controller->setDriftIsAuto(false);
+    System::KPadDirector::SetController(controller);
 
     PilzPlayerTransform::instance = new PilzPlayerTransform();
 

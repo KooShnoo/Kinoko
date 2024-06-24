@@ -187,51 +187,51 @@ for in_file in code_in_files:
         )
         n.newline()
 
-#     if wasm:
-#         n.build(
-#             target_out_wasm_file,
-#             'wasmcc',
-#             in_file,
-#             variables={
-#                 'ccflags': ' '.join(['$wasm_ccflags', *target_cflags])
-#             }
-#         )
-#         n.newline()
+    if wasm:
+        n.build(
+            target_out_wasm_file,
+            'wasmcc',
+            in_file,
+            variables={
+                'ccflags': ' '.join(['$wasm_ccflags', *target_cflags])
+            }
+        )
+        n.newline()
 
-#         n.build(
-#             debug_out_wasm_file,
-#             'wasmcc',
-#             in_file,
-#             variables={
-#                 'ccflags': ' '.join(['$wasm_ccflags', *debug_cflags])
-#             }
-#         )
-#         n.newline()
+        n.build(
+            debug_out_wasm_file,
+            'wasmcc',
+            in_file,
+            variables={
+                'ccflags': ' '.join(['$wasm_ccflags', *debug_cflags])
+            }
+        )
+        n.newline()
 
-# if wasm:
-#     n.build(
-#         os.path.join('$outdir', f'kinokoD.wasm'),
-#         'wasmld',
-#         debug_wasm_out_files,
-#                 variables={
-#             'ldflags': ' '.join([
-#                 *wasm_ldflags,
-#                 # '-O0',
-#                 '-g'
-#             ])
-#         },
-#     )
+if wasm:
+    n.build(
+        os.path.join('$outdir', f'kinokoD.wasm'),
+        'wasmld',
+        debug_wasm_out_files,
+                variables={
+            'ldflags': ' '.join([
+                *wasm_ldflags,
+                # '-O0',
+                '-g'
+            ])
+        },
+    )
     
-#     n.build(
-#         os.path.join('$outdir', f'kinoko.wasm'),
-#         'wasmld',
-#         target_wasm_out_files,
-#         variables={
-#             'ldflags': ' '.join([
-#                 *wasm_ldflags,
-#             ])
-#         },
-#     )
+    n.build(
+        os.path.join('$outdir', f'kinoko.wasm'),
+        'wasmld',
+        target_wasm_out_files,
+        variables={
+            'ldflags': ' '.join([
+                *wasm_ldflags,
+            ])
+        },
+    )
 
 n.build(
     os.path.join('$outdir', f'kinoko{file_extension}'),
