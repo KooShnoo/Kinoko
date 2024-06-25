@@ -2,6 +2,8 @@
 #include "game/system/KPadController.hh"
 #include <cassert>
 #include <cstddef>
+#include <egg/math/Matrix.hh>
+#include <egg/math/Quat.hh>
 #include <game/kart/KartObjectProxy.hh>
 #include <game/system/RaceConfig.hh>
 #include <optional>
@@ -17,6 +19,7 @@
 #include <host/SceneCreatorDynamic.hh>
 
 void JSlog(const char* msg);
+namespace Pilz {
 
 static EGG::SceneManager *sceneMgr;
 constexpr const auto defaultRaceSelections = System::RaceConfig::RaceSelections{
@@ -26,7 +29,7 @@ constexpr const auto defaultRaceSelections = System::RaceConfig::RaceSelections{
     .type = System::RaceConfig::Player::Type::Local,
 };
 
-class PilzController: public System::KPadController {
+class Controller: public System::KPadController {
 public:
     System::ControlSource controlSource() override { return System::ControlSource::Classic; }
 
@@ -41,70 +44,82 @@ public:
         m_raceInputState.stick = EGG::Vector2f(stickX, stickY);
     }
     u16 getButtons() { return m_raceInputState.buttons; }
-    // u16 JSButtons;
 };
 
-struct PilzPlayerTransform {
+struct PlayerTransform {
     s32 timer;
     std::array<f32, 3> pos;
-    std::array<f32, 3> rot;
+    std::array<f32, 4> rot;
 };
 
-static PilzController *sController;
-class Pilz {
-public:
-    static void init() {
-        sPlayerTransform = new PilzPlayerTransform;
-        sController = new PilzController;
-        sSelections = std::nullopt;
-        auto *sceneCreator = new Host::SceneCreatorDynamic;
-        assert(sceneCreator);
-        sceneMgr = new EGG::SceneManager(sceneCreator);
 
-        sController->setDriftIsAuto(false);
-        System::RaceConfig::setSelections(defaultRaceSelections);
+static Controller *controller;
+static PlayerTransform *playerTransform;
+static std::optional<System::RaceConfig::RaceSelections> selections;
+
+void reinit() {
+    sceneMgr->reinitCurrentScene();
+}
+
+__attribute__((export_name("init")))
+void init() {
+    const bool initialized = sceneMgr->currentSceneId() != 0;
+    if (initialized) {
+        JSlog("reinitng");
+        reinit();
+        return;
     }
 
-    static void updateTransform() {
-        const auto player = Kart::KartObjectManager::Instance()->object(0);
-        const auto &pos = player->pos();
-        const auto &mainRot = player->mainRot();
-        auto rot = mainRot.rotateVector(EGG::Vector3f::unit);
-        rot.normalise();
-        sPlayerTransform->timer = System::RaceManager::Instance()->getTimer();
-        sPlayerTransform->pos = {pos.x, pos.y, pos.z};
-        sPlayerTransform->rot = {rot.x, rot.y, rot.z};
-    }
+    playerTransform = new PlayerTransform;
+    controller = new Controller;
+    selections = std::nullopt;
+    auto *sceneCreator = new Host::SceneCreatorDynamic;
+    sceneMgr = new EGG::SceneManager(sceneCreator);
+    controller->setDriftIsAuto(false);
 
-    static PilzPlayerTransform *sPlayerTransform;
-    
-    static std::optional<System::RaceConfig::RaceSelections> sSelections;
-};
+    sceneMgr->changeScene(0);
+    System::KPadDirector::setController(Pilz::controller);
+}
+
+void updateTransform() {
+    const auto player = Kart::KartObjectManager::Instance()->object(0);
+    const auto &pos = player->pos();
+    const auto &rot = player->mainRot();
+    // auto rot = quatToEuler(mainRot);
+    // const auto &pose = player->pose();
+    playerTransform->timer = System::RaceManager::Instance()->getTimer();
+    playerTransform->pos = {pos.x, pos.y, pos.z};
+    playerTransform->rot = {rot.v.x, rot.v.y, rot.v.z, rot.w};
+}
+
+
 
 __attribute__((export_name("alloc")))
 u8* alloc(u32 size) { return new u8[size]; }
 
 __attribute__((export_name("setButtons")))
-void setButtons(u16 buttons, f32 stickX, f32 stickY) { sController->setButtons(buttons, stickX, stickY); }
+void setButtons(u16 buttons, f32 stickX, f32 stickY) { controller->setButtons(buttons, stickX, stickY); }
+
+__attribute__((export_name("setCourse")))
+void setCourse(Course course) {
+    if (!selections.has_value()) {
+        selections = defaultRaceSelections;
+    }
+    selections->course = course;
+    System::RaceConfig::setSelections(selections.value());
+}
 
 __attribute__((export_name("calc")))
 void* calc() {
     sceneMgr->calc();
-    Pilz::updateTransform();
-    return Pilz::sPlayerTransform;
+    updateTransform();
+    return playerTransform;
 }
 
+}
 
 int main() {
-    JSlog("1");
-    Pilz::init();
-    JSlog("2");
-    sceneMgr->changeScene(0);
-    JSlog("3");
-    System::KPadDirector::setController(sController);
-    JSlog("4");
-
     setbuf(stdout, NULL);
-    JSlog("initialized!");
+    JSlog("Hi there, I'm calling because you recently called main(). Please be aware that we have recently moved to init(), and you should call us there instead. Thank you!");
     return 0;
 }
