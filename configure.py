@@ -159,12 +159,9 @@ for in_file in code_in_files:
         target_out_wasm_file = os.path.join('$builddir', in_file + '.wasm')
         target_wasm_out_files.append(target_out_wasm_file)
         
-    if native:
-        debug_out_file = os.path.join('$builddir', in_file + 'D.o')
-        debug_code_out_files.append(debug_out_file)
-    if wasm:
-        debug_out_wasm_file = os.path.join('$builddir', in_file + 'D.wasm')
-        debug_wasm_out_files.append(debug_out_wasm_file)
+    # if native:
+    #     debug_out_file = os.path.join('$builddir', in_file + 'D.o')
+    #     debug_code_out_files.append(debug_out_file)
 
     if native:
         n.build(
@@ -177,15 +174,15 @@ for in_file in code_in_files:
         )
         n.newline()
         
-        n.build(
-            debug_out_file,
-            ext[1:],
-            in_file,
-            variables={
-                'ccflags': ' '.join(['$common_ccflags', *debug_cflags])
-            }
-        )
-        n.newline()
+        # n.build(
+        #     debug_out_file,
+        #     ext[1:],
+        #     in_file,
+        #     variables={
+        #         'ccflags': ' '.join(['$common_ccflags', *debug_cflags])
+        #     }
+        # )
+        # n.newline()
 
     if wasm:
         n.build(
@@ -198,29 +195,7 @@ for in_file in code_in_files:
         )
         n.newline()
 
-        n.build(
-            debug_out_wasm_file,
-            'wasmcc',
-            in_file,
-            variables={
-                'ccflags': ' '.join(['$wasm_ccflags', *debug_cflags])
-            }
-        )
-        n.newline()
-
 if wasm:
-    n.build(
-        os.path.join('$outdir', f'kinokoD.wasm'),
-        'wasmld',
-        debug_wasm_out_files,
-                variables={
-            'ldflags': ' '.join([
-                *wasm_ldflags,
-                # '-O0',
-                '-g'
-            ])
-        },
-    )
     
     n.build(
         os.path.join('$outdir', f'kinoko.wasm'),
@@ -242,14 +217,14 @@ n.build(
     },
 )
 
-n.build(
-    os.path.join('$outdir', f'kinokoD{file_extension}'),
-    'ld',
-    debug_code_out_files,
-    variables={
-        'ldflags': ' '
-    },
-)
+# n.build(
+#     os.path.join('$outdir', f'kinokoD{file_extension}'),
+#     'ld',
+#     debug_code_out_files,
+#     variables={
+#         'ldflags': ' '
+#     },
+# )
 
 
 n.variable('configure', 'configure.py')
