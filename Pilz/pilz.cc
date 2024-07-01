@@ -18,6 +18,7 @@
 #include <game/system/RaceManager.hh>
 #include <host/SceneCreatorDynamic.hh>
 
+
 void JSlog(const char* msg);
 namespace Pilz {
 

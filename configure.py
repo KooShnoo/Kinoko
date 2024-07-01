@@ -140,7 +140,7 @@ n.newline()
 
 code_in_files = [file for file in glob('**/*.cc', recursive=True)]
 no_wasm_files = ["source/host/main.cc", "source/abstract/File.cc"]
-only_wasm_files = ["Pilz/pilz.cc"]
+no_native_files = ["Pilz/pilz.cc"]
 
 target_code_out_files = []
 debug_code_out_files = []
@@ -150,7 +150,7 @@ debug_wasm_out_files = []
 for in_file in code_in_files:
     in_filename, ext = os.path.splitext(in_file)
     wasm = not in_file in no_wasm_files
-    native = not in_file in only_wasm_files
+    native = not in_file in no_native_files
     
     if native:
         target_out_file = os.path.join('$builddir', in_file + '.o')
