@@ -40,9 +40,10 @@ public:
         m_connected = true;
     }
 
-    void setButtons(u16 newButtons, f32 stickX, f32 stickY) {
+    void setButtons(u16 newButtons, f32 stickX, f32 stickY, System::Trick trick) {
         m_raceInputState.buttons = newButtons;
         m_raceInputState.stick = EGG::Vector2f(stickX, stickY);
+        m_raceInputState.trick = trick;
     }
     u16 getButtons() { return m_raceInputState.buttons; }
 };
@@ -99,7 +100,9 @@ __attribute__((export_name("alloc")))
 u8* alloc(u32 size) { return new u8[size]; }
 
 __attribute__((export_name("setButtons")))
-void setButtons(u16 buttons, f32 stickX, f32 stickY) { controller->setButtons(buttons, stickX, stickY); }
+void setButtons(u16 buttons, f32 stickX, f32 stickY, System::Trick trick) {
+    controller->setButtons(buttons, stickX, stickY, trick);
+}
 
 __attribute__((export_name("setCourse")))
 void setCourse(Course course) {
