@@ -162,8 +162,8 @@ public:
     [[nodiscard]] const RaceInputState &lastState() const;
     [[nodiscard]] bool driftIsAuto() const;
 
-protected:
     KPadController *m_controller;
+protected:
     RaceInputState m_currentInputState;
     RaceInputState m_lastInputState; ///< Used to determine changes in input state.
 };
@@ -175,6 +175,7 @@ public:
     ~KPadPlayer();
 
     void setGhostController(KPadGhostController *controller, const u8 *inputs, bool driftIsAuto);
+    void setController(KPadController *controller);
 
     void startGhostProxy(); ///< Signals to start reading ghost data after fade-in.
     void endGhostProxy();   ///< Signals to stop reading ghost data after race completion.

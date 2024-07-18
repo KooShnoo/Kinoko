@@ -7,13 +7,14 @@ namespace System {
 #define ARCHIVE_COUNT 2
 
 static const char *const RESOURCE_PATHS[] = {
-        "/Kinoko/Common",
+        "/Race/Common",
         nullptr,
 };
 
 /// @addr{0x805411FC}
 void *ResourceManager::getFile(const char *filename, size_t *size, ArchiveId id) {
     s32 idx = static_cast<s32>(id);
+    if (!m_archives[idx]->isLoaded()) { exit(42);}
     return m_archives[idx]->isLoaded() ? m_archives[idx]->getFile(filename, size) : nullptr;
 }
 
@@ -46,7 +47,7 @@ MultiDvdArchive *ResourceManager::load(s32 idx, const char *filename) {
 /// @addr{0x80540760}
 MultiDvdArchive *ResourceManager::load(Course courseId) {
     char buffer[256];
-    snprintf(buffer, sizeof(buffer), "Kinoko/Course/%s", COURSE_NAMES[static_cast<s32>(courseId)]);
+    snprintf(buffer, sizeof(buffer), "Race/Course/%s", COURSE_NAMES[static_cast<s32>(courseId)]);
     m_archives[1]->load(buffer);
     return m_archives[1];
 }

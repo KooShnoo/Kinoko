@@ -1,6 +1,8 @@
 #include "TestDirector.hh"
 
 #include <game/kart/KartObjectManager.hh>
+#include <game/system/GhostFile.hh>
+#include <host/System.hh>
 
 #include <abstract/File.hh>
 
@@ -29,6 +31,15 @@ TestDirector::TestDirector(const std::span<u8> &suiteData) {
 }
 
 TestDirector::~TestDirector() = default;
+
+System::GhostFile TestDirector::ghost() {
+    size_t size;
+    u8 *rkg = Abstract::File::Load(this->testCase().rkgPath.data(), size);
+    System::GhostFile ghost(rkg);
+    delete[] rkg;
+
+    return ghost;
+}
 
 void TestDirector::parseSuite(EGG::RamStream &stream) {
     constexpr u32 TEST_HEADER_SIGNATURE = 0x54535448; // TSTH
@@ -102,6 +113,7 @@ void TestDirector::init() {
     readHeader();
 
     assert(m_stream.read_u32() == m_stream.index());
+    System::RaceConfig::setGhost(this->ghost());
 }
 
 bool TestDirector::calc() {

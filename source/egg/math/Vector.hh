@@ -149,7 +149,7 @@ struct Vector3f {
     f32 y;
     f32 z;
 
-    static const Vector3f zero;
+    static const Vector3f zero, unit;
     static const Vector3f ex, ey, ez;
     static const Vector3f inf;
 };

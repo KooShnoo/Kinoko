@@ -1,6 +1,8 @@
 #include "KPadController.hh"
 
+#include <Common.hh>
 #include <cstring>
+#include <limits>
 
 namespace System {
 
@@ -148,19 +150,19 @@ void RaceInputState::reset() {
 }
 
 bool RaceInputState::accelerate() const {
-    return !!(buttons & 0x1);
+    return !!(buttons & Button::ACCELERATE);
 }
 
 bool RaceInputState::brake() const {
-    return !!(buttons & 0x2);
+    return !!(buttons & Button::BRAKE);
 }
 
 bool RaceInputState::item() const {
-    return !!(buttons & 0x4);
+    return !!(buttons & Button::ITEM);
 }
 
 bool RaceInputState::drift() const {
-    return !!(buttons & 0x8);
+    return !!(buttons & Button::DRIFT);
 }
 
 bool RaceInputState::trickUp() const {
@@ -285,6 +287,10 @@ void KPadPlayer::setGhostController(KPadGhostController *controller, const u8 *i
     }
 
     controller->readGhostBuffer(m_ghostBuffer, driftIsAuto);
+}
+
+void KPadPlayer::setController(KPadController *controller) {
+    m_controller = controller;
 }
 
 /// @addr{0x805215D4}

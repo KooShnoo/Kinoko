@@ -17,18 +17,19 @@ public:
 
     [[nodiscard]] const KPadPlayer &playerInput() const;
 
+    static void setController(KPadController* controller);
     void setGhostPad(const u8 *inputs, bool driftIsAuto);
 
     static KPadDirector *CreateInstance();
     static void DestroyInstance();
     [[nodiscard]] static KPadDirector *Instance();
 
-private:
+// private:
     KPadDirector();
     ~KPadDirector();
 
     KPadPlayer m_playerInput;
-    KPadGhostController *m_ghostController;
+    KPadController *m_controller;
 
     static KPadDirector *s_instance; ///< @addr{0x809BD70C}
 };

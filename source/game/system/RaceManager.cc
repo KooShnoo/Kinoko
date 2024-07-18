@@ -58,6 +58,10 @@ int RaceManager::getCountdownTimer() const {
     return STAGE_COUNTDOWN_DURATION - m_timer;
 }
 
+s32 RaceManager::getTimer() const {
+    return m_timer - STAGE_COUNTDOWN_DURATION;
+}
+
 const RaceManagerPlayer &RaceManager::player() const {
     return m_player;
 }
