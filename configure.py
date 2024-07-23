@@ -12,9 +12,9 @@ generate_tests()
 out_buf = io.StringIO()
 n = Writer(out_buf)
 
-file_extension = ''
+file_extension = '.so'
 if sys.platform.startswith('win32'):
-    file_extension = '.exe'
+    file_extension = '.dll'
 
 n.variable('ninja_required_version', '1.3')
 n.newline()
@@ -23,11 +23,13 @@ n.variable('builddir', 'build')
 n.variable('outdir', 'out')
 n.newline()
 
-n.variable('compiler', 'g++')
+n.variable('compiler', 'clang++')
 n.newline()
 
 common_ccflags = [
-    '-DREVOLUTION',
+    '-fPIC', # dylib
+    '-fvisibility=hidden',
+    # '-fsanitize=address',
     '-fno-asynchronous-unwind-tables',
     '-fno-exceptions',
     '-fno-rtti',
@@ -38,12 +40,13 @@ common_ccflags = [
     '-isystem', 'source',
     '-isystem', 'vendor',
     '-isystem', 'build',
+    '-isystem', '/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/Headers/',
     '-std=c++23',
-    '-Wall',
-    '-Werror',
-    '-Wextra',
+    # '-Wall',
+    # '-Werror',
+    # '-Wextra',
     '-Wno-delete-non-virtual-dtor',
-    '-Wno-packed-bitfield-compat',
+    # '-Wno-packed-bitfield-compat',
     '-Wsuggest-override',
 ]
 
@@ -56,7 +59,20 @@ debug_cflags = [
     '-ggdb',
 ]
 
-common_ldflags = []
+common_ldflags = [
+    '-dynamiclib', # dylib
+    '-fvisibility=hidden',
+    # '-fsanitize=address',
+    # '-shared-libsan',
+    # '-shared-libasan',
+    # /Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/Python3
+    # /usr/local/Cellar/python@3.12/3.12.3/Frameworks/Python.framework/Versions/3.12/lib/libpython3.12.dylib
+    # '-Wl,-rpath,/Library/Developer/CommandLineTools/Library/Frameworks/',
+    # '-L/usr/local/Cellar/python@3.11/3.11.6_1/Frameworks/Python.framework/Versions/3.11/lib/',
+    # '-L/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/',
+    # '-lpython3.11'
+    '-undefined dynamic_lookup'
+]
 
 n.rule(
     'cc',
@@ -77,8 +93,11 @@ code_in_files = [file for file in glob('**/*.cc', recursive=True)]
 
 target_code_out_files = []
 debug_code_out_files = []
+skip_files = ["source/host/main.cc", "source/host/System.cc", "source/abstract/File.cc"] + [file for file in glob('source/test/*.cc', recursive=True)]
 
 for in_file in code_in_files:
+    if in_file in skip_files:
+        continue
     _, ext = os.path.splitext(in_file)
 
     target_out_file = os.path.join('$builddir', in_file + '.o')

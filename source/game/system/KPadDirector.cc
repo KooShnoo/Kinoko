@@ -1,5 +1,6 @@
 #include "KPadDirector.hh"
 #include <cassert>
+#include <cstdio>
 #include <game/system/KPadController.hh>
 
 namespace System {

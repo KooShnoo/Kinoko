@@ -37,7 +37,7 @@ KartState::KartState() {
 
     clearBitfield3();
 
-    m_bAutoDrift = inputs()->driftIsAuto();
+    m_bAutoDrift = false;//inputs()->driftIsAuto();
 
     m_airtime = 0;
     m_cannonPointId = 0;
