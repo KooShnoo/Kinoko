@@ -2,8 +2,6 @@
 
 #include "game/system/map/MapdataAccessorBase.hh"
 
-#include "game/kart/KartMove.hh"
-
 #include <egg/math/Vector.hh>
 
 namespace System {

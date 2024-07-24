@@ -8,6 +8,8 @@ namespace System {
 
 class MapdataCannonPoint;
 class MapdataCannonPointAccessor;
+class MapdataCheckPoint;
+class MapdataCheckPointAccessor;
 class MapdataFileAccessor;
 class MapdataGeoObj;
 class MapdataGeoObjAccessor;
@@ -25,6 +27,7 @@ class CourseMap {
 public:
     void init();
     [[nodiscard]] MapdataCannonPointAccessor *parseCannonPoint(u32 sectionName);
+    [[nodiscard]] MapdataCheckPointAccessor *parseCheckPoint(u32 sectionName);
     [[nodiscard]] MapdataGeoObjAccessor *parseGeoObj(u32 sectionName);
     [[nodiscard]] MapdataJugemPointAccessor *parseJugemPoint(u32 sectionName);
     [[nodiscard]] MapdataStageInfoAccessor *parseStageInfo(u32 sectionName);
@@ -32,6 +35,7 @@ public:
 
     /// @beginGetters
     [[nodiscard]] MapdataCannonPoint *getCannonPoint(u16 i) const;
+    [[nodiscard]] MapdataCheckPoint *getCheckPoint(u16 i) const;
     [[nodiscard]] MapdataGeoObj *getGeoObj(u16 i) const;
     [[nodiscard]] MapdataJugemPoint *getJugemPoint(u16 i) const;
     [[nodiscard]] MapdataStageInfo *getStageInfo() const;
@@ -59,6 +63,7 @@ private:
     MapdataGeoObjAccessor *m_geoObj;
     MapdataJugemPointAccessor *m_jugemPoint;
     MapdataCannonPointAccessor *m_cannonPoint;
+    MapdataCheckPointAccessor *m_checkPoint;
     MapdataStageInfoAccessor *m_stageInfo;
 
     // TODO: Better names

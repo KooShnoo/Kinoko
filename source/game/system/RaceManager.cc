@@ -6,6 +6,11 @@
 
 namespace System {
 
+/// @addr{0x80532F88}
+void RaceManager::init() {
+    m_player.init();
+}
+
 /// @addr{0x805362DC}
 /// @todo When expanding to other gamemodes, we will need to pass the player index
 void RaceManager::findKartStartPoint(EGG::Vector3f &pos, EGG::Vector3f &angles) {
@@ -90,14 +95,21 @@ void RaceManager::DestroyInstance() {
 }
 
 /// @addr{0x805327A0}
-RaceManager::RaceManager() : m_stage(Stage::Intro), m_introTimer(0), m_timer(0) {}
+RaceManager::RaceManager() : m_player(0, 3), m_stage(Stage::Intro), m_introTimer(0), m_timer(0) {}
 
 /// @addr{0x80532E3C}
 RaceManager::~RaceManager() = default;
 
 /// @addr{0x80533ED8}
-RaceManagerPlayer::RaceManagerPlayer() {
+RaceManagerPlayer::RaceManagerPlayer(u8 idx, u8 lapCount): m_idx(idx) {
+    m_lapFinishTimes = std::vector<Timer>(lapCount);
     m_inputs = &KPadDirector::Instance()->playerInput();
+}
+
+/// @addr{0x80534194}
+void RaceManagerPlayer::init() {
+
+
 }
 
 const KPad *RaceManagerPlayer::inputs() const {

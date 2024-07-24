@@ -1,6 +1,7 @@
 #include "CourseMap.hh"
 
 #include "game/system/map/MapdataCannonPoint.hh"
+#include "game/system/map/MapdataCheckPoint.hh"
 #include "game/system/map/MapdataFileAccessor.hh"
 #include "game/system/map/MapdataGeoObj.hh"
 #include "game/system/map/MapdataJugemPoint.hh"
@@ -18,6 +19,7 @@ void CourseMap::init() {
             new MapdataFileAccessor(reinterpret_cast<const MapdataFileAccessor::SData *>(buffer));
 
     constexpr u32 CANNON_POINT_SIGNATURE = 0x434e5054;
+    constexpr u32 CHECK_POINT_SIGNATURE = 0x434b5054;
     constexpr u32 GEO_OBJ_SIGNATURE = 0x474f424a;
     constexpr u32 JUGEM_POINT_SIGNATURE = 0x4a475054;
     constexpr u32 START_POINT_SIGNATURE = 0x4b545054;
@@ -27,6 +29,7 @@ void CourseMap::init() {
     m_geoObj = parseGeoObj(GEO_OBJ_SIGNATURE);
     m_jugemPoint = parseJugemPoint(JUGEM_POINT_SIGNATURE);
     m_cannonPoint = parseCannonPoint(CANNON_POINT_SIGNATURE);
+    m_checkPoint = parseCheckPoint(CHECK_POINT_SIGNATURE);
     m_stageInfo = parseStageInfo(STAGE_INFO_SIGNATURE);
 
     MapdataStageInfo *stageInfo = getStageInfo();
@@ -52,6 +55,18 @@ MapdataCannonPointAccessor *CourseMap::parseCannonPoint(u32 sectionName) {
     MapdataCannonPointAccessor *accessor = nullptr;
     if (sectionPtr) {
         accessor = new MapdataCannonPointAccessor(sectionPtr);
+    }
+
+    return accessor;
+}
+
+/// @addr{0x80513640}
+MapdataCheckPointAccessor *CourseMap::parseCheckPoint(u32 sectionName) {
+    const MapSectionHeader *sectionPtr = m_course->findSection(sectionName);
+
+    MapdataCheckPointAccessor *accessor = nullptr;
+    if (sectionPtr) {
+        accessor = new MapdataCheckPointAccessor(sectionPtr);
     }
 
     return accessor;
@@ -100,9 +115,14 @@ MapdataStartPointAccessor *CourseMap::parseStartPoint(u32 sectionName) {
     return accessor;
 }
 
-/// @addr{0x80518AF8}
+/// @addr{0x80518AE0}
 MapdataCannonPoint *CourseMap::getCannonPoint(u16 i) const {
     return m_cannonPoint && m_cannonPoint->size() != 0 ? m_cannonPoint->get(i) : nullptr;
+}
+
+/// @addr{0x80518AE0}
+MapdataCheckPoint *CourseMap::getCheckPoint(u16 i) const {
+    return m_checkPoint && m_checkPoint->size() != 0 ? m_checkPoint->get(i) : nullptr;
 }
 
 /// @addr{0x80514148}
