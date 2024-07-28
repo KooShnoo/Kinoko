@@ -1,5 +1,6 @@
 import importlib.util
 from enum import IntFlag
+import mathutils
 import fake_bpy as bpy
 
 pilz = importlib.util.module_from_spec(importlib.util.spec_from_file_location("pilz","/Users/ishanchawla/Desktop/Wii/dev/Kinoko/out/kinoko.so"))
@@ -38,7 +39,8 @@ class DriveCourse(bpy.types.Operator):
         if event.type == 'TIMER':
             self.drive_loop()
         elif event.type in {'RIGHTMOUSE', 'ESC'}:  # Cancel
-            bpy.app.timers.unregister(self.drive_loop)
+            pilz.stop()
+            # bpy.app.timers.unregister(self.drive_loop)
             # context.window_manager.event_timer_remove(self.timer)
             # return {'FINISHED'}
             return {'CANCELLED'}
@@ -47,15 +49,33 @@ class DriveCourse(bpy.types.Operator):
         return {'RUNNING_MODAL'}
 
     def drive_loop(self):
-        (pos, rot) = pilz.calc()
+        (pos, rot) = pilz.read_state()
         # scale down
         pos = tuple(map(lambda x: x / 1000, pos))
-        # mkw is y-up, blender is z-up; xzy swizzle
-        pos = (pos[0], pos[2], pos[1])
-        self.view_3d.region_3d.view_location = pos
+        pos = mathutils.Vector(pos)
+        rot = mathutils.Matrix(rot)
+        rot = rot.to_quaternion()
+
+        # rot_adjust = mathutils.Euler((math.radians(-90.0), 0.0,math.radians(180.0)), 'XYZ')
+        # rot.rotate(rot_adjust)
         bpy.context.active_object.location = pos
         bpy.context.active_object.rotation_quaternion = rot
-        return 1 / 60
+        
+        mepos = rot @ mathutils.Vector((0, 0, -1))
+        mepos *= 1.2
+        behind = pos + mepos
+        behind.z -= 0.2
+        
+
+        facing = pos - behind
+        facing = facing.to_track_quat('Z', 'Y').to_euler()
+        facing = facing.to_quaternion()
+        
+        facing = mathutils.Euler((facing.to_euler().x, 0, facing.to_euler().z), 'XYZ').to_quaternion()
+
+        self.view_3d.region_3d.view_location = pos
+        self.view_3d.region_3d.view_rotation = facing
+        return 1 / 15
     
     def inputs(self, event):
         button = key_to_button.get(event.type)
@@ -90,11 +110,10 @@ class DriveCourse(bpy.types.Operator):
         pilz.provide_files("/Users/ishanchawla/Desktop/Wii/dev/Kinoko/out/Race/common.szs","/Users/ishanchawla/Downloads/untitled.szs")
         pilz.set_course(0)
         pilz.init()
-        for _ in range(600):
-            pilz.calc()
-        context.window_manager.modal_handler_add(self)
+        pilz.start()
         bpy.app.timers.register(self.drive_loop)
         # self.timer = context.window_manager.event_timer_add(1 / 60, window=context.window)
+        context.window_manager.modal_handler_add(self)
         for area in bpy.context.screen.areas:
             if area.type == 'VIEW_3D':
                 for space in area.spaces:
@@ -105,15 +124,8 @@ class DriveCourse(bpy.types.Operator):
         return {'RUNNING_MODAL'}
     # def cancel():
         
-        
     
 # bpy_extras.keyconfig_utils.addon_keymap_register(keymap_data)
-
-
-# pilz.provide_files("/Users/ishanchawla/Desktop/Wii/dev/Kinoko/out/Race/common.szs","/Users/ishanchawla/Desktop/Wii/dev/Kinoko/out/Race/Course/beginner_course.szs")
-
-
-# btns = Button.ACCELERATE
 
 # Only needed if you want to add into a dynamic menu.
 def menu_func(self, context):
@@ -123,5 +135,3 @@ def menu_func(self, context):
 # Register and add to the view menu (required to also use F3 search "Hello World Operator" for quick access).
 bpy.utils.register_class(DriveCourse)
 bpy.types.VIEW3D_MT_view.append(menu_func)
-
-# print("okay")

@@ -84,18 +84,6 @@ void reinit() {
     sceneMgr->reinitCurrentScene();
 }
 
-
-void updateTransform() {
-    const auto player = Kart::KartObjectManager::Instance()->object(0);
-    const auto &pos = player->pos();
-    const auto &rot = player->mainRot();
-    // auto rot = quatToEuler(mainRot);
-    // const auto &pose = player->pose();
-    playerTransform->timer = System::RaceManager::Instance()->getTimer();
-    playerTransform->pos = {pos.x, pos.y, pos.z};
-    playerTransform->rot = {rot.v.x, rot.v.y, rot.v.z, rot.w};
-}
-
 void init() {
     const bool initialized = sceneMgr && sceneMgr->currentSceneId() != 0;
     if (initialized) {
@@ -127,10 +115,8 @@ void setCourse(Course course) {
     System::RaceConfig::setSelections(selections.value());
 }
 
-PlayerTransform* calc() {
+void calc() {
     sceneMgr->calc();
-    updateTransform();
-    return playerTransform;
 }
 
 }
