@@ -1,6 +1,6 @@
 #pragma once
 
-#include <Common.hh>
+#include <egg/math/Vector.hh>
 
 /// @brief High-level handling for generic system operations, such as input reading, race
 /// configuration, and resource management.
@@ -49,6 +49,19 @@ public:
     [[nodiscard]] f32 startTmp2() const;
     [[nodiscard]] f32 startTmp3() const;
     /// @endGetters
+
+    u16 getCheckPointCount() const;
+    void clearSectorChecked();
+    s16 findSector(s32 playerIdx, const EGG::Vector3f &pos, u16 checkpointIdx, f32 *distanceRatio,
+            bool isRemote);
+    s16 searchNextCheckpoint(s32 playerIdx, const EGG::Vector3f &pos, s16 depth,
+            const MapdataCheckPoint &checkpoint, float *completion, u32 params,
+            const bool param_8) const;
+    s16 searchPrevCheckpoint(s32 playerIdx, const EGG::Vector3f &pos, s16 depth,
+            const MapdataCheckPoint &checkpoint, float *completion, u32 params,
+            const bool param_8) const;
+    s16 findRecursiveSector(s32 playerIdx, const EGG::Vector3f &pos, s16 depth, int param_5,
+            MapdataCheckPoint &checkpoint, float *completion, u32 params) const;
 
     static CourseMap *CreateInstance();
     static void DestroyInstance();

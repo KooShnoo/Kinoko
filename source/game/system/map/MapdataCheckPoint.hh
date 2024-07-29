@@ -39,6 +39,12 @@ public:
     void setPlayerFlags(s32 playerIdx);
     void resetFlags();
     // SData *data() const;
+    EGG::Vector2f left() const;
+    EGG::Vector2f right() const;
+    u8 jugemIndex() const;
+    u8 lapCheck() const;
+    u8 prevPt() const;
+    u8 nextPt() const;
     s32 nextCount() const;
     s32 prevCount() const;
     s32 id() const;
@@ -50,9 +56,19 @@ private:
             const EGG::Vector2f &p1) const;
     bool checkDistanceRatio(const LinkedCheckpoint &next, const EGG::Vector2f &p0,
             const EGG::Vector2f &p1, f32 *distanceRatio) const;
+    bool isOrientationNegative(const LinkedCheckpoint &next, const EGG::Vector2f &p0,
+            const EGG::Vector2f &p1) const;
+    bool isInCheckpoint(const LinkedCheckpoint &next, const EGG::Vector2f &p0,
+            const EGG::Vector2f &p1, float *completion) const;
     Completion checkSectorAndDistanceRatio_(const LinkedCheckpoint &next, const EGG::Vector2f &p0,
             const EGG::Vector2f &p1, f32 *distanceRatio) const;
     SData *m_rawData;
+    EGG::Vector2f m_left;
+    EGG::Vector2f m_right;
+    u8 m_jugemIndex;
+    u8 m_lapCheck;
+    u8 m_prevPt;
+    u8 m_nextPt;
     u16 m_nextCount;
     u16 m_prevCount;
     EGG::Vector2f m_midpoint;

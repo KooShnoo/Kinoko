@@ -177,6 +177,307 @@ f32 CourseMap::startTmp3() const {
     return m_startTmp3;
 }
 
+u16 CourseMap::getCheckPointCount() const {
+    return m_checkPoint ? m_checkPoint->size() : 0;
+}
+
+void CourseMap::clearSectorChecked() {
+    for (u16 i = 0; i < getCheckPointCount(); i++) {
+        getCheckPoint(i)->resetFlags();
+    }
+}
+
+// This is a disaster
+/// @addr{0x80511500}
+s16 CourseMap::findSector(s32 playerIdx, const EGG::Vector3f& pos, u16 checkpointIdx, f32* distanceRatio, bool isRemote) {
+    clearSectorChecked();
+    MapdataCheckPoint *checkpoint = getCheckPoint(checkpointIdx);
+    s16 id = -1;
+    MapdataCheckPoint::Completion completion = checkpoint->checkSectorAndDistanceRatio(pos, distanceRatio);
+    checkpoint->setPlayerFlags(playerIdx);
+    u32 params = 0;
+    if (isRemote)
+        params = 6;
+
+    switch (completion) {
+    case MapdataCheckPoint::Completion_0:
+        id = checkpoint->id();
+        break;
+    case MapdataCheckPoint::Completion_2:
+        if (*distanceRatio > 0.5f) {
+            // Search next 
+            for (s32 i = 0; i < checkpoint->nextCount(); i++) {
+                auto *checkpoint_ = i < checkpoint->nextCount() ? &checkpoint->nextPoint(i) : nullptr;
+                id = findRecursiveSector(playerIdx, pos, 1, 0, *checkpoint_, distanceRatio, params);
+                if (id != -1)
+                    break;
+            }
+
+            // If that fails, search next -> prev
+            if (id == -1) {
+                for (s32 i = 0; i < checkpoint->nextCount(); i++) {
+                    MapdataCheckPoint *next = i < checkpoint->nextCount() ? checkpoint->nextPoint(i) : nullptr;
+                    for (s32 j = 0; j < next->prevCount(); j++) {
+                        MapdataCheckPoint *prev = j < next->prevCount() ? next->prevPoint(j) : nullptr;
+                        if (prev == checkpoint)
+                            continue;
+
+                        id = findRecursiveSector(playerIdx, pos, 1, 1, *prev, distanceRatio, params);
+                        if (id != -1)
+                            break;
+                    }
+                }
+                // If that fails, search prev -> next
+                if (id == -1) {
+                    for (s32 i = 0; i < checkpoint->prevCount(); i++) {
+                        MapdataCheckPoint *prev = (s32)i < checkpoint->prevCount() ? checkpoint->prevPoint(i) : nullptr;
+                        for (s32 j = 0; j < prev->nextCount(); j++) {
+                            MapdataCheckPoint *next = (s32)j < prev->nextCount() ? prev->nextPoint(j) : nullptr;
+                            if (next == checkpoint)
+                                continue;
+
+                            id = findRecursiveSector(playerIdx, pos, 1, 0, *next, distanceRatio, params);
+                            if (id != -1)
+                                break;
+                        }
+                    }
+                }
+            }
+            // If that fails, search prev
+            if (id == -1) {
+                for (s32 i = 0; i < checkpoint->prevCount(); i++) {
+                    MapdataCheckPoint *checkpoint_ = i < checkpoint->prevCount() ? checkpoint->prevPoint(i) : nullptr;
+                    id = findRecursiveSector(playerIdx, pos, 1, 1, *checkpoint_, distanceRatio, params);
+                    if (id != -1)
+                        break;
+                }
+            }
+        } else {
+            // Search prev
+            for (s32 i = 0; i < checkpoint->prevCount(); i++) {
+                MapdataCheckPoint *checkpoint_ = i < checkpoint->prevCount() ? checkpoint->prevPoint(i) : nullptr;
+                id = findRecursiveSector(playerIdx, pos, 1, 1, *checkpoint_, distanceRatio, params);
+                if (id != -1)
+                    break;
+            }
+            // If that fails, search prev -> next
+            if (id == -1) {
+                for (s32 i = 0; i < checkpoint->prevCount(); i++) {
+                    MapdataCheckPoint *prev = (s32)i < checkpoint->prevCount() ? checkpoint->prevPoint(i) : nullptr;
+                    for (s32 j = 0; j < prev->nextCount(); j++) {
+                        MapdataCheckPoint *next = (s32)j < prev->nextCount() ? prev->nextPoint(j) : nullptr;
+                        if (next == checkpoint)
+                            continue;
+
+                        id = findRecursiveSector(playerIdx, pos, 1, 0, *next, distanceRatio, params);
+                        if (id != -1)
+                            break;
+                    }
+                }
+
+                // If that fails, search next -> prev
+                if (id == -1) {
+                    for (s32 i = 0; i < checkpoint->nextCount(); i++) {
+                        MapdataCheckPoint *next = (s32)i < checkpoint->nextCount() ? checkpoint->nextPoint(i) : nullptr;
+                        for (s32 j = 0; j < next->prevCount(); j++) {
+                            MapdataCheckPoint *prev = (s32)j < next->prevCount() ? next->prevPoint(j) : nullptr;
+                            if (prev == checkpoint)
+                                continue;
+
+                            id = findRecursiveSector(playerIdx, pos, 1, 1, *prev, distanceRatio, params);
+                            if (id != -1)
+                                break;
+                        }
+                    }
+                }
+            }
+            // If that fails, search next
+            if (id == -1) {
+                for (s32 i = 0; i < checkpoint->nextCount(); i++) {
+                    MapdataCheckPoint *checkpoint_ = i < checkpoint->nextCount() ? checkpoint->nextPoint(i) : nullptr;
+                    id = findRecursiveSector(playerIdx, pos, 1, 0, *checkpoint_, distanceRatio, params);
+                    if (id != -1)
+                        break;
+                }
+            }
+        }
+        break;
+    case MapdataCheckPoint::Completion_1:
+        // Search next -> prev
+        for (s32 i = 0; i < checkpoint->nextCount(); i++) {
+            MapdataCheckPoint *next = (s32)i < checkpoint->nextCount() ? checkpoint->nextPoint(i) : nullptr;
+            for (s32 j = 0; j < next->prevCount(); j++) {
+                MapdataCheckPoint *prev = (s32)j < next->prevCount() ? next->prevPoint(j) : nullptr;
+                if (prev == checkpoint)
+                    continue;
+
+                id = findRecursiveSector(playerIdx, pos, 1, 1, *prev, distanceRatio, params);
+                if (id != -1)
+                    break;
+            }
+        }
+
+        if (id == -1) {
+            // If that fails, search prev -> next
+            for (s32 i = 0; i < checkpoint->prevCount(); i++) {
+                MapdataCheckPoint *prev = i < checkpoint->prevCount() ? checkpoint->prevPoint(i) : nullptr;
+                for (s32 j = 0; j < prev->nextCount(); j++) {
+                    MapdataCheckPoint *next = j < prev->nextCount() ? prev->nextPoint(j) : nullptr;
+                    if (next == checkpoint)
+                        continue;
+
+                    id = findRecursiveSector(playerIdx, pos, 1, 0, *next, distanceRatio, params);
+                    if (id != -1)
+                        break;
+                }
+            }
+        }
+
+        if (id == -1) {
+            // If that fails, search next
+            for (s32 i = 0; i < checkpoint->nextCount(); i++) {
+                MapdataCheckPoint *checkpoint_ = i < checkpoint->nextCount() ? checkpoint->nextPoint(i) : nullptr;
+                id = findRecursiveSector(playerIdx, pos, 1, 0, *checkpoint_, distanceRatio, params);
+                if (id != -1)
+                    break;
+            }
+        }
+
+        if (id == -1) {
+            // If that fails, search prev
+            for (s32 i = 0; i < checkpoint->prevCount(); i++) {
+                MapdataCheckPoint *checkpoint_ = i < checkpoint->prevCount() ? checkpoint->prevPoint(i) : nullptr;
+                id = findRecursiveSector(playerIdx, pos, 1, 1, *checkpoint_, distanceRatio, params);
+                if (id != -1)
+                    break;
+            }
+        }
+        
+    default:
+        break;
+    }
+
+    // In the fallback case, search next
+    if (id == -1) {
+        for (s32 i = 0; i < checkpoint->nextCount(); i++) {
+            MapdataCheckPoint *checkpoint_ = i < checkpoint->nextCount() ? checkpoint->nextPoint(i) : nullptr;
+            id = findRecursiveSector(playerIdx, pos, -1, 0, *checkpoint_, distanceRatio, 0);
+            if (id != -1)
+                break;
+        }
+        // If that fails, search prev
+        if (id == -1) {
+            for (s32 i = 0; i < checkpoint->prevCount(); i++) {
+                MapdataCheckPoint *checkpoint_ = i < checkpoint->prevCount() ? checkpoint->prevPoint(i) : nullptr;
+                id = findRecursiveSector(playerIdx, pos, -1, 1, *checkpoint_, distanceRatio, 0);
+                if (id != -1)
+                    break;
+            }
+        }
+    }
+
+    if (isRemote && id == -1) {
+        for (u16 i = 0; i < getCheckPointCount(); i++) {
+            MapdataCheckPoint *checkpoint_ = getCheckPoint(i);
+            if (!checkpoint_->isPlayerFlagged(playerIdx)) {
+                MapdataCheckPoint::Completion completion = checkpoint_->checkSectorAndDistanceRatio(pos, distanceRatio);
+                checkpoint_->setPlayerFlags(playerIdx);
+                if (completion == MapdataCheckPoint::Completion_0) {
+                    id = i;
+                    break;
+                }
+            }
+        }
+    }
+
+    return id;
+}
+
+
+s16 CourseMap::searchNextCheckpoint(s32 playerIdx, const EGG::Vector3f &pos, s16 depth, const MapdataCheckPoint &checkpoint, float *completion, u32 params, const bool param_8) const {
+    s16 id = -1;
+    s16 depth_ = depth >= 0 ? depth + 1 : -1;
+
+    for (u16 i = 0; i < checkpoint.nextCount(); i++) {
+        MapdataCheckPoint *checkpoint_ = (s32)i < checkpoint.nextCount() ? checkpoint.nextPoint(i).checkpoint : nullptr;
+        if (!param_8 || !checkpoint_->isPlayerFlagged(playerIdx)) {
+            id = findRecursiveSector(playerIdx, pos, depth_, 0, *checkpoint_, completion, params);
+            if (id != -1)
+                break;
+        }
+    }
+    return id;
+}
+
+s16 CourseMap::searchPrevCheckpoint(s32 playerIdx, const EGG::Vector3f &pos, s16 depth, const MapdataCheckPoint &checkpoint, float *completion, u32 params, const bool param_8) const {
+    s16 id = -1;
+    s16 depth_ = depth >= 0 ? depth + 1 : -1;
+
+    for (u16 i = 0; i < checkpoint.prevCount(); i++) {
+        MapdataCheckPoint *checkpoint_ = (s32)i < checkpoint.prevCount() ? checkpoint.prevPoint(i) : nullptr;
+        if (!param_8 || !checkpoint_->isPlayerFlagged(playerIdx)) {
+            id = findRecursiveSector(playerIdx, pos, depth_, 1, *checkpoint_, completion, params);
+            if (id != -1)
+                break;
+        }
+    }
+    return id;
+}
+
+// TODO: param_5 is "eSearchType"
+/// @addr{0x80511110}
+s16 CourseMap::findRecursiveSector(s32 playerIdx, const EGG::Vector3f &pos, s16 depth, int param_5, MapdataCheckPoint &checkpoint, float *completion, u32 params) const {
+    s16 maxDepth = params & 4 ? 12 : 6;
+    if (depth >= 0 && depth > maxDepth) {
+        return -1;
+    }
+
+    bool flagged = checkpoint.isPlayerFlagged(playerIdx);
+    MapdataCheckPoint::Completion completion_ = MapdataCheckPoint::Completion_1;
+    if (!flagged) {
+        completion_ = checkpoint.getCompletion(pos, completion);
+    }
+    checkpoint.setPlayerFlags(playerIdx);
+    if (completion_ == MapdataCheckPoint::Completion_0)
+        return checkpoint.id();
+
+    if (param_5 == 0) {
+        if (params & 1 && completion_ == MapdataCheckPoint::Completion_2 && *completion < 0.0f) {
+            *completion = 0.0f;
+            return checkpoint.id();
+        }
+
+        if (!(params & 2) && checkpoint.lapCheck() >= 0)
+            return -1;
+
+        u32 params_;
+        if (completion_ == MapdataCheckPoint::Completion_2 && *completion > 0.0f)
+            params_ = params | 1;
+        else
+            params_ = params &~ 1;
+        
+        s16 id = searchNextCheckpoint(playerIdx, pos, depth, checkpoint, completion, params_, false);
+        return id == -1 ? searchPrevCheckpoint(playerIdx, pos, depth, checkpoint, completion, params_, true) : id;
+    }
+
+    if (params & 1 && completion_ == MapdataCheckPoint::Completion_2 && *completion > 1.0f) {
+        *completion = 1.0f;
+        return checkpoint.id();
+    }
+
+    if (!(params & 2) && checkpoint.lapCheck() >= 0)
+        return -1;
+
+    u32 params_;
+    if (completion_ == MapdataCheckPoint::Completion_2 && *completion < 0.0f)
+        params_ = params | 1;
+    else
+        params_ = params &~ 1;
+
+    s16 id = searchPrevCheckpoint(playerIdx, pos, depth, checkpoint, completion, params_, false);
+    return id == -1 ? searchNextCheckpoint(playerIdx, pos, depth, checkpoint, completion, params_, true) : id;
+}
+
 /// @addr{0x80512694}
 CourseMap *CourseMap::CreateInstance() {
     assert(!s_instance);

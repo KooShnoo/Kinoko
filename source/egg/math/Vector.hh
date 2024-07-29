@@ -38,6 +38,8 @@ struct Vector2f {
     [[nodiscard]] f32 length() const;
     [[nodiscard]] f32 normalise();
 
+    void read(Stream &stream);
+
     f32 x;
     f32 y;
 
