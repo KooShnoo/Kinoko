@@ -12,19 +12,22 @@ void MapdataCheckPoint::read(EGG::Stream &stream) {
 }
 
 /// @addr{0x80510D7C}
-MapdataCheckPoint::Completion MapdataCheckPoint::checkSectorAndDistanceRatio(const EGG::Vector3f &pos, float *completion) const {
-    //const LinkedCheckpoint *next = &m_nextPoints[0];
-    //bool bIs02 = false;
+MapdataCheckPoint::Completion MapdataCheckPoint::checkSectorAndDistanceRatio(
+        const EGG::Vector3f &pos, float *completion) const {
+    // const LinkedCheckpoint *next = &m_nextPoints[0];
+    // bool bIs02 = false;
     EGG::Vector2f p1 = EGG::Vector2f(right().x, right().y);
     p1.y = pos.z - p1.y;
     p1.x = pos.x - p1.x;
     bool bIs02 = false;
 
     for (s32 nextIdx = 0; nextIdx < m_nextCount; nextIdx++) {
-        EGG::Vector2f p0(m_nextPoints[nextIdx].checkpoint->left().x, m_nextPoints[nextIdx].checkpoint->left().y);
+        EGG::Vector2f p0(m_nextPoints[nextIdx].checkpoint->left().x,
+                m_nextPoints[nextIdx].checkpoint->left().y);
         p0.y = pos.z - p0.y;
         p0.x = pos.x - p0.x;
-        MapdataCheckPoint::Completion result = checkSectorAndDistanceRatio_(m_nextPoints[nextIdx], p0, p1, completion);
+        MapdataCheckPoint::Completion result =
+                checkSectorAndDistanceRatio_(m_nextPoints[nextIdx], p0, p1, completion);
 
         switch (result) {
         case Completion_0:
@@ -98,24 +101,28 @@ MapdataCheckPoint *MapdataCheckPoint::prevPoint(s32 i) const {
 }
 
 MapdataCheckPoint *MapdataCheckPoint::nextPoint(s32 i) const {
-    return m_nextPoints[i].checkpoint; 
+    return m_nextPoints[i].checkpoint;
 }
 
 // Auto-inlines organically
 // BAD NAME!
-inline bool MapdataCheckPoint::isOrientationNegative(const LinkedCheckpoint &next, const EGG::Vector2f &p0, const EGG::Vector2f &p1) const{
-    if (-(next.p0diff.y) * p0.x + next.p0diff.x * p0.y < 0.0f)
+inline bool MapdataCheckPoint::isOrientationNegative(const LinkedCheckpoint &next,
+        const EGG::Vector2f &p0, const EGG::Vector2f &p1) const {
+    if (-(next.p0diff.y) * p0.x + next.p0diff.x * p0.y < 0.0f) {
         return false;
-    
-    if (next.p1diff.y * p1.x - next.p1diff.x * p1.y < 0.0f)
+    }
+
+    if (next.p1diff.y * p1.x - next.p1diff.x * p1.y < 0.0f) {
         return false;
+    }
 
     return true;
 }
 
 // Auto-inlines organically
 // BAD NAME!
-inline bool MapdataCheckPoint::isInCheckpoint(const LinkedCheckpoint &next, const EGG::Vector2f &p0, const EGG::Vector2f &p1, float *completion) const{
+inline bool MapdataCheckPoint::isInCheckpoint(const LinkedCheckpoint &next, const EGG::Vector2f &p0,
+        const EGG::Vector2f &p1, float *completion) const {
     f32 d1 = m_dir.dot(p1);
     f32 d2 = -(next.checkpoint->m_dir.dot(p0));
     f32 completion_ = d1 / (d1 + d2);
@@ -124,11 +131,16 @@ inline bool MapdataCheckPoint::isInCheckpoint(const LinkedCheckpoint &next, cons
 }
 
 /// @addr{0x80510C74}
-inline MapdataCheckPoint::Completion MapdataCheckPoint::checkSectorAndDistanceRatio_(const LinkedCheckpoint &next, const EGG::Vector2f &p0, const EGG::Vector2f &p1, float *completion) const {
-    if (!isOrientationNegative(next, p0, p1))
+inline MapdataCheckPoint::Completion MapdataCheckPoint::checkSectorAndDistanceRatio_(
+        const LinkedCheckpoint &next, const EGG::Vector2f &p0, const EGG::Vector2f &p1,
+        float *completion) const {
+    if (!isOrientationNegative(next, p0, p1)) {
         return Completion_1;
+    }
 
     return isInCheckpoint(next, p0, p1, completion) ? Completion_0 : Completion_2;
 }
+MapdataCheckPointAccessor::MapdataCheckPointAccessor(const MapSectionHeader *header)
+    : MapdataAccessorBase<MapdataCheckPoint, MapdataCheckPoint::SData>(header) {}
 
-}
+} // namespace System
