@@ -49,7 +49,7 @@ public:
     s32 prevCount() const;
     s32 id() const;
     MapdataCheckPoint *prevPoint(s32 i) const;
-    const LinkedCheckpoint &nextPoint(s32 i) const;
+    MapdataCheckPoint *nextPoint(s32 i) const;
 
 private:
     bool checkSector(const LinkedCheckpoint &next, const EGG::Vector2f &p0,
@@ -82,6 +82,7 @@ private:
 class MapdataCheckPointAccessor
     : public MapdataAccessorBase<MapdataCheckPoint, MapdataCheckPoint::SData> {
 public:
+// TODO init? 0x80515244
     MapdataCheckPointAccessor(const MapSectionHeader *header);
     ~MapdataCheckPointAccessor() override;
 };

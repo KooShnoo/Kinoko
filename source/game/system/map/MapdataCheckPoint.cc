@@ -97,8 +97,8 @@ MapdataCheckPoint *MapdataCheckPoint::prevPoint(s32 i) const {
     return m_prevPoints[i];
 }
 
-const LinkedCheckpoint &MapdataCheckPoint::nextPoint(s32 i) const {
-    return m_nextPoints[i];
+MapdataCheckPoint *MapdataCheckPoint::nextPoint(s32 i) const {
+    return m_nextPoints[i].checkpoint; 
 }
 
 // Auto-inlines organically
