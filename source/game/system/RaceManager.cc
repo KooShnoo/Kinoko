@@ -2,9 +2,11 @@
 
 #include "game/system/CourseMap.hh"
 #include "game/system/KPadDirector.hh"
+#include <game/system/map/MapdataCheckPoint.hh>
 #include "game/system/map/MapdataStartPoint.hh"
 #include <game/kart/KartObjectManager.hh>
 
+#include <algorithm>
 #include <cassert>
 
 namespace System {
@@ -113,35 +115,22 @@ RaceManagerPlayer::RaceManagerPlayer(u8 idx, u8 lapCount): m_idx(idx) {
 void RaceManagerPlayer::init() {
     auto courseMap = CourseMap::Instance();
     assert(courseMap);
-    if (courseMap->getCheckPointCount() == 0) {
-        m_respawn = 0;
-    } else {
-    // if (CourseMap::spInstance->mpCheckPath == (MapdataCheckPathAccessor *)0x0) {
-    //   ckptCount = 0;
-    // }
-    // else {
-    //   ckptCount = CourseMap::spInstance->mpCheckPath->count;
-    // }
-    // hasCkpt = ckptCount != 0;
-    //     // }{
-    // this = Kart::KartObjectManager::getObject
-    //                  (Kart::KartObjectManager::spInstance,(uint)raceinfoPlayer->idx);
-    // pos = Kart::KartObjectProxy::getPos(&this->inherit);
-    // uVar4 = CourseMap::findSector
-    //                   (CourseMap::spInstance,(uint)raceinfoPlayer->idx,pos,0,&completion,1);
-        // auto kart = Kart::KartObjectManager::Instance()->object(m_idx);
-        // courseMap->findSector(m_idx, kart->pos(), 0, f32 *distanceRatio, true /* sus??? */)
-    // if (uVar4 < 0) {
-    //   raceinfoPlayer->checkpointId = 0;
-    // }
-    // else {
-    //   raceinfoPlayer->checkpointId = uVar4;
-    // }
-    // pMVar2 = CourseMap::getCheckPoint(CourseMap::spInstance,(uint)raceinfoPlayer->checkpointId);
-    // raceinfoPlayer->respawn = pMVar2->mpData->jgptId;
+    bool hasCkpt = courseMap->getCheckPointCount() == 0;
+    if (hasCkpt) {   
+        hasCkpt = courseMap->getCheckPathCount() != 0;
     }
-
-
+    if (hasCkpt) {   
+        auto pos = Kart::KartObjectManager::Instance()->object(m_idx)->pos();
+        f32 distanceRatio = 0.0f;
+        s16 sector = courseMap->findSector(m_idx, pos, 0, &distanceRatio, true);
+        m_checkpointId = std::max<s16>(0, sector);
+        auto *ckpt = courseMap->getCheckPoint(m_checkpointId);
+        m_respawn = ckpt->jugemIndex();
+    } else {
+        m_respawn = 0;
+    }
+    m_frameCounter = 0;
+    m_bInRace = true;
 }
 
 const KPad *RaceManagerPlayer::inputs() const {

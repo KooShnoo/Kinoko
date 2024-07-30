@@ -1,4 +1,6 @@
 #include "MapdataCheckPoint.hh"
+#include <Common.hh>
+#include <cstddef>
 
 namespace System {
 
@@ -31,10 +33,9 @@ MapdataCheckPoint::Completion MapdataCheckPoint::checkSectorAndDistanceRatio(
 
         switch (result) {
         case Completion_0:
-        // wow, this part i didn't copy/paste! but only bc compiler Wall yeleld at me :(
-        case Completion_1: // not in base game, double check this
             return Completion_0;
-
+        case Completion_1:
+            break;
         case Completion_2:
             bIs02 = true;
             break;
@@ -55,10 +56,6 @@ void MapdataCheckPoint::setPlayerFlags(s32 playerIdx) {
 void MapdataCheckPoint::resetFlags() {
     m_flags = 0;
 }
-
-// SData *MapdataCheckPoint::data() const {
-//     return mpData;
-// }
 
 EGG::Vector2f MapdataCheckPoint::left() const {
     return m_left;
@@ -140,7 +137,22 @@ inline MapdataCheckPoint::Completion MapdataCheckPoint::checkSectorAndDistanceRa
 
     return isInCheckpoint(next, p0, p1, completion) ? Completion_0 : Completion_2;
 }
+
+/// @addr{0x80515244}
+/// @todo TODO complete this TODO @todo 
+void MapdataCheckPointAccessor::init() {
+    assert(m_entryCount != 0);
+    // u16 finishLineCheckpointId;
+    // /* find finish line and last key checkpoint indexes */
+    // for (size_t ckptId = 0; ckptId < m_entryCount; ckptId++) {
+    //     auto lastCheckpoint = get(ckptId);
+
+    // }
+}
+
 MapdataCheckPointAccessor::MapdataCheckPointAccessor(const MapSectionHeader *header)
-    : MapdataAccessorBase<MapdataCheckPoint, MapdataCheckPoint::SData>(header) {}
+    : MapdataAccessorBase<MapdataCheckPoint, MapdataCheckPoint::SData>(header) {
+
+    }
 
 } // namespace System

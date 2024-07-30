@@ -62,10 +62,10 @@ private:
             const EGG::Vector2f &p1, float *completion) const;
     Completion checkSectorAndDistanceRatio_(const LinkedCheckpoint &next, const EGG::Vector2f &p0,
             const EGG::Vector2f &p1, f32 *distanceRatio) const;
-    SData *m_rawData;
+    const SData *m_rawData;
     EGG::Vector2f m_left;
     EGG::Vector2f m_right;
-    u8 m_jugemIndex;
+    u8 m_jugemIndex; ///< index of respawn point associated with this checkpoint. players who die here will be respawned at this point.
     u8 m_lapCheck;
     u8 m_prevPt;
     u8 m_nextPt;
@@ -82,9 +82,16 @@ private:
 class MapdataCheckPointAccessor
     : public MapdataAccessorBase<MapdataCheckPoint, MapdataCheckPoint::SData> {
 public:
-// TODO init? 0x80515244
     MapdataCheckPointAccessor(const MapSectionHeader *header);
     ~MapdataCheckPointAccessor() override;
+    
+private:
+    void init();
+    u8 m_lastKcpType;
+    u16 m_finishLineCheckpointId;
+    f32 m_meanTotalDistance;
+
+
 };
 
 } // namespace System

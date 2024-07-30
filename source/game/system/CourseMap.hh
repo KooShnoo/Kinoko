@@ -8,6 +8,8 @@ namespace System {
 
 class MapdataCannonPoint;
 class MapdataCannonPointAccessor;
+class MapdataCheckPath;
+class MapdataCheckPathAccessor;
 class MapdataCheckPoint;
 class MapdataCheckPointAccessor;
 class MapdataFileAccessor;
@@ -28,6 +30,7 @@ public:
     void init();
     [[nodiscard]] MapdataCannonPointAccessor *parseCannonPoint(u32 sectionName);
     [[nodiscard]] MapdataCheckPointAccessor *parseCheckPoint(u32 sectionName);
+    [[nodiscard]] MapdataCheckPathAccessor *parseCheckPath(u32 sectionName);
     [[nodiscard]] MapdataGeoObjAccessor *parseGeoObj(u32 sectionName);
     [[nodiscard]] MapdataJugemPointAccessor *parseJugemPoint(u32 sectionName);
     [[nodiscard]] MapdataStageInfoAccessor *parseStageInfo(u32 sectionName);
@@ -36,6 +39,7 @@ public:
     /// @beginGetters
     [[nodiscard]] MapdataCannonPoint *getCannonPoint(u16 i) const;
     [[nodiscard]] MapdataCheckPoint *getCheckPoint(u16 i) const;
+    [[nodiscard]] MapdataCheckPath *getCheckPath(u16 i) const;
     [[nodiscard]] MapdataGeoObj *getGeoObj(u16 i) const;
     [[nodiscard]] MapdataJugemPoint *getJugemPoint(u16 i) const;
     [[nodiscard]] MapdataStageInfo *getStageInfo() const;
@@ -51,6 +55,7 @@ public:
     /// @endGetters
 
     u16 getCheckPointCount() const;
+    u16 getCheckPathCount() const;
     void clearSectorChecked();
     s16 findSector(s32 playerIdx, const EGG::Vector3f &pos, u16 checkpointIdx, f32 *distanceRatio,
             bool isRemote);
@@ -77,6 +82,7 @@ private:
     MapdataJugemPointAccessor *m_jugemPoint;
     MapdataCannonPointAccessor *m_cannonPoint;
     MapdataCheckPointAccessor *m_checkPoint;
+    MapdataCheckPathAccessor *m_checkPath;
     MapdataStageInfoAccessor *m_stageInfo;
 
     // TODO: Better names
