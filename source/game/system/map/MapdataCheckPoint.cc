@@ -14,14 +14,12 @@ void MapdataCheckPoint::read(EGG::Stream &stream) {
 }
 
 /// @addr{0x80510D7C}
-MapdataCheckPoint::Completion MapdataCheckPoint::checkSectorAndDistanceRatio(
-        const EGG::Vector3f &pos, float *completion) const {
-    // const LinkedCheckpoint *next = &m_nextPoints[0];
-    // bool bIs02 = false;
+/// @see MapdataCheckPoint::checkSectorAndDistanceRatio
+MapdataCheckPoint::Completion MapdataCheckPoint::getCompletion(const EGG::Vector3f &pos,
+        float *completion) const {
     EGG::Vector2f p1 = EGG::Vector2f(right().x, right().y);
     p1.y = pos.z - p1.y;
     p1.x = pos.x - p1.x;
-    bool bIs02 = false;
 
     for (s32 nextIdx = 0; nextIdx < m_nextCount; nextIdx++) {
         EGG::Vector2f p0(m_nextPoints[nextIdx].checkpoint->left().x,
@@ -29,20 +27,15 @@ MapdataCheckPoint::Completion MapdataCheckPoint::checkSectorAndDistanceRatio(
         p0.y = pos.z - p0.y;
         p0.x = pos.x - p0.x;
         MapdataCheckPoint::Completion result =
-                checkSectorAndDistanceRatio_(m_nextPoints[nextIdx], p0, p1, completion);
+                checkSectorAndDistanceRatio(m_nextPoints[nextIdx], p0, p1, completion);
 
-        switch (result) {
-        case Completion_0:
-            return Completion_0;
-        case Completion_1:
-            break;
-        case Completion_2:
-            bIs02 = true;
-            break;
+        if (result == Completion_1) {
+            continue;
         }
+        return result;
     }
 
-    return bIs02 ? Completion_2 : Completion_1;
+    return Completion_1;
 }
 
 bool MapdataCheckPoint::isPlayerFlagged(s32 playerIdx) const {
@@ -101,10 +94,9 @@ MapdataCheckPoint *MapdataCheckPoint::nextPoint(s32 i) const {
     return m_nextPoints[i].checkpoint;
 }
 
-// Auto-inlines organically
-// BAD NAME!
-inline bool MapdataCheckPoint::isOrientationNegative(const LinkedCheckpoint &next,
-        const EGG::Vector2f &p0, const EGG::Vector2f &p1) const {
+/// @brief Returns true if player is between the two sides of the checkpoint quad, otherwise false
+bool MapdataCheckPoint::checkSector(const LinkedCheckpoint &next, const EGG::Vector2f &p0,
+        const EGG::Vector2f &p1) const {
     if (-(next.p0diff.y) * p0.x + next.p0diff.x * p0.y < 0.0f) {
         return false;
     }
@@ -116,30 +108,38 @@ inline bool MapdataCheckPoint::isOrientationNegative(const LinkedCheckpoint &nex
     return true;
 }
 
-// Auto-inlines organically
-// BAD NAME!
-inline bool MapdataCheckPoint::isInCheckpoint(const LinkedCheckpoint &next, const EGG::Vector2f &p0,
-        const EGG::Vector2f &p1, float *completion) const {
+/// @brief Updates distanceRatio, which is the "checkpoint completion" or the percentage of distance
+/// the player has traveled through the checkpoint quad
+/// @return True if 0 <= distanceRatio <= 1, meaning the player is between this checkpoint line and
+/// the next; otherwise, false
+bool MapdataCheckPoint::checkDistanceRatio(const LinkedCheckpoint &next, const EGG::Vector2f &p0,
+        const EGG::Vector2f &p1, float *distanceRatio) const {
     f32 d1 = m_dir.dot(p1);
     f32 d2 = -(next.checkpoint->m_dir.dot(p0));
-    f32 completion_ = d1 / (d1 + d2);
-    *completion = completion_;
-    return (completion_ >= 0.0f && completion_ <= 1.0f);
+    // This is where the divide by zero thing happens
+    f32 distanceRatio_ = d1 / (d1 + d2);
+    *distanceRatio = distanceRatio_;
+    return (distanceRatio_ >= 0.0f && distanceRatio_ <= 1.0f);
 }
 
-/// @addr{0x80510C74}
-inline MapdataCheckPoint::Completion MapdataCheckPoint::checkSectorAndDistanceRatio_(
+/// @brief Calls both of the above functions and updates distanceRatio
+/// @return - Completion_0 if player is inside the checkpoint quad
+/// - Completion_1 if player is not between the sides of the quad (may still be between this
+/// checkpoint and next); player is likely in a different checkpoint group
+/// - Completion_2 if player is between the sides of the quad, but NOT between this checkpoint and
+/// next; player is likely in the same checkpoint group
+MapdataCheckPoint::Completion MapdataCheckPoint::checkSectorAndDistanceRatio(
         const LinkedCheckpoint &next, const EGG::Vector2f &p0, const EGG::Vector2f &p1,
-        float *completion) const {
-    if (!isOrientationNegative(next, p0, p1)) {
+        float *distanceRatio) const {
+    if (!checkSector(next, p0, p1)) {
         return Completion_1;
     }
 
-    return isInCheckpoint(next, p0, p1, completion) ? Completion_0 : Completion_2;
+    return checkDistanceRatio(next, p0, p1, distanceRatio) ? Completion_0 : Completion_2;
 }
 
 /// @addr{0x80515244}
-/// @todo TODO complete this TODO @todo 
+/// @todo TODO complete this TODO @todo
 void MapdataCheckPointAccessor::init() {
     assert(m_entryCount != 0);
     // u16 finishLineCheckpointId;
@@ -151,8 +151,6 @@ void MapdataCheckPointAccessor::init() {
 }
 
 MapdataCheckPointAccessor::MapdataCheckPointAccessor(const MapSectionHeader *header)
-    : MapdataAccessorBase<MapdataCheckPoint, MapdataCheckPoint::SData>(header) {
-
-    }
+    : MapdataAccessorBase<MapdataCheckPoint, MapdataCheckPoint::SData>(header) {}
 
 } // namespace System

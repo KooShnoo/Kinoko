@@ -34,7 +34,7 @@ public:
     MapdataCheckPoint(const SData *data);
     void read(EGG::Stream &stream);
 
-    Completion checkSectorAndDistanceRatio(const EGG::Vector3f &pos, f32 *distanceRatio) const;
+    Completion getCompletion(const EGG::Vector3f &pos, f32 *distanceRatio) const;
     bool isPlayerFlagged(s32 playerIdx) const;
     void setPlayerFlags(s32 playerIdx);
     void resetFlags();
@@ -60,12 +60,13 @@ private:
             const EGG::Vector2f &p1) const;
     bool isInCheckpoint(const LinkedCheckpoint &next, const EGG::Vector2f &p0,
             const EGG::Vector2f &p1, float *completion) const;
-    Completion checkSectorAndDistanceRatio_(const LinkedCheckpoint &next, const EGG::Vector2f &p0,
-            const EGG::Vector2f &p1, f32 *distanceRatio) const;
+    Completion checkSectorAndDistanceRatio(const LinkedCheckpoint &next, const EGG::Vector2f &p0,
+            const EGG::Vector2f &p1, float *distanceRatio) const;
     const SData *m_rawData;
     EGG::Vector2f m_left;
     EGG::Vector2f m_right;
-    u8 m_jugemIndex; ///< index of respawn point associated with this checkpoint. players who die here will be respawned at this point.
+    u8 m_jugemIndex; ///< index of respawn point associated with this checkpoint. players who die
+                     ///< here will be respawned at this point.
     u8 m_lapCheck;
     u8 m_prevPt;
     u8 m_nextPt;
@@ -84,14 +85,12 @@ class MapdataCheckPointAccessor
 public:
     MapdataCheckPointAccessor(const MapSectionHeader *header);
     ~MapdataCheckPointAccessor() override;
-    
+
 private:
     void init();
     u8 m_lastKcpType;
     u16 m_finishLineCheckpointId;
     f32 m_meanTotalDistance;
-
-
 };
 
 } // namespace System

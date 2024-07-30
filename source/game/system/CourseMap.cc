@@ -213,7 +213,7 @@ s16 CourseMap::findSector(s32 playerIdx, const EGG::Vector3f& pos, u16 checkpoin
     clearSectorChecked();
     MapdataCheckPoint *checkpoint = getCheckPoint(checkpointIdx);
     s16 id = -1;
-    MapdataCheckPoint::Completion completion = checkpoint->checkSectorAndDistanceRatio(pos, distanceRatio);
+    MapdataCheckPoint::Completion completion = checkpoint->getCompletion(pos, distanceRatio);
     checkpoint->setPlayerFlags(playerIdx);
     u32 params = 0;
     if (isRemote)
@@ -400,7 +400,7 @@ s16 CourseMap::findSector(s32 playerIdx, const EGG::Vector3f& pos, u16 checkpoin
         for (u16 i = 0; i < getCheckPointCount(); i++) {
             MapdataCheckPoint *checkpoint_ = getCheckPoint(i);
             if (!checkpoint_->isPlayerFlagged(playerIdx)) {
-                MapdataCheckPoint::Completion completion = checkpoint_->checkSectorAndDistanceRatio(pos, distanceRatio);
+                MapdataCheckPoint::Completion completion = checkpoint_->getCompletion(pos, distanceRatio);
                 checkpoint_->setPlayerFlags(playerIdx);
                 if (completion == MapdataCheckPoint::Completion_0) {
                     id = i;
@@ -455,7 +455,7 @@ s16 CourseMap::findRecursiveSector(s32 playerIdx, const EGG::Vector3f &pos, s16 
     bool flagged = checkpoint.isPlayerFlagged(playerIdx);
     MapdataCheckPoint::Completion completion = MapdataCheckPoint::Completion_1;
     if (!flagged) {
-        completion = checkpoint.checkSectorAndDistanceRatio(pos, distanceRatio);
+        completion = checkpoint.getCompletion(pos, distanceRatio);
     }
     checkpoint.setPlayerFlags(playerIdx);
     if (completion == MapdataCheckPoint::Completion_0)
