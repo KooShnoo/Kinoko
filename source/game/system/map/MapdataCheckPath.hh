@@ -17,7 +17,8 @@ public:
 
     MapdataCheckPath(const SData *data);
     void read(EGG::Stream &stream);
-    void findNextPath(u8 depth, MapdataCheckPathAccessor *accessor);
+    void findDepth(s8 depth, MapdataCheckPathAccessor *accessor);
+    u16 getNext(u16 i) const;
 
     u8 start() const;
     u8 size() const;
@@ -32,7 +33,7 @@ private:
     u8 m_size;
     std::array<u8, 6> m_last;
     std::array<u8, 6> m_next;
-    u8 m_dfsDepth;
+    s8 m_dfsDepth;
     f32 m_oneOverCount;
 };
 

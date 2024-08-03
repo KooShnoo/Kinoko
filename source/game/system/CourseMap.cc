@@ -467,7 +467,7 @@ s16 CourseMap::findRecursiveSector(s32 playerIdx, const EGG::Vector3f &pos, s16 
             return checkpoint.id();
         }
 
-        if (!(params & 2) && checkpoint.lapCheck() >= 0)
+        if (!(params & 2) && checkpoint.type() >= 0)
             return -1;
 
         u32 params_;
@@ -485,7 +485,7 @@ s16 CourseMap::findRecursiveSector(s32 playerIdx, const EGG::Vector3f &pos, s16 
         return checkpoint.id();
     }
 
-    if (!(params & 2) && checkpoint.lapCheck() >= 0)
+    if (!(params & 2) && checkpoint.type() >= 0)
         return -1;
 
     u32 params_;

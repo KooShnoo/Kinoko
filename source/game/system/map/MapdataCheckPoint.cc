@@ -8,7 +8,7 @@ void MapdataCheckPoint::read(EGG::Stream &stream) {
     m_left.read(stream);
     m_right.read(stream);
     m_jugemIndex = stream.read_u8();
-    m_lapCheck = stream.read_u8();
+    m_type = stream.read_s8();
     m_prevPt = stream.read_u8();
     m_nextPt = stream.read_u8();
 }
@@ -62,8 +62,16 @@ u8 MapdataCheckPoint::jugemIndex() const {
     return m_jugemIndex;
 }
 
-u8 MapdataCheckPoint::lapCheck() const {
-    return m_lapCheck;
+s8 MapdataCheckPoint::type() const {
+    return m_type;
+}
+
+bool MapdataCheckPoint::isNormalCheckpoint() const {
+    return type() == NORMAL_CHECKPOINT;
+}
+
+bool MapdataCheckPoint::isStartFinishLine() const {
+    return type() == START_FINISH_LINE;
 }
 
 u8 MapdataCheckPoint::prevPt() const {
@@ -74,15 +82,15 @@ u8 MapdataCheckPoint::nextPt() const {
     return m_nextPt;
 }
 
-s32 MapdataCheckPoint::nextCount() const {
+u16 MapdataCheckPoint::nextCount() const {
     return m_nextCount;
 }
 
-s32 MapdataCheckPoint::prevCount() const {
+u16 MapdataCheckPoint::prevCount() const {
     return m_prevCount;
 }
 
-s32 MapdataCheckPoint::id() const {
+u16 MapdataCheckPoint::id() const {
     return m_id;
 }
 
@@ -94,7 +102,27 @@ MapdataCheckPoint *MapdataCheckPoint::nextPoint(s32 i) const {
     return m_nextPoints[i].checkpoint;
 }
 
+/// @brief Starting with finish line, computes prevKcpId for each checkpoint.
+/// @details @ref isPlayerFlagged indicates that a checkpoint has been visited, to prevent infinite
+/// recursion
+/// https://decomp.me/scratch/MtF18
+/// @addr{0x80515A6C}
+void MapdataCheckPoint::linkPrevKcpIds(u8 lastKcpId) {
+    prevKcpId = isNormalCheckpoint() ? lastKcpId : this->type();
+
+    setPlayerFlags(0);
+    for (size_t i = 0; i < nextCount(); i++) {
+        MapdataCheckPoint *next = nextPoint(i);
+        if (next->isPlayerFlagged(0)) {
+            continue;
+        }
+        // next = nextPoint(i); //< why did the devolpers write this???
+        next->linkPrevKcpIds(prevKcpId);
+    }
+}
+
 /// @brief Returns true if player is between the two sides of the checkpoint quad, otherwise false
+/// https://decomp.me/scratch/sYnP9
 bool MapdataCheckPoint::checkSector(const LinkedCheckpoint &next, const EGG::Vector2f &p0,
         const EGG::Vector2f &p1) const {
     if (-(next.p0diff.y) * p0.x + next.p0diff.x * p0.y < 0.0f) {
@@ -122,12 +150,7 @@ bool MapdataCheckPoint::checkDistanceRatio(const LinkedCheckpoint &next, const E
     return (distanceRatio_ >= 0.0f && distanceRatio_ <= 1.0f);
 }
 
-/// @brief Calls both of the above functions and updates distanceRatio
-/// @return - Completion_0 if player is inside the checkpoint quad
-/// - Completion_1 if player is not between the sides of the quad (may still be between this
-/// checkpoint and next); player is likely in a different checkpoint group
-/// - Completion_2 if player is between the sides of the quad, but NOT between this checkpoint and
-/// next; player is likely in the same checkpoint group
+/// @brief Calls both @ref checkSector and @ref checkDistanceRatio; updates @param distanceRatio
 MapdataCheckPoint::Completion MapdataCheckPoint::checkSectorAndDistanceRatio(
         const LinkedCheckpoint &next, const EGG::Vector2f &p0, const EGG::Vector2f &p1,
         float *distanceRatio) const {
@@ -151,6 +174,12 @@ void MapdataCheckPointAccessor::init() {
 }
 
 MapdataCheckPointAccessor::MapdataCheckPointAccessor(const MapSectionHeader *header)
-    : MapdataAccessorBase<MapdataCheckPoint, MapdataCheckPoint::SData>(header) {}
+    : MapdataAccessorBase<MapdataCheckPoint, MapdataCheckPoint::SData>(header) {
+    MapdataAccessorBase::init(
+            reinterpret_cast<const MapdataCheckPoint::SData *>(m_sectionHeader + 1),
+            parse<u16>(m_sectionHeader->count));
+    // if cc count no 0
+    init();
+}
 
 } // namespace System

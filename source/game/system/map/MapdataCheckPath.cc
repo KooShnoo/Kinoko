@@ -11,22 +11,29 @@ void MapdataCheckPath::read(EGG::Stream &stream) {
     stream.read(m_next.data(), 6);
 }
 
-/// @brief performs DFS to find the next checkpath @param depth elements ahead
+/// @brief performs DFS to find the depth of this check path? 
+/// @param depth where to start ? ig? idk tbh
+/// https://decomp.me/scratch/P4Rpz
 /// @addr{0x805150E0}
-void MapdataCheckPath::findNextPath(u8 depth, MapdataCheckPathAccessor *accessor) {
-    if (m_dfsDepth != 0xff) {
+void MapdataCheckPath::findDepth(s8 depth, MapdataCheckPathAccessor *accessor) {
+    if (m_dfsDepth != -1) {
         return;
     }
+
     m_dfsDepth = depth;
-    for (size_t i = 0; i < 6; i++) {
-        u8 nextIdx = m_next[i];
-        if (nextIdx == 0xff) {
+
+    for (u16 i = 0; i < 6; i++) {
+        u16 nextID = getNext(i);
+        if (nextID == 0xff) {
             continue;
         }
-        MapdataCheckPath *next = accessor->get(nextIdx);
-        next->findNextPath(depth, accessor);
+        MapdataCheckPath *next = accessor->get(nextID);
+        next->findDepth(depth + 1, accessor);
     }
-    return;
+}
+
+u16 MapdataCheckPath::getNext(u16 i) const {
+    return mpData->next[i]; 
 }
 
 u8 MapdataCheckPath::start() const {
@@ -53,9 +60,10 @@ f32 MapdataCheckPath::oneOverCount() const {
     return m_oneOverCount;
 }
 
+/// @addr{Inlined in 0x8051377C}
 void MapdataCheckPathAccessor::loadPaths() {
     assert(size() != 0);
-    get(0)->findNextPath(0xff, this);
+    get(0)->findDepth(0xff, this);
     u8 maxDepth = 0xff;
     for (size_t i = 0; i < size(); i = i + 1) {
         auto entry = get(i);
