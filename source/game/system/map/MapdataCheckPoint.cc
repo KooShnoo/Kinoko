@@ -1,6 +1,8 @@
 #include "MapdataCheckPoint.hh"
 #include <Common.hh>
+#include <cassert>
 #include <cstddef>
+#include <game/system/CourseMap.hh>
 
 namespace System {
 
@@ -70,8 +72,8 @@ bool MapdataCheckPoint::isNormalCheckpoint() const {
     return type() == NORMAL_CHECKPOINT;
 }
 
-bool MapdataCheckPoint::isStartFinishLine() const {
-    return type() == START_FINISH_LINE;
+bool MapdataCheckPoint::isFinishLine() const {
+    return type() == FINISH_LINE;
 }
 
 u8 MapdataCheckPoint::prevPt() const {
@@ -102,13 +104,17 @@ MapdataCheckPoint *MapdataCheckPoint::nextPoint(s32 i) const {
     return m_nextPoints[i].checkpoint;
 }
 
-/// @brief Starting with finish line, computes prevKcpId for each checkpoint.
+const LinkedCheckpoint &MapdataCheckPoint::nextLinked(s32 i) const {
+    return m_nextPoints[i];
+}
+
+/// @brief computes @ref m_prevKcpId for each checkpoint.
 /// @details @ref isPlayerFlagged indicates that a checkpoint has been visited, to prevent infinite
-/// recursion
+/// recursion.
 /// https://decomp.me/scratch/MtF18
 /// @addr{0x80515A6C}
-void MapdataCheckPoint::linkPrevKcpIds(u8 lastKcpId) {
-    prevKcpId = isNormalCheckpoint() ? lastKcpId : this->type();
+void MapdataCheckPoint::linkPrevKcpIds(u8 prevKcpId) {
+    m_prevKcpId = isNormalCheckpoint() ? prevKcpId : this->type();
 
     setPlayerFlags(0);
     for (size_t i = 0; i < nextCount(); i++) {
@@ -116,8 +122,8 @@ void MapdataCheckPoint::linkPrevKcpIds(u8 lastKcpId) {
         if (next->isPlayerFlagged(0)) {
             continue;
         }
-        // next = nextPoint(i); //< why did the devolpers write this???
-        next->linkPrevKcpIds(prevKcpId);
+        // next = nextPoint(i); //<- why did the devolpers write this???
+        next->linkPrevKcpIds(m_prevKcpId);
     }
 }
 
@@ -161,16 +167,59 @@ MapdataCheckPoint::Completion MapdataCheckPoint::checkSectorAndDistanceRatio(
     return checkDistanceRatio(next, p0, p1, distanceRatio) ? Completion_0 : Completion_2;
 }
 
-/// @addr{0x80515244}
-/// @todo TODO complete this TODO @todo
-void MapdataCheckPointAccessor::init() {
-    assert(m_entryCount != 0);
-    // u16 finishLineCheckpointId;
-    // /* find finish line and last key checkpoint indexes */
-    // for (size_t ckptId = 0; ckptId < m_entryCount; ckptId++) {
-    //     auto lastCheckpoint = get(ckptId);
+/// @addr{0x80512064}
+f32 MapdataCheckPointAccessor::calculateMeanTotalDistanceRecursive(u16 ckptId) {
+    f32 sumDist = 0.0f;
+    MapdataCheckPoint *ckpt = get(ckptId);
+    u16 n = ckpt->nextCount();
+    for (size_t i = 0; i < n; i++) {
+        const LinkedCheckpoint &linked = ckpt->nextLinked(i);
+        sumDist += linked.distance;
+        ckpt = ckpt->nextPoint(i);
+        if (m_finishLineCheckpointId == ckpt->id()) {
+            continue;
+        }
+        ckpt = ckpt->nextPoint(i);
+        sumDist += calculateMeanTotalDistanceRecursive(ckpt->id());
+    }
+    return sumDist / n;
+}
 
-    // }
+/// @addr{80512370}
+f32 MapdataCheckPointAccessor::calculateMeanTotalDistance() {
+    assert(size() != 0);
+    return calculateMeanTotalDistanceRecursive(m_finishLineCheckpointId);
+}
+
+/// @brief find finish line and last key checkpoint indexes
+/// @addr{Inlined in 0x80515244} fake function, not real. it's not in the base game. in the base game, it's inlined into `init()`. i, kooshnoo, split it out because i wanted to.
+void MapdataCheckPointAccessor::findFinishAndLastKcp() {
+    u8 lastKcpType = -1;
+    s16 finishLineCheckpointId = -1;
+    for (size_t ckptId = 0; ckptId < size(); ckptId++) {
+        MapdataCheckPoint *lastCheckpoint = get(ckptId);
+        // lastCheckpoint->initCheckpointLinks(this, ckptId);
+        lastCheckpoint = get(ckptId);
+        if (lastCheckpoint->isFinishLine()) {
+            finishLineCheckpointId = ckptId;
+        }
+        if (lastKcpType > lastCheckpoint->type()) {
+            lastKcpType = lastCheckpoint->type();
+        }
+    }
+    m_lastKcpType = lastKcpType;
+    m_finishLineCheckpointId = finishLineCheckpointId;
+}
+
+/// @addr{0x80515244}
+void MapdataCheckPointAccessor::init() {
+    assert(size() != 0);
+
+    findFinishAndLastKcp();
+    MapdataCheckPoint *finishLine = get(m_finishLineCheckpointId);
+    finishLine->linkPrevKcpIds(0);
+    CourseMap::Instance()->clearSectorChecked();
+    m_meanTotalDistance = calculateMeanTotalDistance();
 }
 
 MapdataCheckPointAccessor::MapdataCheckPointAccessor(const MapSectionHeader *header)
@@ -178,7 +227,7 @@ MapdataCheckPointAccessor::MapdataCheckPointAccessor(const MapSectionHeader *hea
     MapdataAccessorBase::init(
             reinterpret_cast<const MapdataCheckPoint::SData *>(m_sectionHeader + 1),
             parse<u16>(m_sectionHeader->count));
-    // if cc count no 0
+    assert(size() != 0);
     init();
 }
 

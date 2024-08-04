@@ -3,7 +3,6 @@
 #include "game/system/KPadController.hh"
 #include "game/system/RaceMode.hh"
 
-#include <egg/math/Vector.hh>
 #include <vector>
 
 namespace System {

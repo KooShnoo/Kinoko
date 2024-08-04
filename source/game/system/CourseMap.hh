@@ -54,18 +54,18 @@ public:
     [[nodiscard]] f32 startTmp3() const;
     /// @endGetters
 
-    u16 getCheckPointCount() const;
-    u16 getCheckPathCount() const;
+    [[nodiscard]] u16 getCheckPointCount() const;
+    [[nodiscard]] u16 getCheckPathCount() const;
     void clearSectorChecked();
-    s16 findSector(s32 playerIdx, const EGG::Vector3f &pos, u16 checkpointIdx, f32 *distanceRatio,
+    [[nodiscard]] s16 findSector(s32 playerIdx, const EGG::Vector3f &pos, u16 checkpointIdx, f32 *distanceRatio,
             bool isRemote);
-    s16 searchNextCheckpoint(s32 playerIdx, const EGG::Vector3f &pos, s16 depth,
+    [[nodiscard]] s16 searchNextCheckpoint(s32 playerIdx, const EGG::Vector3f &pos, s16 depth,
             const MapdataCheckPoint &checkpoint, float *completion, u32 params,
             const bool param_8) const;
-    s16 searchPrevCheckpoint(s32 playerIdx, const EGG::Vector3f &pos, s16 depth,
+    [[nodiscard]] s16 searchPrevCheckpoint(s32 playerIdx, const EGG::Vector3f &pos, s16 depth,
             const MapdataCheckPoint &checkpoint, float *completion, u32 params,
             const bool param_8) const;
-    s16 findRecursiveSector(s32 playerIdx, const EGG::Vector3f &pos, s16 depth, int param_5,
+    [[nodiscard]] s16 findRecursiveSector(s32 playerIdx, const EGG::Vector3f &pos, s16 depth, int param_5,
             MapdataCheckPoint &checkpoint, float *completion, u32 params) const;
 
     static CourseMap *CreateInstance();

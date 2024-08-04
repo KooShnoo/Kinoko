@@ -201,6 +201,7 @@ u16 CourseMap::getCheckPathCount() const {
     return m_checkPath ? m_checkPath->size() : 0;
 }
 
+/// @addr{0x80511E00}
 void CourseMap::clearSectorChecked() {
     for (u16 i = 0; i < getCheckPointCount(); i++) {
         getCheckPoint(i)->resetFlags();

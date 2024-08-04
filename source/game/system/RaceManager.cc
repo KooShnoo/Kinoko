@@ -2,9 +2,11 @@
 
 #include "game/system/CourseMap.hh"
 #include "game/system/KPadDirector.hh"
-#include <game/system/map/MapdataCheckPoint.hh>
 #include "game/system/map/MapdataStartPoint.hh"
+#include <Common.hh>
+#include <cfloat>
 #include <game/kart/KartObjectManager.hh>
+#include <game/system/map/MapdataCheckPoint.hh>
 
 #include <algorithm>
 #include <cassert>
@@ -106,7 +108,12 @@ RaceManager::RaceManager() : m_player(0, 3), m_stage(Stage::Intro), m_introTimer
 RaceManager::~RaceManager() = default;
 
 /// @addr{0x80533ED8}
-RaceManagerPlayer::RaceManagerPlayer(u8 idx, u8 lapCount): m_idx(idx) {
+RaceManagerPlayer::RaceManagerPlayer(u8 idx, u8 lapCount)
+    : m_idx(idx), m_checkpointId(0), m_raceCompletion(0.0f), m_checkpointFactor(-1.0f),
+      m_checkpointStartLapCompletion(0.0f), m_lapCompletion(0.999999f) {
+
+    CourseMap::Instance()->getCheckPointCount();
+
     m_lapFinishTimes = std::vector<Timer>(lapCount);
     m_inputs = &KPadDirector::Instance()->playerInput();
 }
@@ -116,10 +123,10 @@ void RaceManagerPlayer::init() {
     auto courseMap = CourseMap::Instance();
     assert(courseMap);
     bool hasCkpt = courseMap->getCheckPointCount() == 0;
-    if (hasCkpt) {   
+    if (hasCkpt) {
         hasCkpt = courseMap->getCheckPathCount() != 0;
     }
-    if (hasCkpt) {   
+    if (hasCkpt) {
         auto pos = Kart::KartObjectManager::Instance()->object(m_idx)->pos();
         f32 distanceRatio = 0.0f;
         s16 sector = courseMap->findSector(m_idx, pos, 0, &distanceRatio, true);

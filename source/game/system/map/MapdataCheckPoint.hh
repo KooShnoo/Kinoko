@@ -16,8 +16,8 @@ struct LinkedCheckpoint {
 
 class MapdataCheckPoint {
 public:
-    static constexpr s8 NORMAL_CHECKPOINT = -1; ///< only used for respawn calculations
-    static constexpr s8 START_FINISH_LINE = 0;  ///< triggers a lap count
+    static constexpr s8 NORMAL_CHECKPOINT = -1; ///< only used for picking respawn position
+    static constexpr s8 FINISH_LINE = 0;  ///< triggers a lap count; also the starting line
 
     struct SData {
         EGG::Vector2f left;
@@ -40,35 +40,39 @@ public:
     MapdataCheckPoint(const SData *data);
     void read(EGG::Stream &stream);
 
-    Completion getCompletion(const EGG::Vector3f &pos, f32 *distanceRatio) const;
+    [[nodiscard]] Completion getCompletion(const EGG::Vector3f &pos, f32 *distanceRatio) const;
     bool isPlayerFlagged(s32 playerIdx) const;
     void setPlayerFlags(s32 playerIdx);
     void resetFlags();
-    EGG::Vector2f left() const;
-    EGG::Vector2f right() const;
-    u8 jugemIndex() const;
-    s8 type() const;
-    bool isNormalCheckpoint() const;
-    bool isStartFinishLine() const;
-    u8 prevPt() const;
-    u8 nextPt() const;
-    u16 nextCount() const;
-    u16 prevCount() const;
-    u16 id() const;
-    MapdataCheckPoint *prevPoint(s32 i) const;
-    MapdataCheckPoint *nextPoint(s32 i) const;
 
-private:
+    /// @beginGetters
+    [[nodiscard]] EGG::Vector2f left() const;
+    [[nodiscard]] EGG::Vector2f right() const;
+    [[nodiscard]] u8 jugemIndex() const;
+    [[nodiscard]] s8 type() const;
+    [[nodiscard]] bool isNormalCheckpoint() const;
+    [[nodiscard]] bool isFinishLine() const;
+    [[nodiscard]] u8 prevPt() const;
+    [[nodiscard]] u8 nextPt() const;
+    [[nodiscard]] u16 nextCount() const;
+    [[nodiscard]] u16 prevCount() const;
+    [[nodiscard]] u16 id() const;
+    [[nodiscard]] MapdataCheckPoint *prevPoint(s32 i) const;
+    [[nodiscard]] MapdataCheckPoint *nextPoint(s32 i) const;
+    [[nodiscard]] const LinkedCheckpoint &nextLinked(s32 i) const;
+    /// @endGetters
+
     void linkPrevKcpIds(u8 prevKcpId);
-    bool checkSector(const LinkedCheckpoint &next, const EGG::Vector2f &p0,
+private:
+    [[nodiscard]] bool checkSector(const LinkedCheckpoint &next, const EGG::Vector2f &p0,
             const EGG::Vector2f &p1) const;
-    bool checkDistanceRatio(const LinkedCheckpoint &next, const EGG::Vector2f &p0,
+    [[nodiscard]] bool checkDistanceRatio(const LinkedCheckpoint &next, const EGG::Vector2f &p0,
             const EGG::Vector2f &p1, f32 *distanceRatio) const;
-    bool isOrientationNegative(const LinkedCheckpoint &next, const EGG::Vector2f &p0,
+    [[nodiscard]] bool isOrientationNegative(const LinkedCheckpoint &next, const EGG::Vector2f &p0,
             const EGG::Vector2f &p1) const;
-    bool isInCheckpoint(const LinkedCheckpoint &next, const EGG::Vector2f &p0,
+    [[nodiscard]] bool isInCheckpoint(const LinkedCheckpoint &next, const EGG::Vector2f &p0,
             const EGG::Vector2f &p1, float *completion) const;
-    Completion checkSectorAndDistanceRatio(const LinkedCheckpoint &next, const EGG::Vector2f &p0,
+    [[nodiscard]] Completion checkSectorAndDistanceRatio(const LinkedCheckpoint &next, const EGG::Vector2f &p0,
             const EGG::Vector2f &p1, float *distanceRatio) const;
     const SData *m_rawData;
     EGG::Vector2f m_left;
@@ -90,7 +94,7 @@ private:
     EGG::Vector2f m_dir;
     u16 m_flags; ///< visited flag, for recursive fucntions
     u16 m_id;
-    u8 prevKcpId;
+    u8 m_prevKcpId;
     MapdataCheckPoint *m_prevPoints[6];
     LinkedCheckpoint m_nextPoints[6];
 };
@@ -102,6 +106,9 @@ public:
     ~MapdataCheckPointAccessor() override;
 
 private:
+    [[nodiscard]] f32 calculateMeanTotalDistanceRecursive(u16 ckptId);
+    [[nodiscard]] f32 calculateMeanTotalDistance();
+    void findFinishAndLastKcp();
     void init();
     u8 m_lastKcpType;
     u16 m_finishLineCheckpointId;
