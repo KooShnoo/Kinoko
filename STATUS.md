@@ -58,7 +58,7 @@ Test Case                                                 | Frames      |     | 
 [`rbc-rta-2-17-997`](https://youtu.be/6Wri7nBtZMk)        | 1168 / 8683 | ❌ | Respawn position
 [`rbc-ng-rta-2-30-459`](https://youtu.be/twZes-RI6Sc)     | 9430 / 9430 | ✔️ |
 [`TAS/LC-UR-3lap-1-02-466`]()                             | 4156 / 4156 | ✔️ |
-[`TAS/MMM-UR-3lap-52-321`]()                              | 3520 / 3548 | ❌ | Respawn boost
+[`TAS/MMM-UR-3lap-52-321`]()                              | 3548 / 3548 | ✔️ |
 [`TAS/MG-UR-3lap-17-451`]()                               | 621 / 1458  | ❌ | Mushroom
 [`TAS/TF-UR-3lap-1-30-822`]()                             | 1078 / 5855 | ❌ | KMP
 [`TAS/MC-UR-3lap-38.932`]()                               | 666 / 2745  | ❌ | KMP
