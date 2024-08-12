@@ -1,10 +1,30 @@
 #include "MapdataCheckPoint.hh"
+#include "MapdataCheckPath.hh"
 #include <Common.hh>
 #include <cassert>
 #include <cstddef>
+#include <cstdio>
+#include <egg/math/Vector.hh>
 #include <game/system/CourseMap.hh>
 
 namespace System {
+
+MapdataCheckPoint::MapdataCheckPoint(const SData *data) : m_rawData(data) {
+    u8 *unsafeData = reinterpret_cast<u8 *>(const_cast<SData *>(data));
+    EGG::RamStream stream = EGG::RamStream(unsafeData, sizeof(SData));
+    read(stream);
+    // clang-format off
+    m_midpoint = EGG::Vector2f(
+        (left().x + right().x) / 2.0f, 
+        (left().y + right().y) / 2.0f
+    );
+    m_dir = EGG::Vector2f(
+        left().y - right().y,
+        left().x - right().x
+    );
+    // clang-format on
+    m_dir.normalise();
+}
 
 void MapdataCheckPoint::read(EGG::Stream &stream) {
     m_left.read(stream);
@@ -15,8 +35,87 @@ void MapdataCheckPoint::read(EGG::Stream &stream) {
     m_nextPt = stream.read_u8();
 }
 
+/// @addr{0x80515624}
+void MapdataCheckPoint::initCheckpointLinks(MapdataCheckPointAccessor &accessor, int id) {
+    m_id = id;
+    auto courseMap = CourseMap::Instance();
+    // If the check point is the first in its group (prev == -1), it has multiple previous
+    // checkpoints defined by its preceding checkpaths
+    if (m_prevPt == 0xff) {
+        // Finds the checkpath that contains the given checkpoint id
+        // inline function?
+        MapdataCheckPath *checkpath = nullptr;
+        for (size_t i = 0; i < courseMap->getCheckPathCount(); i++) {
+            checkpath = courseMap->getCheckPath(i);
+            if (checkpath->isPointInPath(id)) {
+                break;
+            }
+        }
+
+        // assert(checkpath); // temporary, to see if we need all this vv // okay it failed lmao
+        if (checkpath != nullptr) {
+            m_prevCount = 0;
+            for (size_t i = 0; i < 6; i++) {
+                u16 prevID = checkpath->getPrev(i);
+                if (prevID == 0xff) {
+                    continue;
+                }
+                MapdataCheckPath *prev = courseMap->checkPath()->get(prevID);
+                m_prevPoints[i] = accessor.get(prev->end());
+                m_prevCount++;
+            }
+        }
+    } else {
+        m_prevPoints[0] = accessor.get(m_prevPt);
+        m_prevCount++;
+    }
+    // Calculate the quadrilateral's nextCheckpoint. If the checkpoint is the last in its group, it
+    // can have multiple quadrilaterals (and nextCheckpoint) which are determined by its next
+    // path(s)
+    if (m_nextPt == 0xff) {
+        // Finds the checkpath that contains the given checkpoint id
+        MapdataCheckPath *checkpath = nullptr;
+        for (size_t i = 0; i < courseMap->getCheckPathCount(); i++) {
+            checkpath = courseMap->getCheckPath(i);
+            if (checkpath->isPointInPath(id)) {
+                break;
+            }
+        }
+
+        // assert(checkpath); // temporary, to see if we need all this vv // okay it failed lmao
+        if (checkpath != nullptr) {
+            m_nextCount = 0;
+            for (size_t i = 0; i < 6; i++) {
+                u16 nextID = checkpath->getNext(i);
+                if (nextID == 0xff) {
+                    continue;
+                }
+                MapdataCheckPath *next = courseMap->checkPath()->get(nextID);
+                m_nextPoints[i].checkpoint = accessor.get(next->end());
+                m_nextCount++;
+            }
+        }
+    } else {
+        m_nextPoints[0].checkpoint = accessor.get(m_nextPt);
+        m_nextCount++;
+    }
+
+    // Form the checkpoint's quadrilateral(s)
+    for (size_t i = 0; i < 6; i++) {
+        if (i < nextCount()) {
+            auto next = nextPoint(i);
+            m_nextPoints[i].distance = (next->m_midpoint - m_midpoint).normalise();
+
+            m_nextPoints[i].p0diff =
+                    EGG::Vector2f(next->left().x - left().x, next->left().y - left().y);
+            m_nextPoints[i].p1diff =
+                    EGG::Vector2f(next->right().x - right().x, next->right().y - right().y);
+        } // else initalize to zero (pointless)
+    }
+}
+
 /// @addr{0x80510D7C}
-/// @see MapdataCheckPoint::checkSectorAndDistanceRatio
+/// @see MapdataCheckPoint::checkSectorAndCheckpointCompletion
 MapdataCheckPoint::Completion MapdataCheckPoint::getCompletion(const EGG::Vector3f &pos,
         float *completion) const {
     EGG::Vector2f p1 = EGG::Vector2f(right().x, right().y);
@@ -29,12 +128,13 @@ MapdataCheckPoint::Completion MapdataCheckPoint::getCompletion(const EGG::Vector
         p0.y = pos.z - p0.y;
         p0.x = pos.x - p0.x;
         MapdataCheckPoint::Completion result =
-                checkSectorAndDistanceRatio(m_nextPoints[nextIdx], p0, p1, completion);
+                checkSectorAndCheckpointCompletion(m_nextPoints[nextIdx], p0, p1, completion);
 
         if (result == Completion_1) {
             continue;
+        } else {
+            return result;
         }
-        return result;
     }
 
     return Completion_1;
@@ -122,13 +222,11 @@ void MapdataCheckPoint::linkPrevKcpIds(u8 prevKcpId) {
         if (next->isPlayerFlagged(0)) {
             continue;
         }
-        // next = nextPoint(i); //<- why did the devolpers write this???
         next->linkPrevKcpIds(m_prevKcpId);
     }
 }
 
 /// @brief Returns true if player is between the two sides of the checkpoint quad, otherwise false
-/// https://decomp.me/scratch/sYnP9
 bool MapdataCheckPoint::checkSector(const LinkedCheckpoint &next, const EGG::Vector2f &p0,
         const EGG::Vector2f &p1) const {
     if (-(next.p0diff.y) * p0.x + next.p0diff.x * p0.y < 0.0f) {
@@ -142,29 +240,35 @@ bool MapdataCheckPoint::checkSector(const LinkedCheckpoint &next, const EGG::Vec
     return true;
 }
 
-/// @brief Updates distanceRatio, which is the "checkpoint completion" or the percentage of distance
+/// @brief Updates @param checkpointCompletion\, which is the percentage of distance
 /// the player has traveled through the checkpoint quad
-/// @return True if 0 <= distanceRatio <= 1, meaning the player is between this checkpoint line and
-/// the next; otherwise, false
-bool MapdataCheckPoint::checkDistanceRatio(const LinkedCheckpoint &next, const EGG::Vector2f &p0,
-        const EGG::Vector2f &p1, float *distanceRatio) const {
+/// @return True if 0 <= checkpointCompletion <= 1, meaning the player is between this checkpoint
+/// line and the next; otherwise, false
+/// @addr{Inlined in 0x80510C74}
+bool MapdataCheckPoint::checkCheckpointCompletion(const LinkedCheckpoint &next,
+        const EGG::Vector2f &p0, const EGG::Vector2f &p1, float *checkpointCompletion) const {
     f32 d1 = m_dir.dot(p1);
     f32 d2 = -(next.checkpoint->m_dir.dot(p0));
-    // This is where the divide by zero thing happens
-    f32 distanceRatio_ = d1 / (d1 + d2);
-    *distanceRatio = distanceRatio_;
-    return (distanceRatio_ >= 0.0f && distanceRatio_ <= 1.0f);
+    // This is where the divide by zero thing happens @todo
+    f32 checkpointCompletion_ = d1 / (d1 + d2);
+    *checkpointCompletion = checkpointCompletion_;
+    printf("checkpointCompletion: %+02.4f, _:%+02.4f, d1:%+02.4f, d2:%+02.4f, d1+d2:%+02.4f ",
+            *checkpointCompletion, checkpointCompletion_, d1, d2, d1 + d2);
+    return (checkpointCompletion_ >= 0.0f && checkpointCompletion_ <= 1.0f);
 }
 
-/// @brief Calls both @ref checkSector and @ref checkDistanceRatio; updates @param distanceRatio
-MapdataCheckPoint::Completion MapdataCheckPoint::checkSectorAndDistanceRatio(
+/// @brief Calls both @ref checkSector and @ref checkCheckpointCompletion; updates @param
+/// checkpointCompletion
+/// @addr{0x80510C74}
+MapdataCheckPoint::Completion MapdataCheckPoint::checkSectorAndCheckpointCompletion(
         const LinkedCheckpoint &next, const EGG::Vector2f &p0, const EGG::Vector2f &p1,
-        float *distanceRatio) const {
+        float *checkpointCompletion) const {
     if (!checkSector(next, p0, p1)) {
         return Completion_1;
     }
 
-    return checkDistanceRatio(next, p0, p1, distanceRatio) ? Completion_0 : Completion_2;
+    return checkCheckpointCompletion(next, p0, p1, checkpointCompletion) ? Completion_0 :
+                                                                           Completion_2;
 }
 
 /// @addr{0x80512064}
@@ -179,10 +283,15 @@ f32 MapdataCheckPointAccessor::calculateMeanTotalDistanceRecursive(u16 ckptId) {
         if (m_finishLineCheckpointId == ckpt->id()) {
             continue;
         }
-        ckpt = ckpt->nextPoint(i);
+        // ckpt = ckpt->nextPoint(i);
         sumDist += calculateMeanTotalDistanceRecursive(ckpt->id());
     }
+
     return sumDist / n;
+}
+
+s8 MapdataCheckPointAccessor::lastKcpType() const {
+    return m_lastKcpType;
 }
 
 /// @addr{80512370}
@@ -192,13 +301,14 @@ f32 MapdataCheckPointAccessor::calculateMeanTotalDistance() {
 }
 
 /// @brief find finish line and last key checkpoint indexes
-/// @addr{Inlined in 0x80515244} fake function, not real. it's not in the base game. in the base game, it's inlined into `init()`. i, kooshnoo, split it out because i wanted to.
+/// @addr{Inlined in 0x80515244} fake. not real. it's not in the base game. in the base
+/// game, it's inlined into `init()`. i, kooshnoo, split it out because i wanted to.
 void MapdataCheckPointAccessor::findFinishAndLastKcp() {
-    u8 lastKcpType = -1;
+    s8 lastKcpType = -1;
     s16 finishLineCheckpointId = -1;
     for (size_t ckptId = 0; ckptId < size(); ckptId++) {
         MapdataCheckPoint *lastCheckpoint = get(ckptId);
-        // lastCheckpoint->initCheckpointLinks(this, ckptId);
+        lastCheckpoint->initCheckpointLinks(*this, ckptId);
         lastCheckpoint = get(ckptId);
         if (lastCheckpoint->isFinishLine()) {
             finishLineCheckpointId = ckptId;
@@ -230,5 +340,7 @@ MapdataCheckPointAccessor::MapdataCheckPointAccessor(const MapSectionHeader *hea
     assert(size() != 0);
     init();
 }
+
+MapdataCheckPointAccessor::~MapdataCheckPointAccessor() = default;
 
 } // namespace System

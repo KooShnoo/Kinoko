@@ -40,12 +40,14 @@ public:
     [[nodiscard]] MapdataCannonPoint *getCannonPoint(u16 i) const;
     [[nodiscard]] MapdataCheckPoint *getCheckPoint(u16 i) const;
     [[nodiscard]] MapdataCheckPath *getCheckPath(u16 i) const;
+    [[nodiscard]] MapdataCheckPathAccessor *checkPath() const;
     [[nodiscard]] MapdataGeoObj *getGeoObj(u16 i) const;
     [[nodiscard]] MapdataJugemPoint *getJugemPoint(u16 i) const;
     [[nodiscard]] MapdataStageInfo *getStageInfo() const;
     [[nodiscard]] MapdataStartPoint *getStartPoint(u16 i) const;
     [[nodiscard]] u16 getGeoObjCount() const;
     [[nodiscard]] u16 getJugemPointCount() const;
+    [[nodiscard]] s8 lastKcpType() const;
     [[nodiscard]] u32 version() const;
     [[nodiscard]] f32 startTmpAngle() const;
     [[nodiscard]] f32 startTmp0() const;
@@ -57,7 +59,7 @@ public:
     [[nodiscard]] u16 getCheckPointCount() const;
     [[nodiscard]] u16 getCheckPathCount() const;
     void clearSectorChecked();
-    [[nodiscard]] s16 findSector(s32 playerIdx, const EGG::Vector3f &pos, u16 checkpointIdx, f32 *distanceRatio,
+    [[nodiscard]] s16 findSector(s32 playerIdx, const EGG::Vector3f &pos, u16 checkpointIdx, f32 *checkpointCompletion,
             bool isRemote);
     [[nodiscard]] s16 searchNextCheckpoint(s32 playerIdx, const EGG::Vector3f &pos, s16 depth,
             const MapdataCheckPoint &checkpoint, float *completion, u32 params,

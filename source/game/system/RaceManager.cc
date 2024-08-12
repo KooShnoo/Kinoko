@@ -1,15 +1,20 @@
 #include "RaceManager.hh"
 
+#include <Common.hh>
+
 #include "game/system/CourseMap.hh"
 #include "game/system/KPadDirector.hh"
 #include "game/system/map/MapdataStartPoint.hh"
-#include <Common.hh>
-#include <cfloat>
+#include <cstdio>
 #include <game/kart/KartObjectManager.hh>
+#include <game/kart/KartState.hh>
+#include <game/system/RaceConfig.hh>
+#include <game/system/map/MapdataCheckPath.hh>
 #include <game/system/map/MapdataCheckPoint.hh>
 
 #include <algorithm>
 #include <cassert>
+#include <cfloat>
 
 namespace System {
 
@@ -43,6 +48,8 @@ const MapdataJugemPoint *RaceManager::jugemPoint() {
 /// @addr{0x805331B4}
 void RaceManager::calc() {
     constexpr u16 STAGE_INTRO_DURATION = 172;
+
+    m_player.calc();
 
     switch (m_stage) {
     case Stage::Intro:
@@ -107,29 +114,138 @@ RaceManager::RaceManager() : m_player(0, 3), m_stage(Stage::Intro), m_introTimer
 /// @addr{0x80532E3C}
 RaceManager::~RaceManager() = default;
 
-/// @addr{0x80533ED8}
-RaceManagerPlayer::RaceManagerPlayer(u8 idx, u8 lapCount)
-    : m_idx(idx), m_checkpointId(0), m_raceCompletion(0.0f), m_checkpointFactor(-1.0f),
-      m_checkpointStartLapCompletion(0.0f), m_lapCompletion(0.999999f) {
+/// @addr{0x80534D6C}
+/// https://decomp.me/scratch/n6Mvl
+void RaceManagerPlayer::decrementLap() {
+    printf("DECredmentLAP"); // called too often
+    if (m_bFinished) {
+        return;
+    }
+    m_maxKcp = CourseMap::Instance()->lastKcpType();
+    m_currentLap -= 1;
+}
 
-    CourseMap::Instance()->getCheckPointCount();
+/// @addr{0x80535304}
+void RaceManagerPlayer::calc() {
+    printf("timr: %+04i, raceCompletion: %+02.4f, m_lapCompletion: %+02.4f, m_checkpointId: %04u, m_checkpointStartLapCompletion: %+02.4f ", RaceManager::Instance()->getCountdownTimer(), m_raceCompletion, m_lapCompletion, m_checkpointId, m_checkpointStartLapCompletion);
+    // auto playerType = RaceConfig::Instance()->raceScenario().players[m_idx].type;
+    if (m_bFinished) {
+        // if (m_position == 1) {
+        //     m_framesInFirst++;
+        // }
+        m_frameCounter++;
+    }
+    auto courseMap = CourseMap::Instance();
+    auto kart = Kart::KartObjectManager::Instance()->object(m_playerIdx);
+    if (courseMap->getCheckPointCount() == 0 || courseMap->getCheckPathCount() == 0 ||
+            kart->state()->isBeforeRespawn() || !m_bInRace) {
+        printf("opak! \n");
+        return;
+    }
+    f32 checkpointCompletion;
+    s16 checkpointId =
+            courseMap->findSector(m_playerIdx, kart->pos(), m_checkpointId, &checkpointCompletion, false);
+    if (checkpointId == -1) {
+        printf("opakta! \n");
+        return;
+    }
 
-    m_lapFinishTimes = std::vector<Timer>(lapCount);
-    m_inputs = &KPadDirector::Instance()->playerInput();
+    // for m_bWrongWay
+    // MapdataCheckPoint *ckpt;
+    if (m_checkpointFactor < 0 || m_checkpointId != checkpointId) {
+    //     ckpt = calcCheckpoint(checkpointId, checkpointCompletion, false);
+    calcCheckpoint(checkpointId, checkpointCompletion, false);
+    } else {
+        // ckpt = courseMap->getCheckPoint(m_checkpointId);
+        printf("hmmmmm");
+    }
+
+    m_raceCompletion = m_currentLap + m_checkpointStartLapCompletion + m_checkpointFactor * checkpointCompletion;
+    m_raceCompletion = std::min(m_raceCompletion, m_currentLap + 0.99999f);
+    m_raceCompletionMax = std::max(m_raceCompletionMax, m_raceCompletion);
+
+    printf("m_currentLap, %+04i m_checkpointStartLapCompletion, %+02.4f m_checkpointFactor, %+02.4f checkpointCompletion %+02.4f \n", m_currentLap, m_checkpointStartLapCompletion, m_checkpointFactor, checkpointCompletion);
+    // wrong way-related code for m_bWrongWay
+}
+
+/// @brief whether @param nextCheckpointId is directly after @param checkpoint
+/// @addr{Inlined in RaceManagerPlayer::calcCheckpoint}
+bool areCheckpointsSubsequent(MapdataCheckPoint *checkpoint, u16 nextCheckpointId) {
+    for (size_t i = 0; i < checkpoint->nextCount(); i++) {
+        if (nextCheckpointId == checkpoint->nextPoint(i)->id()) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+MapdataCheckPoint *RaceManagerPlayer::calcCheckpoint(u16 checkpointId, f32 checkpointCompletion,
+        bool /* isRemote */) {
+    printf("calcpkt!!!");
+    auto courseMap = CourseMap::Instance();
+    u16 oldCheckpointId = m_checkpointId;
+    m_checkpointId = checkpointId;
+    f32 lapProportion = courseMap->checkPath()->lapProportion();
+    MapdataCheckPath *checkPath = courseMap->checkPath()->findCheckpathForCheckpoint(checkpointId);
+    // rougly, the proportion of a lap a checkpoint in `checkPath` is
+    f32 checkpointFactor = checkPath->oneOverCount() * lapProportion;
+    m_checkpointFactor = checkpointFactor;
+    // crude lap completion only respecting checkpaths
+    auto ckpthLapCompletion = checkPath->depth() * lapProportion;
+    // unlike `depth` which measures depth( in checkpaths )around the course, this measures depth
+    // (in chekpoints) through the checkpath.
+    auto depthIntoCheckPath = checkpointId - checkPath->start();
+    f32 foo = ckpthLapCompletion + (m_checkpointFactor * depthIntoCheckPath);
+    m_checkpointStartLapCompletion = foo;
+    foo += checkpointCompletion * checkpointFactor;
+    m_lapCompletion -= foo;
+
+    MapdataCheckPoint *newCheckpoint = courseMap->getCheckPoint(checkpointId);
+    MapdataCheckPoint *oldCheckpoint = courseMap->getCheckPoint(oldCheckpointId);
+
+    s8 respawn = newCheckpoint->jugemIndex();
+    if (respawn >= 0) {
+        m_respawn = respawn;
+    }
+
+    // no remote players in kinoko
+    // if (isRemote) {
+    //     if (m_lapCompletion < 0.6f) {
+    //         decrementLap();
+    //     } else if (m_lapCompletion > -0.6f) { // idk what it compares against
+    //         endLap();
+    //     }
+    //     return newCheckpoint;
+    // }
+
+    if (!newCheckpoint->isNormalCheckpoint()) {
+        if (newCheckpoint->type() > m_maxKcp) {
+            m_maxKcp = newCheckpoint->type();
+        } else if (m_maxKcp == courseMap->lastKcpType()) {
+            if ((newCheckpoint->isFinishLine() &&
+                        areCheckpointsSubsequent(oldCheckpoint, checkpointId)) ||
+                    m_lapCompletion > 0.95f) {
+                endLap();
+            }
+        }
+        m_currentKcp = newCheckpoint->type();
+    }
+    if ((newCheckpoint->isFinishLine() && areCheckpointsSubsequent(newCheckpoint, checkpointId)) ||
+            m_lapCompletion < 0.95f) {
+        decrementLap();
+    }
+    return newCheckpoint;
 }
 
 /// @addr{0x80534194}
 void RaceManagerPlayer::init() {
     auto courseMap = CourseMap::Instance();
     assert(courseMap);
-    bool hasCkpt = courseMap->getCheckPointCount() == 0;
-    if (hasCkpt) {
-        hasCkpt = courseMap->getCheckPathCount() != 0;
-    }
-    if (hasCkpt) {
-        auto pos = Kart::KartObjectManager::Instance()->object(m_idx)->pos();
-        f32 distanceRatio = 0.0f;
-        s16 sector = courseMap->findSector(m_idx, pos, 0, &distanceRatio, true);
+    if (courseMap->getCheckPointCount() != 0 && courseMap->getCheckPathCount() != 0) {
+        auto pos = Kart::KartObjectManager::Instance()->object(m_playerIdx)->pos();
+        f32 checkpointCompletion;
+        s16 sector = courseMap->findSector(m_playerIdx, pos, 0, &checkpointCompletion, true);//false);
         m_checkpointId = std::max<s16>(0, sector);
         auto *ckpt = courseMap->getCheckPoint(m_checkpointId);
         m_respawn = ckpt->jugemIndex();
@@ -143,6 +259,14 @@ void RaceManagerPlayer::init() {
 const KPad *RaceManagerPlayer::inputs() const {
     return m_inputs;
 }
+
+/// @addr{0x80533ED8}
+RaceManagerPlayer::RaceManagerPlayer(u8 idx, u8 lapCount)
+    : m_playerIdx(idx), m_checkpointId(0), m_raceCompletion(0.0f), m_checkpointFactor(-1.0f),
+      m_checkpointStartLapCompletion(0.0f), m_lapCompletion(0.999999f), m_currentLap(0),
+      m_maxLap(0), m_currentKcp(CourseMap::Instance()->lastKcpType()),
+      m_maxKcp(CourseMap::Instance()->lastKcpType()), m_lapFinishTimes(lapCount),
+      m_inputs(&KPadDirector::Instance()->playerInput()) {}
 
 RaceManager *RaceManager::s_instance = nullptr; ///< @addr{0x809BD730}
 

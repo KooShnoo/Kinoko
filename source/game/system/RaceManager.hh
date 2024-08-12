@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cstdio>
+#include <game/system/map/MapdataCheckPoint.hh>
 #include "game/system/KPadController.hh"
 #include "game/system/RaceMode.hh"
 
@@ -13,10 +15,17 @@ public:
     virtual ~RaceManagerPlayer() {}
 
     void init();
+    void calc();
     [[nodiscard]] const KPad *inputs() const;
 
 private:
-    s8 m_idx;
+    void decrementLap();
+    void endLap(){
+        printf("lap Over!! :)");
+    } ///< @todo TODO
+    MapdataCheckPoint *calcCheckpoint(u16 checkpointId, f32 checkpointCompletion, bool isRemote);
+
+    s8 m_playerIdx;
     u16 m_checkpointId;
     f32 m_raceCompletion;
     f32 m_raceCompletionMax;

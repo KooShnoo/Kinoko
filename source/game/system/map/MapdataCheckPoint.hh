@@ -14,10 +14,12 @@ struct LinkedCheckpoint {
     f32 distance;
 };
 
+
+class MapdataCheckPointAccessor;
 class MapdataCheckPoint {
 public:
     static constexpr s8 NORMAL_CHECKPOINT = -1; ///< only used for picking respawn position
-    static constexpr s8 FINISH_LINE = 0;  ///< triggers a lap count; also the starting line
+    static constexpr s8 FINISH_LINE = 0;        ///< triggers a lap count; also the starting line
 
     struct SData {
         EGG::Vector2f left;
@@ -33,14 +35,14 @@ public:
         Completion_1, ///< if player is not between the sides of the quad (may still be between this
                       ///< checkpoint and next); player is likely in a different checkpoint group
         Completion_2, ///< if player is between the sides of the quad, but NOT between this
-                      ///< checkpoint and
-                      ///< next; player is likely in the same checkpoint group
+                      ///< checkpoint and next; player is likely in the same checkpoint group
     };
 
     MapdataCheckPoint(const SData *data);
     void read(EGG::Stream &stream);
 
-    [[nodiscard]] Completion getCompletion(const EGG::Vector3f &pos, f32 *distanceRatio) const;
+    void initCheckpointLinks(MapdataCheckPointAccessor &accessor, int id);
+    [[nodiscard]] Completion getCompletion(const EGG::Vector3f &pos, f32 *checkpointCompletion) const;
     bool isPlayerFlagged(s32 playerIdx) const;
     void setPlayerFlags(s32 playerIdx);
     void resetFlags();
@@ -63,21 +65,22 @@ public:
     /// @endGetters
 
     void linkPrevKcpIds(u8 prevKcpId);
+
 private:
     [[nodiscard]] bool checkSector(const LinkedCheckpoint &next, const EGG::Vector2f &p0,
             const EGG::Vector2f &p1) const;
-    [[nodiscard]] bool checkDistanceRatio(const LinkedCheckpoint &next, const EGG::Vector2f &p0,
-            const EGG::Vector2f &p1, f32 *distanceRatio) const;
+    [[nodiscard]] bool checkCheckpointCompletion(const LinkedCheckpoint &next, const EGG::Vector2f &p0,
+            const EGG::Vector2f &p1, f32 *checkpointCompletion) const;
     [[nodiscard]] bool isOrientationNegative(const LinkedCheckpoint &next, const EGG::Vector2f &p0,
             const EGG::Vector2f &p1) const;
     [[nodiscard]] bool isInCheckpoint(const LinkedCheckpoint &next, const EGG::Vector2f &p0,
             const EGG::Vector2f &p1, float *completion) const;
-    [[nodiscard]] Completion checkSectorAndDistanceRatio(const LinkedCheckpoint &next, const EGG::Vector2f &p0,
-            const EGG::Vector2f &p1, float *distanceRatio) const;
+    [[nodiscard]] Completion checkSectorAndCheckpointCompletion(const LinkedCheckpoint &next,
+            const EGG::Vector2f &p0, const EGG::Vector2f &p1, float *checkpointCompletion) const;
     const SData *m_rawData;
     EGG::Vector2f m_left;
     EGG::Vector2f m_right;
-    u8 m_jugemIndex; ///< index of respawn point associated with this checkpoint. players who die
+    s8 m_jugemIndex; ///< index of respawn point associated with this checkpoint. players who die
                      ///< here will be respawned at this point.
     /// either:
     /// - a @ref `NORMAL_CHECKPOINT` (0) used to calulate respawns,
@@ -92,7 +95,8 @@ private:
     u16 m_prevCount;
     EGG::Vector2f m_midpoint;
     EGG::Vector2f m_dir;
-    u16 m_flags; ///< visited flag, for recursive fucntions
+    u16 m_flags; ///< visited flag, for recursive fucntions. per-player, methinks. for kinoko we
+                 ///< just bool'n it up ya think? that sound alright?
     u16 m_id;
     u8 m_prevKcpId;
     MapdataCheckPoint *m_prevPoints[6];
@@ -105,12 +109,14 @@ public:
     MapdataCheckPointAccessor(const MapSectionHeader *header);
     ~MapdataCheckPointAccessor() override;
 
+    [[nodiscard]] s8 lastKcpType() const;
+
 private:
     [[nodiscard]] f32 calculateMeanTotalDistanceRecursive(u16 ckptId);
     [[nodiscard]] f32 calculateMeanTotalDistance();
     void findFinishAndLastKcp();
     void init();
-    u8 m_lastKcpType;
+    s8 m_lastKcpType;
     u16 m_finishLineCheckpointId;
     f32 m_meanTotalDistance;
 };
