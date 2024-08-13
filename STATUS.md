@@ -65,7 +65,7 @@ Test Case                                                 | Frames      |     | 
 [`TAS/CM-UR-3lap-22.714`]()                               | 1773 / 1773 | ✔️ |
 [`TAS/DKS-UR-3lap-1-33-621`]()                            | 6023 / 6023 | ✔️ |
 [`TAS/WGM-UR-3lap-29-641`]()                              | 2188 / 2188 | ✔️ |
-[`TAS/DC-UR-3lap-1-04-184`]()                             | 927 / 4259  | ❌ | Figure-8 wall bonk. KMP?
+[`TAS/DC-UR-3lap-1-04-184`]()                             | 1676 / 4259 | ❌ | KMP
 [`TAS/KC-UR-3lap-42-945`]()                               | 985 / 2986  | ❌ | Respawn position [VIABLE TO WORK ON]
 [`TAS/MT-UR-3lap-1-15-170`]()                             | 928 / 4917  | ❌ | Soft wall clip [VIABLE TO WORK ON]
 [`TAS/GV-UR-3lap-13-326`]()                               | 467 / 1210  | ❌ | KMP 
