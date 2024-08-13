@@ -616,6 +616,10 @@ bool KartState::isSkipWheelCalc() const {
     return m_bSkipWheelCalc;
 }
 
+bool KartState::isUNK800() const {
+    return m_bUNK800;
+}
+
 bool KartState::isInRespawn() const {
     return m_bInRespawn;
 }
@@ -737,6 +741,7 @@ void KartState::clearBitfield1() {
 void KartState::clearBitfield2() {
     m_bWheelieRot = false;
     m_bSkipWheelCalc = false;
+    m_bUNK800 = false;
     m_bInRespawn = false;
     m_bAfterRespawn = false;
     m_bJumpPadDisableYsusForce = false;
@@ -909,6 +914,10 @@ void KartState::setWheelieRot(bool isSet) {
 
 void KartState::setSkipWheelCalc(bool isSet) {
     m_bSkipWheelCalc = isSet;
+}
+
+void KartState::setUNK800(bool isSet) {
+    m_bUNK800 = isSet;
 }
 
 void KartState::setInRespawn(bool isSet) {

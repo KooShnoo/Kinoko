@@ -71,6 +71,7 @@ public:
     void setTrickable(bool isSet);
     void setWheelieRot(bool isSet);
     void setSkipWheelCalc(bool isSet);
+    void setUNK800(bool isSet);
     void setInRespawn(bool isSet);
     void setAfterRespawn(bool isSet);
     void setJumpPadDisableYsusForce(bool isSet);
@@ -137,6 +138,7 @@ public:
     [[nodiscard]] bool isTrickable() const;
     [[nodiscard]] bool isWheelieRot() const;
     [[nodiscard]] bool isSkipWheelCalc() const;
+    [[nodiscard]] bool isUNK800() const;
     [[nodiscard]] bool isInRespawn() const;
     [[nodiscard]] bool isAfterRespawn() const;
     [[nodiscard]] bool isJumpPadDisableYsusForce() const;
@@ -224,6 +226,7 @@ private:
     /// @{
     bool m_bWheelieRot;
     bool m_bSkipWheelCalc;
+    bool m_bUNK800;
     bool m_bInRespawn;
     bool m_bAfterRespawn;
     bool m_bJumpPadDisableYsusForce;

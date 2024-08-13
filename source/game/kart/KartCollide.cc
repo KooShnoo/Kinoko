@@ -76,7 +76,7 @@ void KartCollide::findCollision() {
 void KartCollide::FUN_80572F4C() {
     f32 fVar1;
 
-    if (isInRespawn() || state()->isBoost() || state()->isOverZipper() ||
+    if (isInRespawn() || state()->isBoost() || state()->isOverZipper() || state()->isUNK800() ||
             state()->isHalfpipeRamp()) {
         fVar1 = 0.0f;
     } else {

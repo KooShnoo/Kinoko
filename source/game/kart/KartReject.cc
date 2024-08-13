@@ -57,9 +57,11 @@ void KartReject::calcRejectRoad() {
         }
 
         state()->setHop(false);
+        bool isHalfPipeRejection = calcHalfpipeRejection();
 
-        if (!calcHalfpipeRejection()) {
+        if (!state()->isUNK800() && !isHalfPipeRejection) {
             state()->setHalfpipeWall(false);
+            state()->setUNK800(false);
         }
 
         return;
@@ -90,6 +92,7 @@ void KartReject::calcRejectRoad() {
 bool KartReject::calcHalfpipeRejection() {
     Field::CourseColMgr::CollisionInfo colInfo;
     Field::KCLTypeMask mask = KCL_NONE;
+    state()->setUNK800(false);
     EGG::Vector3f worldUpPos = dynamics()->pos() + bodyUp() * 100.0f;
     f32 posScalar = 100.0f;
     f32 radius = posScalar;
@@ -112,18 +115,33 @@ bool KartReject::calcHalfpipeRejection() {
 
         bool hasFloorCollision;
         bool hasRejectCollision = false;
+        bool hasInvisibleWallCollision;
         EGG::Vector3f tangentOff;
 
-        if (!(mask & KCL_TYPE_DRIVER_FLOOR)) {
-            hasFloorCollision = false;
+        if (!(mask & KCL_TYPE_INVISIBLE_WALL)) {
+            hasInvisibleWallCollision = false;
         } else {
-            hasFloorCollision = colDir->findClosestCollisionEntry(&mask, KCL_TYPE_DRIVER_FLOOR);
+            hasInvisibleWallCollision =
+                    colDir->findClosestCollisionEntry(&mask, KCL_TYPE_INVISIBLE_WALL);
         }
 
         const auto *closestColEntry = colDir->closestCollisionEntry();
-        if (hasFloorCollision && closestColEntry->attribute & 0x4000) {
+        if (hasInvisibleWallCollision && (closestColEntry->attribute >> 5 & 7) == 0) {
             hasRejectCollision = true;
-            tangentOff = colInfo.floorNrm;
+            tangentOff = colInfo.wallNrm;
+            state()->setUNK800(true);
+        } else {
+            if (!(mask & KCL_TYPE_DRIVER_FLOOR)) {
+                hasFloorCollision = false;
+            } else {
+                hasFloorCollision = colDir->findClosestCollisionEntry(&mask, KCL_TYPE_DRIVER_FLOOR);
+            }
+
+            closestColEntry = colDir->closestCollisionEntry();
+            if (hasFloorCollision && closestColEntry->attribute & 0x4000) {
+                hasRejectCollision = true;
+                tangentOff = colInfo.floorNrm;
+            }
         }
 
         if (hasRejectCollision) {
@@ -132,7 +150,7 @@ bool KartReject::calcHalfpipeRejection() {
             move()->setSmoothedUp(move()->up());
 
             bool bVar15 = tangentOff.dot(EGG::Vector3f::ey) < -0.17f;
-            if (bVar15 || extVel().y < 0.0f) {
+            if (bVar15 || extVel().y < 0.0f || state()->isUNK800()) {
                 radius = -radius;
                 colInfo.tangentOff += worldPos;
 
@@ -141,7 +159,9 @@ bool KartReject::calcHalfpipeRejection() {
                 speedScalar = std::min(1.0f, std::max(0.0f, speedScalar));
 
                 EGG::Vector3f posOffset =
-                        (colInfo.tangentOff + radius * tangentOff + yOffset * tangentOff) - pos();
+                        colInfo.tangentOff + radius * tangentOff + yOffset * tangentOff;
+                posOffset.y += move()->hopPosY();
+                posOffset -= pos();
                 setPos(pos() + posOffset * speedScalar);
             }
 

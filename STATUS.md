@@ -63,7 +63,7 @@ Test Case                                                 | Frames      |     | 
 [`TAS/TF-UR-3lap-1-30-822`]()                             | 1078 / 5855 | ❌ | KMP
 [`TAS/MC-UR-3lap-38.932`]()                               | 666 / 2745  | ❌ | KMP
 [`TAS/CM-UR-3lap-22.714`]()                               | 1773 / 1773 | ✔️ |
-[`TAS/DKS-UR-3lap-1-33-621`]()                            | 4065 / 6023 | ❌ | Reject road hop? [VIABLE TO WORK ON]
+[`TAS/DKS-UR-3lap-1-33-621`]()                            | 6023 / 6023 | ✔️ |
 [`TAS/WGM-UR-3lap-29-641`]()                              | 2188 / 2188 | ✔️ |
 [`TAS/DC-UR-3lap-1-04-184`]()                             | 927 / 4259  | ❌ | Figure-8 wall bonk. KMP?
 [`TAS/KC-UR-3lap-42-945`]()                               | 985 / 2986  | ❌ | Respawn position [VIABLE TO WORK ON]

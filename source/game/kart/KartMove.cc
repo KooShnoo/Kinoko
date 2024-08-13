@@ -491,9 +491,10 @@ void KartMove::calcDirs() {
     m_bLaunchBoost = true;
 
     if (!state()->isInATrick() && !state()->isOverZipper() &&
-            (state()->isTouchingGround() || !state()->isRampBoost() ||
-                    !m_jump->isBoostRampEnabled()) &&
-            !state()->isJumpPad() && state()->airtime() <= 5) {
+            (((state()->isTouchingGround() || !state()->isRampBoost() ||
+                      !m_jump->isBoostRampEnabled()) &&
+                     !state()->isJumpPad() && state()->airtime() <= 5) ||
+                    state()->isUNK800())) {
         if (state()->isHop()) {
             local_88 = m_hopDir;
         }
