@@ -67,7 +67,7 @@ Test Case                                                 | Frames      |     | 
 [`TAS/WGM-UR-3lap-29-641`]()                              | 2188 / 2188 | ✔️ |
 [`TAS/DC-UR-3lap-1-04-184`]()                             | 1676 / 4259 | ❌ | KMP
 [`TAS/KC-UR-3lap-42-945`]()                               | 2986 / 2986 | ✔️ |
-[`TAS/MT-UR-3lap-1-15-170`]()                             | 928 / 4917  | ❌ | Soft wall clip [VIABLE TO WORK ON]
+[`TAS/MT-UR-3lap-1-15-170`]()                             | 1700 / 4917 | ❌ | KMP
 [`TAS/GV-UR-3lap-13-326`]()                               | 467 / 1210  | ❌ | KMP 
 [`TAS/MH-UR-3lap-1-33-639`]()                             | 6024 / 6024 | ✔️ |
 [`TAS/BC-UR-3lap-1-59-483`]()                             | 785 / 7573  | ❌ | KMP
