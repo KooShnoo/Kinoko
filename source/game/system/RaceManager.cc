@@ -200,7 +200,8 @@ MapdataCheckPoint *RaceManagerPlayer::calcCheckpoint(u16 checkpointId, f32 check
     f32 foo = ckpthLapCompletion + (m_checkpointFactor * depthIntoCheckPath);
     m_checkpointStartLapCompletion = foo;
     foo += checkpointCompletion * checkpointFactor;
-    m_lapCompletion -= foo;
+    f32 dLapCompletion = m_lapCompletion - foo;
+    m_lapCompletion = foo;
 
     MapdataCheckPoint *newCheckpoint = courseMap->getCheckPoint(checkpointId);
     MapdataCheckPoint *oldCheckpoint = courseMap->getCheckPoint(oldCheckpointId);
@@ -212,9 +213,9 @@ MapdataCheckPoint *RaceManagerPlayer::calcCheckpoint(u16 checkpointId, f32 check
 
     // no remote players in kinoko
     // if (isRemote) {
-    //     if (m_lapCompletion < 0.6f) {
+    //     if (dLapCompletion < 0.6f) {
     //         decrementLap();
-    //     } else if (m_lapCompletion > -0.6f) { // idk what it compares against
+    //     } else if (dLapCompletion > -0.6f) { // idk what it compares against
     //         endLap();
     //     }
     //     return newCheckpoint;
@@ -226,14 +227,14 @@ MapdataCheckPoint *RaceManagerPlayer::calcCheckpoint(u16 checkpointId, f32 check
         } else if (m_maxKcp == courseMap->lastKcpType()) {
             if ((newCheckpoint->isFinishLine() &&
                         areCheckpointsSubsequent(oldCheckpoint, checkpointId)) ||
-                    m_lapCompletion > 0.95f) {
+                    dLapCompletion > 0.95f) {
                 endLap();
             }
         }
         m_currentKcp = newCheckpoint->type();
     }
     if ((newCheckpoint->isFinishLine() && areCheckpointsSubsequent(newCheckpoint, checkpointId)) ||
-            m_lapCompletion < -0.95f) {
+            dLapCompletion < -0.95f) {
         decrementLap();
     }
     return newCheckpoint;

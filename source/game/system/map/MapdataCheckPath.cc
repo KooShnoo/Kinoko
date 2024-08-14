@@ -12,15 +12,19 @@ MapdataCheckPath::MapdataCheckPath(const SData *data) : m_rawData(data), m_depth
 }
 
 void MapdataCheckPath::read(EGG::Stream &stream) {
+    // this is messed up somehow. rainbowroad CKPH idx2  shoudl be: start:76, size:4, prev:[0,-1-1-1-1-1], next:[1,-1-1-1-1-1-1]
+    // reading is off by 4 PADDING, 
     m_start = stream.read_u8();
     m_size = stream.read_u8();
-    for (auto &last : m_prev) {
-        last = stream.read_u8();
+    for (auto &prev : m_prev) {
+        prev = stream.read_u8();
     }
 
     for (auto &next : m_next) {
         next = stream.read_u8();
     }
+    // stream.skip(1); // padding
+    // (void)stream.read_u16(); // padding NO IT BREKSA THINGS< SO WHY IS IT PORROBLEMS STILL
 }
 
 /// @brief performs DFS to calculate `m_depth` (distance (in checkpaths) from the first checkpath)
@@ -114,6 +118,7 @@ void MapdataCheckPathAccessor::loadPaths() {
     m_lapProportion = 1.0f / (maxDepth + 1.0f);
 }
 
+/// @addr{Inlined in 0x8051377C}
 MapdataCheckPathAccessor::MapdataCheckPathAccessor(const MapSectionHeader *header)
     : MapdataAccessorBase<MapdataCheckPath, MapdataCheckPath::SData>(header) {
     init(reinterpret_cast<const MapdataCheckPath::SData *>(m_sectionHeader + 1),
