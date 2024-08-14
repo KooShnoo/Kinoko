@@ -8,10 +8,9 @@
 #include "game/system/map/MapdataJugemPoint.hh"
 #include "game/system/map/MapdataStageInfo.hh"
 #include "game/system/map/MapdataStartPoint.hh"
-
 #include "game/system/ResourceManager.hh"
-#include <cstddef>
-#include <cstdio>
+
+#include <Common.hh>
 
 namespace System {
 
@@ -30,11 +29,11 @@ void CourseMap::init() {
     constexpr u32 STAGE_INFO_SIGNATURE = 0x53544749;
 
     m_startPoint = parseStartPoint(START_POINT_SIGNATURE);
+    m_checkPath = parseCheckPath(CHECK_PATH_SIGNATURE);
+    m_checkPoint = parseCheckPoint(CHECK_POINT_SIGNATURE);
+    m_cannonPoint = parseCannonPoint(CANNON_POINT_SIGNATURE);
     m_geoObj = parseGeoObj(GEO_OBJ_SIGNATURE);
     m_jugemPoint = parseJugemPoint(JUGEM_POINT_SIGNATURE);
-    m_cannonPoint = parseCannonPoint(CANNON_POINT_SIGNATURE);
-    m_checkPoint = parseCheckPoint(CHECK_POINT_SIGNATURE);
-    m_checkPath = parseCheckPath(CHECK_PATH_SIGNATURE);
     m_stageInfo = parseStageInfo(STAGE_INFO_SIGNATURE);
 
     MapdataStageInfo *stageInfo = getStageInfo();
@@ -234,7 +233,6 @@ s16 CourseMap::findSector(s32 playerIdx, const EGG::Vector3f &pos, u16 checkpoin
     s16 id = -1;
     MapdataCheckPoint::Completion completion = checkpoint->getCompletion(pos,
             checkpointCompletion); // check if player is in starting checkpoint
-    // printf("completion: %01u ", completion);
     checkpoint->setPlayerFlags(playerIdx); // flag starting checkpoint as searched
     u32 params = 0;
     if (isRemote) {

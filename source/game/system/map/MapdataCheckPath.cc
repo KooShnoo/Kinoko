@@ -45,7 +45,7 @@ void MapdataCheckPath::findDepth(s8 depth, const MapdataCheckPathAccessor &acces
 }
 
 u16 MapdataCheckPath::getPrev(u16 i) const {
-    return m_next[i];
+    return m_prev[i];
 }
 
 u16 MapdataCheckPath::getNext(u16 i) const {

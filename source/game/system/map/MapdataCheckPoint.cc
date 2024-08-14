@@ -35,6 +35,7 @@ void MapdataCheckPoint::read(EGG::Stream &stream) {
     m_nextPt = stream.read_u8();
 }
 
+/// @breief TODO document this; sets linkedcheckpoint values for m_nectpoins and m_prevpoints from sdata->mprev,mnext etc.
 /// @addr{0x80515624}
 void MapdataCheckPoint::initCheckpointLinks(MapdataCheckPointAccessor &accessor, int id) {
     m_id = id;
@@ -43,8 +44,7 @@ void MapdataCheckPoint::initCheckpointLinks(MapdataCheckPointAccessor &accessor,
     // checkpoints defined by its preceding checkpaths
     if (m_prevPt == 0xff) {
         // Finds the checkpath that contains the given checkpoint id
-        // inline function?
-        MapdataCheckPath *checkpath = nullptr;
+        MapdataCheckPath *checkpath = nullptr; // courseMap->checkPath()->findCheckpathForCheckpoint(id);
         for (size_t i = 0; i < courseMap->getCheckPathCount(); i++) {
             checkpath = courseMap->getCheckPath(i);
             if (checkpath->isPointInPath(id)) {
@@ -82,7 +82,6 @@ void MapdataCheckPoint::initCheckpointLinks(MapdataCheckPointAccessor &accessor,
             }
         }
 
-        // assert(checkpath); // temporary, to see if we need all this vv // okay it failed lmao
         if (checkpath != nullptr) {
             m_nextCount = 0;
             for (size_t i = 0; i < 6; i++) {
@@ -91,7 +90,7 @@ void MapdataCheckPoint::initCheckpointLinks(MapdataCheckPointAccessor &accessor,
                     continue;
                 }
                 MapdataCheckPath *next = courseMap->checkPath()->get(nextID);
-                m_nextPoints[i].checkpoint = accessor.get(next->end());
+                m_nextPoints[i].checkpoint = accessor.get(next->start());
                 m_nextCount++;
             }
         }
@@ -227,6 +226,7 @@ void MapdataCheckPoint::linkPrevKcpIds(u8 prevKcpId) {
 }
 
 /// @brief Returns true if player is between the two sides of the checkpoint quad, otherwise false
+/// @addr{Inlined in 0x80510C74}
 bool MapdataCheckPoint::checkSector(const LinkedCheckpoint &next, const EGG::Vector2f &p0,
         const EGG::Vector2f &p1) const {
     if (-(next.p0diff.y) * p0.x + next.p0diff.x * p0.y < 0.0f) {
@@ -300,21 +300,21 @@ f32 MapdataCheckPointAccessor::calculateMeanTotalDistance() {
     return calculateMeanTotalDistanceRecursive(m_finishLineCheckpointId);
 }
 
-/// @brief find finish line and last key checkpoint indexes
+/// @brief find finish line and last key checkpoint indexes; also initCheckpointLinks for all checkpoints
 /// @addr{Inlined in 0x80515244} fake. not real. it's not in the base game. in the base
 /// game, it's inlined into `init()`. i, kooshnoo, split it out because i wanted to.
 void MapdataCheckPointAccessor::findFinishAndLastKcp() {
     s8 lastKcpType = -1;
     s16 finishLineCheckpointId = -1;
     for (size_t ckptId = 0; ckptId < size(); ckptId++) {
-        MapdataCheckPoint *lastCheckpoint = get(ckptId);
-        lastCheckpoint->initCheckpointLinks(*this, ckptId);
-        lastCheckpoint = get(ckptId);
-        if (lastCheckpoint->isFinishLine()) {
+        MapdataCheckPoint *checkpoint = get(ckptId);
+        checkpoint->initCheckpointLinks(*this, ckptId);
+        checkpoint = get(ckptId);
+        if (checkpoint->isFinishLine()) {
             finishLineCheckpointId = ckptId;
         }
-        if (lastKcpType > lastCheckpoint->type()) {
-            lastKcpType = lastCheckpoint->type();
+        if (lastKcpType > checkpoint->type()) {
+            lastKcpType = checkpoint->type();
         }
     }
     m_lastKcpType = lastKcpType;
@@ -329,7 +329,7 @@ void MapdataCheckPointAccessor::init() {
     MapdataCheckPoint *finishLine = get(m_finishLineCheckpointId);
     finishLine->linkPrevKcpIds(0);
     CourseMap::Instance()->clearSectorChecked();
-    m_meanTotalDistance = calculateMeanTotalDistance();
+    // m_meanTotalDistance = calculateMeanTotalDistance(); //<- unused
 }
 
 MapdataCheckPointAccessor::MapdataCheckPointAccessor(const MapSectionHeader *header)

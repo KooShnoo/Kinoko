@@ -20,7 +20,7 @@ public:
 
 private:
     void decrementLap();
-    void endLap(){
+    void endLap() {
         printf("lap Over!! :)");
     } ///< @todo TODO
     MapdataCheckPoint *calcCheckpoint(u16 checkpointId, f32 checkpointCompletion, bool isRemote);
@@ -37,7 +37,7 @@ private:
     s16 m_currentLap;
     s8 m_maxLap;
     s8 m_currentKcp;
-    s8 m_maxKcp;
+    u8 m_maxKcp;
     u32 m_frameCounter;
     /// @name raceManagerPlayerFlags
     /// The bitfield at offset 0x38.

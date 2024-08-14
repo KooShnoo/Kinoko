@@ -117,7 +117,7 @@ RaceManager::~RaceManager() = default;
 /// @addr{0x80534D6C}
 /// https://decomp.me/scratch/n6Mvl
 void RaceManagerPlayer::decrementLap() {
-    printf("DECredmentLAP"); // called too often
+    printf("DECredmentLAP");
     if (m_bFinished) {
         return;
     }
@@ -154,7 +154,7 @@ void RaceManagerPlayer::calc() {
     // MapdataCheckPoint *ckpt;
     if (m_checkpointFactor < 0 || m_checkpointId != checkpointId) {
     //     ckpt = calcCheckpoint(checkpointId, checkpointCompletion, false);
-    calcCheckpoint(checkpointId, checkpointCompletion, false);
+        calcCheckpoint(checkpointId, checkpointCompletion, false);
     } else {
         // ckpt = courseMap->getCheckPoint(m_checkpointId);
         printf("hmmmmm");
@@ -169,7 +169,7 @@ void RaceManagerPlayer::calc() {
 }
 
 /// @brief whether @param nextCheckpointId is directly after @param checkpoint
-/// @addr{Inlined in RaceManagerPlayer::calcCheckpoint}
+/// @addr{Inlined in 0x80534DF8}
 bool areCheckpointsSubsequent(MapdataCheckPoint *checkpoint, u16 nextCheckpointId) {
     for (size_t i = 0; i < checkpoint->nextCount(); i++) {
         if (nextCheckpointId == checkpoint->nextPoint(i)->id()) {
@@ -180,6 +180,7 @@ bool areCheckpointsSubsequent(MapdataCheckPoint *checkpoint, u16 nextCheckpointI
     return false;
 }
 
+/// @addr{0x80534DF8}
 MapdataCheckPoint *RaceManagerPlayer::calcCheckpoint(u16 checkpointId, f32 checkpointCompletion,
         bool /* isRemote */) {
     printf("calcpkt!!!");
@@ -193,7 +194,7 @@ MapdataCheckPoint *RaceManagerPlayer::calcCheckpoint(u16 checkpointId, f32 check
     m_checkpointFactor = checkpointFactor;
     // crude lap completion only respecting checkpaths
     auto ckpthLapCompletion = checkPath->depth() * lapProportion;
-    // unlike `depth` which measures depth( in checkpaths )around the course, this measures depth
+    // unlike `depth` which measures depth (in checkpaths) around the course, this measures depth
     // (in chekpoints) through the checkpath.
     auto depthIntoCheckPath = checkpointId - checkPath->start();
     f32 foo = ckpthLapCompletion + (m_checkpointFactor * depthIntoCheckPath);
@@ -232,7 +233,7 @@ MapdataCheckPoint *RaceManagerPlayer::calcCheckpoint(u16 checkpointId, f32 check
         m_currentKcp = newCheckpoint->type();
     }
     if ((newCheckpoint->isFinishLine() && areCheckpointsSubsequent(newCheckpoint, checkpointId)) ||
-            m_lapCompletion < 0.95f) {
+            m_lapCompletion < -0.95f) {
         decrementLap();
     }
     return newCheckpoint;
