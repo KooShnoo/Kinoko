@@ -76,6 +76,7 @@ public:
 private:
     EGG::Vector3f m_movement;
     s16 m_respawnTimer;
+    s16 m_solidOobTimer;
     f32 m_smoothedBack; // 0x50
     f32 m_suspBottomHeightSoftWall;
     u16 m_someSoftWallTimer;
@@ -83,6 +84,8 @@ private:
     u16 m_someNonSoftWallTimer;
     f32 m_colPerpendicularity;
 
+    bool m_wall;
+    bool m_solidOob;
     bool m_rampBoost;
     bool m_offRoad; ///< @unused
     bool m_groundBoostPanelOrRamp;

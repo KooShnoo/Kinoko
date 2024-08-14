@@ -11,6 +11,7 @@ RaceMode::~RaceMode() = default;
 
 /// @addr{0x80535EF4}
 const MapdataJugemPoint *RaceMode::jugemPoint() {
+    constexpr u16 TEMP_KC_JUGEMPOINT_IDX = 9;
     constexpr u16 TEMP_RSL_JUGEMPOINT_IDX = 17;
     constexpr u16 TEMP_RSGB_JUGEMPOINT_IDX = 8;
     constexpr u16 TEMP_RWS_JUGEMPOINT_IDX = 5;
@@ -20,6 +21,9 @@ const MapdataJugemPoint *RaceMode::jugemPoint() {
     u16 idx;
 
     switch (raceCfg->raceScenario().course) {
+    case Course::Koopa_Cape:
+        idx = TEMP_KC_JUGEMPOINT_IDX;
+        break;
     case Course::N64_Sherbet_Land:
         idx = TEMP_RSL_JUGEMPOINT_IDX;
         break;

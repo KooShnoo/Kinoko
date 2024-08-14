@@ -13,6 +13,8 @@ namespace Kart {
 
 /// @addr{0x8056E56C}
 KartCollide::KartCollide() {
+    m_wall = false;
+    m_solidOob = false;
     m_rampBoost = false;
     m_offRoad = false;
     m_groundBoostPanelOrRamp = false;
@@ -24,12 +26,15 @@ KartCollide::~KartCollide() = default;
 
 /// @addr{0x8056E624}
 void KartCollide::init() {
+    m_wall = false;
+    m_solidOob = false;
     m_rampBoost = false;
     m_offRoad = false;
     m_groundBoostPanelOrRamp = false;
     m_trickable = false;
     m_notTrickable = false;
     m_respawnTimer = 0;
+    m_solidOobTimer = 0;
     m_smoothedBack = 0.0f;
     m_suspBottomHeightNonSoftWall = 0.0f;
     m_suspBottomHeightSoftWall = 0.0f;
@@ -241,6 +246,8 @@ void KartCollide::calcFloorEffect() {
     }
 
     m_suspBottomHeightNonSoftWall = 0.0f;
+    m_wall = false;
+    m_solidOob = false;
     m_rampBoost = false;
     m_offRoad = false;
     m_trickable = false;
@@ -252,8 +259,19 @@ void KartCollide::calcFloorEffect() {
     Field::KCLTypeMask mask = KCL_NONE;
     calcTriggers(&mask, pos(), false);
 
+    if (m_solidOobTimer > 2 && m_solidOob && !m_wall) {
+        if (mask & KCL_TYPE_BIT(COL_TYPE_SOLID_OOB)) {
+            Field::CollisionDirector::Instance()->findClosestCollisionEntry(&mask,
+                    KCL_TYPE_BIT(COL_TYPE_SOLID_OOB));
+        }
+
+        activateOob(true, &mask, false, false);
+    }
+
     mask = KCL_NONE;
     calcTriggers(&mask, pos(), true);
+
+    m_solidOobTimer = m_solidOob ? std::min(3, m_solidOobTimer + 1) : 0;
 }
 
 /// @addr{0x805718D4}
@@ -279,8 +297,18 @@ void KartCollide::calcTriggers(Field::KCLTypeMask *mask, const EGG::Vector3f &po
 
     if (twoPoint) {
         handleTriggers(mask);
-    } else if (*mask & KCL_TYPE_FLOOR) {
-        Field::CollisionDirector::Instance()->findClosestCollisionEntry(mask, KCL_TYPE_FLOOR);
+    } else {
+        if (*mask & KCL_TYPE_FLOOR) {
+            Field::CollisionDirector::Instance()->findClosestCollisionEntry(mask, KCL_TYPE_FLOOR);
+        }
+
+        if (*mask & KCL_TYPE_WALL) {
+            m_wall = true;
+        }
+
+        if (*mask & KCL_TYPE_BIT(COL_TYPE_SOLID_OOB)) {
+            m_solidOob = true;
+        }
     }
 }
 
