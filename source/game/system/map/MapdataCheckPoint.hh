@@ -42,7 +42,7 @@ public:
     void read(EGG::Stream &stream);
 
     void initCheckpointLinks(MapdataCheckPointAccessor &accessor, int id);
-    [[nodiscard]] Completion getCompletion(const EGG::Vector3f &pos, f32 *checkpointCompletion) const;
+    [[nodiscard]] Completion checkSectorAndCheckpointCompletion(const EGG::Vector3f &pos, f32 *checkpointCompletion) const;
     bool isPlayerFlagged(s32 playerIdx) const;
     void setPlayerFlags(s32 playerIdx);
     void resetFlags();
@@ -75,7 +75,7 @@ private:
             const EGG::Vector2f &p1) const;
     [[nodiscard]] bool isInCheckpoint(const LinkedCheckpoint &next, const EGG::Vector2f &p0,
             const EGG::Vector2f &p1, float *completion) const;
-    [[nodiscard]] Completion checkSectorAndCheckpointCompletion(const LinkedCheckpoint &next,
+    [[nodiscard]] Completion checkSectorAndCheckpointCompletion_(const LinkedCheckpoint &next,
             const EGG::Vector2f &p0, const EGG::Vector2f &p1, float *checkpointCompletion) const;
     const SData *m_rawData;
     EGG::Vector2f m_left;

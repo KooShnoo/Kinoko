@@ -114,8 +114,8 @@ void MapdataCheckPoint::initCheckpointLinks(MapdataCheckPointAccessor &accessor,
 }
 
 /// @addr{0x80510D7C}
-/// @see MapdataCheckPoint::checkSectorAndCheckpointCompletion
-MapdataCheckPoint::Completion MapdataCheckPoint::getCompletion(const EGG::Vector3f &pos,
+/// @see MapdataCheckPoint::checkSectorAndCheckpointCompletion_
+MapdataCheckPoint::Completion MapdataCheckPoint::checkSectorAndCheckpointCompletion(const EGG::Vector3f &pos,
         float *completion) const {
     EGG::Vector2f p1 = EGG::Vector2f(right().x, right().y);
     p1.y = pos.z - p1.y;
@@ -127,7 +127,7 @@ MapdataCheckPoint::Completion MapdataCheckPoint::getCompletion(const EGG::Vector
         p0.y = pos.z - p0.y;
         p0.x = pos.x - p0.x;
         MapdataCheckPoint::Completion result =
-                checkSectorAndCheckpointCompletion(m_nextPoints[nextIdx], p0, p1, completion);
+                checkSectorAndCheckpointCompletion_(m_nextPoints[nextIdx], p0, p1, completion);
 
         if (result == Completion_1) {
             continue;
@@ -258,7 +258,7 @@ bool MapdataCheckPoint::checkCheckpointCompletion(const LinkedCheckpoint &next,
 /// @brief Calls both @ref checkSector and @ref checkCheckpointCompletion; updates @param
 /// checkpointCompletion
 /// @addr{0x80510C74}
-MapdataCheckPoint::Completion MapdataCheckPoint::checkSectorAndCheckpointCompletion(
+MapdataCheckPoint::Completion MapdataCheckPoint::checkSectorAndCheckpointCompletion_(
         const LinkedCheckpoint &next, const EGG::Vector2f &p0, const EGG::Vector2f &p1,
         float *checkpointCompletion) const {
     if (!checkSector(next, p0, p1)) {
