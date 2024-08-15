@@ -84,6 +84,25 @@ private:
         m_sync = false;
     }
 
+    void checkDesync(const u16 &t0, const u16 &t1, const char *name) {
+        if (t0 == t1) {
+            return;
+        }
+
+        if (m_sync) {
+            K_LOG("Test Case Failed: %s [%d / %d]", testCase().name.c_str(), m_currentFrame,
+                    m_frameCount);
+        }
+
+        K_LOG("DESYNC! Name: %s", name);
+        std::string s0 = std::to_string(t0);
+        std::string s1 = std::to_string(t1);
+        K_LOG("Expected: 0x%04x | %s", t0, s0.c_str());
+        K_LOG("Observed: 0x%04x | %s", t1, s1.c_str());
+
+        m_sync = false;
+    }
+
     std::queue<TestCase> m_testCases;
 
     EGG::RamStream m_stream;

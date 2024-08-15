@@ -138,7 +138,7 @@ void RaceManagerPlayer::endLap() {
 
 /// @addr{0x80535304}
 void RaceManagerPlayer::calc() {
-    printf("timr: %+04i, raceCompletion: %+02.4f, m_lapCompletion: %+02.4f, m_checkpointId: %04u, m_checkpointStartLapCompletion: %+02.4f\n", RaceManager::Instance()->getCountdownTimer(), m_raceCompletion, m_lapCompletion, m_checkpointId, m_checkpointStartLapCompletion);
+    // printf("timr: %+04i, raceCompletion: %+02.4f, m_lapCompletion: %+02.4f, m_checkpointId: %04u, m_checkpointStartLapCompletion: %+02.4f\n", RaceManager::Instance()->getCountdownTimer(), m_raceCompletion, m_lapCompletion, m_checkpointId, m_checkpointStartLapCompletion);
     // auto playerType = RaceConfig::Instance()->raceScenario().players[m_idx].type;
     if (m_bFinished) {
         // if (m_position == 1) {
@@ -168,6 +168,7 @@ void RaceManagerPlayer::calc() {
         // ckpt = courseMap->getCheckPoint(m_checkpointId);
     }
 
+    // checkpoint comletion MMM 470 desync ; mkw 0x3df8ae32 vs kinoko 0x3df8ae3e
     m_raceCompletion = m_currentLap + m_checkpointStartLapCompletion + m_checkpointFactor * checkpointCompletion;
     m_raceCompletion = std::min(m_raceCompletion, m_currentLap + 0.99999f);
     m_raceCompletionMax = std::max(m_raceCompletionMax, m_raceCompletion);

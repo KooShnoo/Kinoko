@@ -18,6 +18,10 @@ public:
     void calc();
     [[nodiscard]] const KPad *inputs() const;
 
+    f32 raceCompletion() const { return m_raceCompletion; }
+    u16 checkpointId() const { return m_checkpointId; }
+    u16 currentLap() const { return m_currentLap; }
+
 private:
     void decrementLap();
     void endLap();
