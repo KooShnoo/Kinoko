@@ -257,6 +257,9 @@ void KartHalfPipe::activateTrick(s32 param_2, System::Trick trick) {
             m_type = timerThreshold ? TrickType::Frontside : TrickType::Frontflip;
             break;
         case System::Trick::Left:
+            m_type = timerThreshold ? TrickType::Side720 : TrickType::Side360;
+            m_rotSign = 1.0f;
+            break;
         case System::Trick::Right:
             m_type = timerThreshold ? TrickType::Side720 : TrickType::Side360;
             m_rotSign = -1.0f;

@@ -100,7 +100,7 @@ Test Case                                                 | Frames      |     | 
 [`TAS/DC-NG-3lap-1-26-570`]()                             | 1038 / 5601 | ❌ | KMP
 [`TAS/KC-NG-3lap-2-09-877`]()                             | 1376 / 8196 | ❌ | Moving road
 [`TAS/MT-NG-3lap-2-05-739`]()                             | 2522 / 7948 | ❌ | KMP
-[`TAS/DDR-NG-3lap-1-38-667`]()                            | 1514 / 6326 | ❌ | Zipper double trick [VIABLE TO WORK ON]
+[`TAS/DDR-NG-3lap-1-38-667`]()                            | 2038 / 6326 | ❌ | KMP
 [`TAS/MH-NG-3lap-1-41-477`]()                             | 6494 / 6494 | ✔️ |
 [`TAS/BC-NG-3lap-2-12-187`]()                             | 784 / 8335  | ❌ | KMP
 [`TAS/RR-NG-3lap-2-14-984`]()                             | 1225 / 8502 | ❌ | KMP
@@ -109,7 +109,7 @@ Test Case                                                 | Frames      |     | 
 [`TAS/rGV2-NG-3lap-52-456`]()                             | 3556 / 3556 | ✔️ |
 [`TAS/rMR-NG-3lap-1-38-995`]()                            | 6345 / 6345 | ✔️ |
 [`TAS/rSGB-NG-3lap-1-19-868`]()                           | 5199 / 5199 | ✔️ |
-[`TAS/rWS-NG-3lap-1-37-356`]()                            | 5476 / 6247 | ❌ | Unknown
+[`TAS/rWS-NG-3lap-1-37-356`]()                            | 6247 / 6247 | ✔️ |
 [`TAS/rDH-NG-3lap-1-32-595`]()                            | 5962 / 5962 | ✔️ |
 [`TAS/rBC3-NG-3lap-2-12-516`]()                           | 8355 / 8355 | ✔️ |
 [`TAS/rDKJP-NG-3lap-2-05-348`]()                          | 7925 / 7925 | ✔️ |
