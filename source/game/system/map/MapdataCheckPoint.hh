@@ -95,8 +95,7 @@ private:
     u16 m_prevCount;
     EGG::Vector2f m_midpoint;
     EGG::Vector2f m_dir;
-    u16 m_flags; ///< visited flag, for recursive fucntions. per-player, methinks. for kinoko we
-                 ///< just bool'n it up ya think? that sound alright?
+    bool m_flag; ///< visited flag, for recursive fucntions.
     u16 m_id;
     u8 m_prevKcpId;
     MapdataCheckPoint *m_prevPoints[6];

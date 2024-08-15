@@ -12,8 +12,6 @@ MapdataCheckPath::MapdataCheckPath(const SData *data) : m_rawData(data), m_depth
 }
 
 void MapdataCheckPath::read(EGG::Stream &stream) {
-    // this is messed up somehow. rainbowroad CKPH idx2  shoudl be: start:76, size:4, prev:[0,-1-1-1-1-1], next:[1,-1-1-1-1-1-1]
-    // reading is off by 4 PADDING, 
     m_start = stream.read_u8();
     m_size = stream.read_u8();
     for (auto &prev : m_prev) {

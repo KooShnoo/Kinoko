@@ -43,16 +43,8 @@ void MapdataCheckPoint::initCheckpointLinks(MapdataCheckPointAccessor &accessor,
     // If the check point is the first in its group (prev == -1), it has multiple previous
     // checkpoints defined by its preceding checkpaths
     if (m_prevPt == 0xff) {
-        // Finds the checkpath that contains the given checkpoint id
-        MapdataCheckPath *checkpath = nullptr; // courseMap->checkPath()->findCheckpathForCheckpoint(id);
-        for (size_t i = 0; i < courseMap->getCheckPathCount(); i++) {
-            checkpath = courseMap->getCheckPath(i);
-            if (checkpath->isPointInPath(id)) {
-                break;
-            }
-        }
+        MapdataCheckPath *checkpath = courseMap->checkPath()->findCheckpathForCheckpoint(id);
 
-        // assert(checkpath); // temporary, to see if we need all this vv // okay it failed lmao
         if (checkpath != nullptr) {
             m_prevCount = 0;
             for (size_t i = 0; i < 6; i++) {
@@ -109,7 +101,7 @@ void MapdataCheckPoint::initCheckpointLinks(MapdataCheckPointAccessor &accessor,
                     EGG::Vector2f(next->left().x - left().x, next->left().y - left().y);
             m_nextPoints[i].p1diff =
                     EGG::Vector2f(next->right().x - right().x, next->right().y - right().y);
-        } // else initalize to zero (pointless)
+        } // else mkw initalizes to zero (pointless)
     }
 }
 
@@ -139,16 +131,16 @@ MapdataCheckPoint::Completion MapdataCheckPoint::checkSectorAndCheckpointComplet
     return Completion_1;
 }
 
-bool MapdataCheckPoint::isPlayerFlagged(s32 playerIdx) const {
-    return m_flags & 1 << playerIdx;
+bool MapdataCheckPoint::isPlayerFlagged(s32 /* playerIdx */) const {
+    return m_flag;
 }
 
-void MapdataCheckPoint::setPlayerFlags(s32 playerIdx) {
-    m_flags |= 1 << playerIdx;
+void MapdataCheckPoint::setPlayerFlags(s32 /* playerIdx */) {
+    m_flag = true;
 }
 
 void MapdataCheckPoint::resetFlags() {
-    m_flags = 0;
+    m_flag = false;
 }
 
 EGG::Vector2f MapdataCheckPoint::left() const {
