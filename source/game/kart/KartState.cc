@@ -835,6 +835,10 @@ void KartState::setSlipdriftCharge(bool isSet) {
     m_bSlipdriftCharge = isSet;
 }
 
+void KartState::setDriftAuto(bool isSet) {
+    m_bDriftAuto = isSet;
+}
+
 void KartState::setWheelie(bool isSet) {
     m_bWheelie = isSet;
 }

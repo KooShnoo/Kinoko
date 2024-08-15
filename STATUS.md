@@ -114,6 +114,6 @@ Test Case                                                 | Frames      |     | 
 [`TAS/rBC3-NG-3lap-2-12-516`]()                           | 8355 / 8355 | ✔️ |
 [`TAS/rDKJP-NG-3lap-2-05-348`]()                          | 7925 / 7925 | ✔️ |
 [`TAS/rMC3-NG-3lap-1-16-902`]()                           | 763 / 5021  | ❌ | KMP
-[`TAS/rPG-NG-3lap-1-56-391`]()                            | 411 / 7388  | ❌ | Automatic
+[`TAS/rPG-NG-3lap-1-56-391`]()                            | 4674 / 7388 | ❌ | KMP
 [`TAS/rDKM-NG-3lap-1-54-666`]()                           | 2524 / 7285 | ❌ | KMP
 [`TAS/rBC-NG-3lap-2-28-208`]()                            | 9295 / 9295 | ✔️ |
