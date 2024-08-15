@@ -200,6 +200,33 @@ s16 KartJump::cooldown() const {
     return m_cooldown;
 }
 
+/// @addr{0x80575EE8}
+void KartJump::start(const EGG::Vector3f &left) {
+    init();
+    setAngle(left);
+    state()->setInATrick(true);
+    m_cooldown = 5;
+    state()->setTrickableTimer(0);
+}
+
+/// @addr{0x8057616C}
+void KartJump::init() {
+    if (m_variant == SurfaceVariant::DoubleFlipTrick) {
+        m_type = TrickType::StuntTrickBasic;
+    } else {
+        if (m_nextTrick < System::Trick::Left) {
+            m_type = TrickType::KartFlipTrickZ;
+            m_rotSign = (m_nextTrick == System::Trick::Up) ? -1.0f : 1.0f;
+        } else {
+            m_type = static_cast<TrickType>(m_nextTrick);
+            m_rotSign = (m_nextTrick == System::Trick::Right) ? -1.0f : 1.0f;
+        }
+
+        setupProperties();
+        state()->setTrickRot(true);
+    }
+}
+
 KartJumpBike::KartJumpBike(KartMove *move) : KartJump(move) {}
 
 /// @addr{0x80576AFC}
@@ -245,10 +272,7 @@ void KartJumpBike::calcRot() {
 
 /// @addr{0x80576758}
 void KartJumpBike::start(const EGG::Vector3f &left) {
-    init();
-    setAngle(left);
-    state()->setInATrick(true);
-    m_cooldown = 5;
+    KartJump::start(left);
     KartMoveBike *moveBike = static_cast<KartMoveBike *>(m_move);
     moveBike->cancelWheelie();
 }

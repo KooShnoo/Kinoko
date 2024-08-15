@@ -115,5 +115,5 @@ Test Case                                                 | Frames      |     | 
 [`TAS/rDKJP-NG-3lap-2-05-348`]()                          | 7925 / 7925 | ✔️ |
 [`TAS/rMC3-NG-3lap-1-16-902`]()                           | 763 / 5021  | ❌ | KMP
 [`TAS/rPG-NG-3lap-1-56-391`]()                            | 411 / 7388  | ❌ | Automatic
-[`TAS/rDKM-NG-3lap-1-54-666`]()                           | 1615 / 7285 | ❌ | Kart trick
+[`TAS/rDKM-NG-3lap-1-54-666`]()                           | 2524 / 7285 | ❌ | KMP
 [`TAS/rBC-NG-3lap-2-28-208`]()                            | 9295 / 9295 | ✔️ |
