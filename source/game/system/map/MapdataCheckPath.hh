@@ -13,7 +13,9 @@ public:
 
         u8 prev[6];
         u8 next[6];
+        u16 _padding;
     };
+    static_assert(sizeof(SData) == 0x10);
 
     MapdataCheckPath(const SData *data);
     void read(EGG::Stream &stream);

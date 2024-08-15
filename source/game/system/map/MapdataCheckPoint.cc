@@ -252,8 +252,6 @@ bool MapdataCheckPoint::checkCheckpointCompletion(const LinkedCheckpoint &next,
     // This is where the divide by zero thing happens @todo
     f32 checkpointCompletion_ = d1 / (d1 + d2);
     *checkpointCompletion = checkpointCompletion_;
-    printf("checkpointCompletion: %+02.4f, _:%+02.4f, d1:%+02.4f, d2:%+02.4f, d1+d2:%+02.4f ",
-            *checkpointCompletion, checkpointCompletion_, d1, d2, d1 + d2);
     return (checkpointCompletion_ >= 0.0f && checkpointCompletion_ <= 1.0f);
 }
 
@@ -313,7 +311,7 @@ void MapdataCheckPointAccessor::findFinishAndLastKcp() {
         if (checkpoint->isFinishLine()) {
             finishLineCheckpointId = ckptId;
         }
-        if (lastKcpType > checkpoint->type()) {
+        if (lastKcpType < checkpoint->type()) {
             lastKcpType = checkpoint->type();
         }
     }

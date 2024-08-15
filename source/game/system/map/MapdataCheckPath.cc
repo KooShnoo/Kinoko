@@ -23,8 +23,7 @@ void MapdataCheckPath::read(EGG::Stream &stream) {
     for (auto &next : m_next) {
         next = stream.read_u8();
     }
-    // stream.skip(1); // padding
-    // (void)stream.read_u16(); // padding NO IT BREKSA THINGS< SO WHY IS IT PORROBLEMS STILL
+    stream.skip(2); // padding
 }
 
 /// @brief performs DFS to calculate `m_depth` (distance (in checkpaths) from the first checkpath)

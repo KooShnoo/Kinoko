@@ -115,9 +115,7 @@ RaceManager::RaceManager() : m_player(0, 3), m_stage(Stage::Intro), m_introTimer
 RaceManager::~RaceManager() = default;
 
 /// @addr{0x80534D6C}
-/// https://decomp.me/scratch/n6Mvl
 void RaceManagerPlayer::decrementLap() {
-    printf("DECredmentLAP");
     if (m_bFinished) {
         return;
     }
@@ -125,9 +123,22 @@ void RaceManagerPlayer::decrementLap() {
     m_currentLap -= 1;
 }
 
+/// @addr{0x805349B8}
+void RaceManagerPlayer::endLap() {
+    if (m_bFinished) {
+        return;
+    }
+    m_maxKcp = 0;
+    m_currentLap += 1;
+    printf("finished lap @ %02i:%02i\n",-RaceManager::Instance()->getCountdownTimer()/3600, -RaceManager::Instance()->getCountdownTimer()/60%60);
+    if (m_currentLap == 4) {
+        printf("finished course in %u frames!\n", -RaceManager::Instance()->getCountdownTimer()+412);
+    }
+}
+
 /// @addr{0x80535304}
 void RaceManagerPlayer::calc() {
-    printf("timr: %+04i, raceCompletion: %+02.4f, m_lapCompletion: %+02.4f, m_checkpointId: %04u, m_checkpointStartLapCompletion: %+02.4f ", RaceManager::Instance()->getCountdownTimer(), m_raceCompletion, m_lapCompletion, m_checkpointId, m_checkpointStartLapCompletion);
+    printf("timr: %+04i, raceCompletion: %+02.4f, m_lapCompletion: %+02.4f, m_checkpointId: %04u, m_checkpointStartLapCompletion: %+02.4f\n", RaceManager::Instance()->getCountdownTimer(), m_raceCompletion, m_lapCompletion, m_checkpointId, m_checkpointStartLapCompletion);
     // auto playerType = RaceConfig::Instance()->raceScenario().players[m_idx].type;
     if (m_bFinished) {
         // if (m_position == 1) {
@@ -139,14 +150,12 @@ void RaceManagerPlayer::calc() {
     auto kart = Kart::KartObjectManager::Instance()->object(m_playerIdx);
     if (courseMap->getCheckPointCount() == 0 || courseMap->getCheckPathCount() == 0 ||
             kart->state()->isBeforeRespawn() || !m_bInRace) {
-        printf("opak! \n");
         return;
     }
     f32 checkpointCompletion;
     s16 checkpointId =
             courseMap->findSector(m_playerIdx, kart->pos(), m_checkpointId, &checkpointCompletion, false);
     if (checkpointId == -1) {
-        printf("opakta! \n");
         return;
     }
 
@@ -157,14 +166,12 @@ void RaceManagerPlayer::calc() {
         calcCheckpoint(checkpointId, checkpointCompletion, false);
     } else {
         // ckpt = courseMap->getCheckPoint(m_checkpointId);
-        printf("hmmmmm");
     }
 
     m_raceCompletion = m_currentLap + m_checkpointStartLapCompletion + m_checkpointFactor * checkpointCompletion;
     m_raceCompletion = std::min(m_raceCompletion, m_currentLap + 0.99999f);
     m_raceCompletionMax = std::max(m_raceCompletionMax, m_raceCompletion);
 
-    printf("m_currentLap, %+04i m_checkpointStartLapCompletion, %+02.4f m_checkpointFactor, %+02.4f checkpointCompletion %+02.4f \n", m_currentLap, m_checkpointStartLapCompletion, m_checkpointFactor, checkpointCompletion);
     // wrong way-related code for m_bWrongWay
 }
 
@@ -183,7 +190,6 @@ bool areCheckpointsSubsequent(MapdataCheckPoint *checkpoint, u16 nextCheckpointI
 /// @addr{0x80534DF8}
 MapdataCheckPoint *RaceManagerPlayer::calcCheckpoint(u16 checkpointId, f32 checkpointCompletion,
         bool /* isRemote */) {
-    printf("calcpkt!!!");
     auto courseMap = CourseMap::Instance();
     u16 oldCheckpointId = m_checkpointId;
     m_checkpointId = checkpointId;
@@ -197,11 +203,10 @@ MapdataCheckPoint *RaceManagerPlayer::calcCheckpoint(u16 checkpointId, f32 check
     // unlike `depth` which measures depth (in checkpaths) around the course, this measures depth
     // (in chekpoints) through the checkpath.
     auto depthIntoCheckPath = checkpointId - checkPath->start();
-    f32 foo = ckpthLapCompletion + (m_checkpointFactor * depthIntoCheckPath);
-    m_checkpointStartLapCompletion = foo;
-    foo += checkpointCompletion * checkpointFactor;
-    f32 dLapCompletion = m_lapCompletion - foo;
-    m_lapCompletion = foo;
+    m_checkpointStartLapCompletion = ckpthLapCompletion + (m_checkpointFactor * depthIntoCheckPath);
+    f32 newLapCompletion = m_checkpointStartLapCompletion + checkpointCompletion * checkpointFactor;
+    f32 dLapCompletion = m_lapCompletion - newLapCompletion;
+    m_lapCompletion = newLapCompletion;
 
     MapdataCheckPoint *newCheckpoint = courseMap->getCheckPoint(checkpointId);
     MapdataCheckPoint *oldCheckpoint = courseMap->getCheckPoint(oldCheckpointId);
