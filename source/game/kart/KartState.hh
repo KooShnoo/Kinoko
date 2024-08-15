@@ -59,6 +59,7 @@ public:
     void setBoostOffroadInvincibility(bool isSet);
     void setHalfpipeRamp(bool isSet);
     void setOverZipper(bool isSet);
+    void setUNK1000(bool isSet);
     void setDisableBackwardsAccel(bool isSet);
     void setZipperBoost(bool isSet);
     void setZipperStick(bool isSet);
@@ -126,6 +127,7 @@ public:
     [[nodiscard]] bool isBoostOffroadInvincibility() const;
     [[nodiscard]] bool isHalfpipeRamp() const;
     [[nodiscard]] bool isOverZipper() const;
+    [[nodiscard]] bool isUNK1000() const;
     [[nodiscard]] bool isDisableBackwardsAccel() const;
     [[nodiscard]] bool isZipperBoost() const;
     [[nodiscard]] bool isZipperTrick() const;
@@ -209,6 +211,7 @@ private:
     bool m_bBoostOffroadInvincibility; ///< Set if we should ignore offroad slowdown this frame.
     bool m_bHalfpipeRamp;              ///< Set while colliding with zipper KCL.
     bool m_bOverZipper;                ///< Set while mid-air from a zipper.
+    bool m_bUNK1000;
     bool m_bDisableBackwardsAccel;     ///< Enforces a 20f delay when reversing after charging SSMT.
     bool m_bZipperBoost;
     bool m_bZipperStick; ///< Set while mid-air and still influenced by the zipper.

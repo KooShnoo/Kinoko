@@ -79,7 +79,7 @@ Test Case                                                 | Frames      |     | 
 [`TAS/rSL-UR-3lap-30-606`]()                              | 2246 / 2246 | ✔️ |
 [`TAS/rSGB-UR-3lap-55-893`]()                             | 3762 / 3762 | ✔️ |
 [`TAS/rDS-UR-3lap-1-57-175`]()                            | 2248 / 7435 | ❌ | KMP
-[`TAS/rWS-UR-3lap-49-767`]()                              | 840 / 3395  | ❌ | RFHA Zipper bypass
+[`TAS/rWS-UR-3lap-49-767`]()                              | 3395 / 3395 | ✔️ |
 [`TAS/rBC3-UR-3lap-1-41-361`]()                           | 6487 / 6487 | ✔️ |
 [`TAS/rDKJP-UR-3lap-23-508`]()                            | 492 / 1821  | ❌ | KMP
 [`TAS/rMC-UR-3lap-1-27-494`]()                            | 5656 / 5656 | ✔️ |
