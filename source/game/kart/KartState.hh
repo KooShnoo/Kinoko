@@ -129,9 +129,9 @@ public:
     [[nodiscard]] bool isHalfpipeRamp() const;
     [[nodiscard]] bool isOverZipper() const;
     [[nodiscard]] bool isUNK1000() const;
-    [[nodiscard]] bool isDisableBackwardsAccel() const;
     [[nodiscard]] bool isZipperBoost() const;
     [[nodiscard]] bool isZipperTrick() const;
+    [[nodiscard]] bool isDisableBackwardsAccel() const;
     [[nodiscard]] bool isUNK20000() const;
     [[nodiscard]] bool isZipperStick() const;
     [[nodiscard]] bool isTrickRot() const;

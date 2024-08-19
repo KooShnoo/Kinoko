@@ -574,16 +574,16 @@ bool KartState::isUNK1000() const {
     return m_bUNK1000;
 }
 
-bool KartState::isDisableBackwardsAccel() const {
-    return m_bDisableBackwardsAccel;
-}
-
 bool KartState::isZipperBoost() const {
     return m_bZipperBoost;
 }
 
 bool KartState::isZipperTrick() const {
     return m_bZipperTrick;
+}
+
+bool KartState::isDisableBackwardsAccel() const {
+    return m_bDisableBackwardsAccel;
 }
 
 bool KartState::isUNK20000() const {

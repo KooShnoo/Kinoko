@@ -41,7 +41,7 @@ void KartHalfPipe::calc() {
         dynamics()->setExtVel(EGG::Vector3f::zero);
         state()->setOverZipper(true);
 
-        EGG::Vector3f upXZ = move()->dir();
+        EGG::Vector3f upXZ = move()->up();
         upXZ.y = 0.0f;
         upXZ.normalise();
         EGG::Vector3f up = move()->dir().perpInPlane(upXZ, true);
