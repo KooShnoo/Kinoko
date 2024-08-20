@@ -52,9 +52,7 @@ f32 Vector3f::dot(const Vector3f &rhs) const {
 
 /// @brief Paired-singles dot product implementation.
 f32 Vector3f::ps_dot() const {
-    f32 y_ = y * y;
-    f32 xy = Mathf::fma(x, x, y_);
-    return xy + z * z;
+    return ps_dot(*this);
 }
 
 /// @addr{0x8019ACAC}
@@ -63,6 +61,17 @@ f32 Vector3f::ps_dot(const Vector3f &rhs) const {
     f32 y_ = y * rhs.y;
     f32 xy = Mathf::fma(x, rhs.x, y_);
     return xy + z * rhs.z;
+}
+
+f32 Vector3f::ps_squareMag() const {
+    f32 p0x = x;
+    f32 p0y = y;
+
+    p0x = p0x * p0x;
+    p0y = p0y * p0y;
+
+    f32 zy = Mathf::fma(z, z, p0x);
+    return zy + p0y;
 }
 
 /// @addr{0x80214968}
