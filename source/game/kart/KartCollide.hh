@@ -71,6 +71,7 @@ public:
     [[nodiscard]] bool isRampBoost() const;
     [[nodiscard]] bool isTrickable() const;
     [[nodiscard]] bool isNotTrickable() const;
+    [[nodiscard]] bool isStopHalfPipeState() const;
     /// @endGetters
 
 private:
@@ -91,6 +92,7 @@ private:
     bool m_groundBoostPanelOrRamp;
     bool m_trickable;
     bool m_notTrickable;
+    bool m_stopHalfPipeState;
 };
 
 } // namespace Kart

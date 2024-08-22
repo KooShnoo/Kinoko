@@ -277,7 +277,7 @@ void KartState::calcCollisions() {
         }
     }
 
-    if (colData.bInvisibleWall && state()->isHalfpipeRamp()) {
+    if (colData.bInvisibleWall && state()->isHalfpipeRamp() && !collide()->isStopHalfPipeState()) {
         state()->setUNK1000(true);
     }
 
@@ -318,6 +318,7 @@ void KartState::calcCollisions() {
         m_top.normalise();
 
         m_bTouchingGround = true;
+        m_bEndHalfPipe = false;
 
         if (state()->isOverZipper()) {
             halfpipe()->end(true);
@@ -646,6 +647,10 @@ bool KartState::isSomethingWallCollision() const {
     return m_bSomethingWallCollision;
 }
 
+bool KartState::isEndHalfPipe() const {
+    return m_bEndHalfPipe;
+}
+
 bool KartState::isAutoDrift() const {
     return m_bAutoDrift;
 }
@@ -765,6 +770,7 @@ void KartState::clearBitfield3() {
     m_bSoftWallDrift = false;
     m_bHWG = false;
     m_bChargeStartBoost = false;
+    m_bEndHalfPipe = false;
 }
 
 void KartState::setAccelerate(bool isSet) {
@@ -961,6 +967,10 @@ void KartState::setSoftWallDrift(bool isSet) {
 
 void KartState::setHWG(bool isSet) {
     m_bHWG = isSet;
+}
+
+void KartState::setEndHalfPipe(bool isSet) {
+    m_bEndHalfPipe = isSet;
 }
 
 void KartState::setCannonPointId(u16 val) {

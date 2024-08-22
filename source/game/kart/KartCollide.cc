@@ -19,6 +19,7 @@ KartCollide::KartCollide() {
     m_offRoad = false;
     m_groundBoostPanelOrRamp = false;
     m_notTrickable = false;
+    m_stopHalfPipeState = false;
 }
 
 /// @addr{0x80573FF0}
@@ -33,6 +34,7 @@ void KartCollide::init() {
     m_groundBoostPanelOrRamp = false;
     m_trickable = false;
     m_notTrickable = false;
+    m_stopHalfPipeState = false;
     m_respawnTimer = 0;
     m_solidOobTimer = 0;
     m_smoothedBack = 0.0f;
@@ -65,7 +67,9 @@ void KartCollide::calcHitboxes() {
 /// @stage All
 /// @addr{0x80572C20}
 void KartCollide::findCollision() {
-    calcBodyCollision(move()->totalScale(), body()->sinkDepth(), fullRot(), scale());
+    const EGG::Quatf &rot = state()->isEndHalfPipe() ? mainRot() : fullRot();
+
+    calcBodyCollision(move()->totalScale(), body()->sinkDepth(), rot, scale());
 
     auto &colData = collisionData();
     if (colData.bWall || colData.bWall3) {
@@ -252,6 +256,7 @@ void KartCollide::calcFloorEffect() {
     m_offRoad = false;
     m_trickable = false;
     m_notTrickable = false;
+    m_stopHalfPipeState = false;
     m_suspBottomHeightSoftWall = 0.0f;
     m_someNonSoftWallTimer = 0;
     m_someSoftWallTimer = 0;
@@ -315,6 +320,19 @@ void KartCollide::calcTriggers(Field::KCLTypeMask *mask, const EGG::Vector3f &po
 /// @addr{0x8056F510}
 void KartCollide::handleTriggers(Field::KCLTypeMask *mask) {
     calcFallBoundary(mask, false);
+
+    if (*mask & KCL_TYPE_BIT(COL_TYPE_EFFECT_TRIGGER)) {
+        auto *colDir = Field::CollisionDirector::Instance();
+        if (colDir->findClosestCollisionEntry(mask, KCL_TYPE_BIT(COL_TYPE_EFFECT_TRIGGER))) {
+            const auto *closestColEntry = colDir->closestCollisionEntry();
+
+            if (KCL_VARIANT_TYPE(closestColEntry->attribute) == 4) {
+                halfpipe()->end(true);
+                state()->setEndHalfPipe(true);
+                m_stopHalfPipeState = true;
+            }
+        }
+    }
 }
 
 /// @addr{0x80571D98}
@@ -849,6 +867,10 @@ bool KartCollide::isTrickable() const {
 
 bool KartCollide::isNotTrickable() const {
     return m_notTrickable;
+}
+
+bool KartCollide::isStopHalfPipeState() const {
+    return m_stopHalfPipeState;
 }
 
 } // namespace Kart

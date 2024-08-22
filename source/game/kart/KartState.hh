@@ -80,6 +80,7 @@ public:
     void setSomethingWallCollision(bool isSet);
     void setSoftWallDrift(bool isSet);
     void setHWG(bool isSet);
+    void setEndHalfPipe(bool isSet);
     void setCannonPointId(u16 val);
     void setBoostRampType(s32 val);
     void setJumpPadVariant(s32 val);
@@ -147,6 +148,7 @@ public:
     [[nodiscard]] bool isJumpPadDisableYsusForce() const;
     [[nodiscard]] bool isUNK2() const;
     [[nodiscard]] bool isSomethingWallCollision() const;
+    [[nodiscard]] bool isEndHalfPipe() const;
     [[nodiscard]] bool isAutoDrift() const;
     [[nodiscard]] u16 cannonPointId() const;
     [[nodiscard]] s32 boostRampType() const;
@@ -244,6 +246,7 @@ private:
     bool m_bSoftWallDrift;
     bool m_bHWG;              ///< Set when "Horizontal Wall Glitch" is active.
     bool m_bChargeStartBoost; ///< Like @ref m_bAccelerate but during countdown.
+    bool m_bEndHalfPipe;
     /// @}
 
     /// @name bitfield4
