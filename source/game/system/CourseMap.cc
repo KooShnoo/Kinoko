@@ -1,5 +1,6 @@
 #include "CourseMap.hh"
 
+#include "game/system/ResourceManager.hh"
 #include "game/system/map/MapdataCannonPoint.hh"
 #include "game/system/map/MapdataCheckPath.hh"
 #include "game/system/map/MapdataCheckPoint.hh"
@@ -8,7 +9,6 @@
 #include "game/system/map/MapdataJugemPoint.hh"
 #include "game/system/map/MapdataStageInfo.hh"
 #include "game/system/map/MapdataStartPoint.hh"
-#include "game/system/ResourceManager.hh"
 
 #include <Common.hh>
 
@@ -175,7 +175,7 @@ u16 CourseMap::getJugemPointCount() const {
 }
 
 ///@addr{Inlined in several places: in RceaMgrPlye::calcCheckpoint indirectly via decrementLap(an
-///inline), and also inlined directly in calcCheckpoint }
+/// inline), and also inlined directly in calcCheckpoint }
 s8 CourseMap::lastKcpType() const {
     assert(getCheckPointCount() != 0 && getCheckPathCount() != 0);
     return m_checkPoint->lastKcpType();
@@ -231,9 +231,11 @@ s16 CourseMap::findSector(s32 playerIdx, const EGG::Vector3f &pos, u16 checkpoin
     clearSectorChecked();
     MapdataCheckPoint *checkpoint = getCheckPoint(checkpointIdx);
     s16 id = -1;
-    MapdataCheckPoint::Completion completion = checkpoint->checkSectorAndCheckpointCompletion(pos,
-            checkpointCompletion); // check if player is in starting checkpoint
-    checkpoint->setPlayerFlags(playerIdx); // flag starting checkpoint as searched
+    // check if player is in starting checkpoint
+    MapdataCheckPoint::Completion completion =
+            checkpoint->checkSectorAndCheckpointCompletion(pos, checkpointCompletion);
+    // flag starting checkpoint as searched
+    checkpoint->setPlayerFlags(playerIdx);
     u32 params = 0;
     if (isRemote) {
         params = 6;
@@ -513,13 +515,18 @@ s16 CourseMap::searchNextCheckpoint(s32 playerIdx, const EGG::Vector3f &pos, s16
         const MapdataCheckPoint &checkpoint, float *completion, u32 params,
         const bool param_8) const {
     s16 id = -1;
+    // increment depth counter unless it's -1
     s16 depth_ = depth >= 0 ? depth + 1 : -1;
 
+    // iterate through each next checkpoint
     for (u16 i = 0; i < checkpoint.nextCount(); i++) {
         MapdataCheckPoint *checkpoint_ =
                 (s32)i < checkpoint.nextCount() ? checkpoint.nextPoint(i) : nullptr;
+        // if checkpoint hasn't been searched yet OR param_8 is false
         if (!param_8 || !checkpoint_->isPlayerFlagged(playerIdx)) {
+            // call recursive function to continue the search forwards
             id = findRecursiveSector(playerIdx, pos, depth_, 0, *checkpoint_, completion, params);
+            // stop if player's checkpoint has been found
             if (id != -1) {
                 break;
             }
@@ -532,13 +539,18 @@ s16 CourseMap::searchPrevCheckpoint(s32 playerIdx, const EGG::Vector3f &pos, s16
         const MapdataCheckPoint &checkpoint, float *completion, u32 params,
         const bool param_8) const {
     s16 id = -1;
+    // increment depth counter unless it's -1
     s16 depth_ = depth >= 0 ? depth + 1 : -1;
 
+    // iterate through each previous checkpoint
     for (u16 i = 0; i < checkpoint.prevCount(); i++) {
         MapdataCheckPoint *checkpoint_ =
                 (s32)i < checkpoint.prevCount() ? checkpoint.prevPoint(i) : nullptr;
+        // if checkpoint hasn't been searched yet OR param_8 is false
         if (!param_8 || !checkpoint_->isPlayerFlagged(playerIdx)) {
+            // call recursive function to continue the search backwards
             id = findRecursiveSector(playerIdx, pos, depth_, 1, *checkpoint_, completion, params);
+            // stop if player's checkpoint has been found
             if (id != -1) {
                 break;
             }
@@ -551,32 +563,44 @@ s16 CourseMap::searchPrevCheckpoint(s32 playerIdx, const EGG::Vector3f &pos, s16
 /// @addr{0x80511110}
 s16 CourseMap::findRecursiveSector(s32 playerIdx, const EGG::Vector3f &pos, s16 depth, int param_5,
         MapdataCheckPoint &checkpoint, float *checkpointCompletion, u32 params) const {
+    // set depth limit to 12 for online players, otherwise 6
     s16 maxDepth = params & 4 ? 12 : 6;
+    // return immediately if max depth is reached
     if (depth >= 0 && depth > maxDepth) {
         return -1;
     }
 
+    // if this checkpoint has been searched already, force set completion type to Completion_1
+    // (why?)
     bool flagged = checkpoint.isPlayerFlagged(playerIdx);
     MapdataCheckPoint::Completion completion = MapdataCheckPoint::Completion_1;
     if (!flagged) {
         completion = checkpoint.checkSectorAndCheckpointCompletion(pos, checkpointCompletion);
     }
     checkpoint.setPlayerFlags(playerIdx);
+
+    // if player is inside current checkpoint, return current checkpoint
     if (completion == MapdataCheckPoint::Completion_0) {
         return checkpoint.id();
     }
 
+    // Search type 0: Search forwards first, then backwards
     if (param_5 == 0) {
+        // If "player is forwards" flag is true but completion < 0, force completion to 0 and return
+        // current checkpoint (GHOST CHECKPOINT!)
         if (params & 1 && completion == MapdataCheckPoint::Completion_2 &&
                 *checkpointCompletion < 0.0f) {
             *checkpointCompletion = 0.0f;
             return checkpoint.id();
         }
 
+        // Stop if current checkpoint is a KCP, unless this is an online player
         if (!(params & 2) && checkpoint.type() >= 0) {
             return -1;
         }
 
+        // If player is between the sides of the quad but NOT between this checkpoint and next, AND
+        // completion > 0, then set "player is forwards" flag
         u32 params_;
         if (completion == MapdataCheckPoint::Completion_2 && *checkpointCompletion > 0.0f) {
             params_ = params | 1;
@@ -584,23 +608,32 @@ s16 CourseMap::findRecursiveSector(s32 playerIdx, const EGG::Vector3f &pos, s16 
             params_ = params & ~1;
         }
 
+        // search forwards INCLUDING checkpoints already searched
         s16 id = searchNextCheckpoint(playerIdx, pos, depth, checkpoint, checkpointCompletion,
                 params_, false);
+        // if that fails, search backwards EXCLUDING checkpoints already searched
         return id == -1 ? searchPrevCheckpoint(playerIdx, pos, depth, checkpoint,
                                   checkpointCompletion, params_, true) :
                           id;
     }
 
+    // Search type 1: Search backwards first, then forwards
+
+    // If "player is backwards" flag is true but completion > 1, force completion to 1 and return
+    // current checkpoint (GHOST CHECKPOINT!)
     if (params & 1 && completion == MapdataCheckPoint::Completion_2 &&
             *checkpointCompletion > 1.0f) {
         *checkpointCompletion = 1.0f;
         return checkpoint.id();
     }
 
+    // Stop if current checkpoint is a KCP, unless this is an online player
     if (!(params & 2) && checkpoint.type() >= 0) {
         return -1;
     }
 
+    // If player is between the sides of the quad but NOT between this checkpoint and next, AND
+    // completion < 0, then set "player is backwards" flag
     u32 params_;
     if (completion == MapdataCheckPoint::Completion_2 && *checkpointCompletion < 0.0f) {
         params_ = params | 1;
@@ -608,8 +641,10 @@ s16 CourseMap::findRecursiveSector(s32 playerIdx, const EGG::Vector3f &pos, s16 
         params_ = params & ~1;
     }
 
+    // search backwards INCLUDING checkpoints already searched
     s16 id = searchPrevCheckpoint(playerIdx, pos, depth, checkpoint, checkpointCompletion, params_,
             false);
+    // if that fails, search forwards EXCLUDING checkpoints already searched
     return id == -1 ? searchNextCheckpoint(playerIdx, pos, depth, checkpoint, checkpointCompletion,
                               params_, true) :
                       id;
