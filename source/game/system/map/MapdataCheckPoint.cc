@@ -9,7 +9,7 @@
 
 namespace System {
 
-MapdataCheckPoint::MapdataCheckPoint(const SData *data) : m_rawData(data) {
+MapdataCheckPoint::MapdataCheckPoint(const SData *data) : m_rawData(data), m_nextCount(0), m_prevCount(0) {
     u8 *unsafeData = reinterpret_cast<u8 *>(const_cast<SData *>(data));
     EGG::RamStream stream = EGG::RamStream(unsafeData, sizeof(SData));
     read(stream);
@@ -19,8 +19,8 @@ MapdataCheckPoint::MapdataCheckPoint(const SData *data) : m_rawData(data) {
         (left().y + right().y) / 2.0f
     );
     m_dir = EGG::Vector2f(
-        left().y - right().y,
-        left().x - right().x
+         left().y - right().y,
+        right().x -  left().x
     );
     // clang-format on
     m_dir.normalise();
@@ -239,7 +239,9 @@ bool MapdataCheckPoint::checkSector(const LinkedCheckpoint &next, const EGG::Vec
 /// @addr{Inlined in 0x80510C74}
 bool MapdataCheckPoint::checkCheckpointCompletion(const LinkedCheckpoint &next,
         const EGG::Vector2f &p0, const EGG::Vector2f &p1, float *checkpointCompletion) const {
+            // desync!! checkpointCompletion aforementionsed
     f32 d1 = m_dir.dot(p1);
+    // desync!!! next.checkpoint->m_dir.x is supposed to be negatice; :)-0.47688546776771545 :(0x3ef42a55 v :)0xbef42a55
     f32 d2 = -(next.checkpoint->m_dir.dot(p0));
     // This is where the divide by zero thing happens @todo
     f32 checkpointCompletion_ = d1 / (d1 + d2);
