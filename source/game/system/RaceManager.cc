@@ -130,9 +130,11 @@ void RaceManagerPlayer::endLap() {
     }
     m_maxKcp = 0;
     m_currentLap += 1;
-    printf("finished lap @ %02i:%02i\n",-RaceManager::Instance()->getCountdownTimer()/3600, -RaceManager::Instance()->getCountdownTimer()/60%60);
+    printf("finished lap @ %02i:%02i\n", -RaceManager::Instance()->getCountdownTimer() / 3600,
+            -RaceManager::Instance()->getCountdownTimer() / 60 % 60);
     if (m_currentLap == 4) {
-        printf("finished course in %u frames!\n", -RaceManager::Instance()->getCountdownTimer()+412);
+        printf("finished course in %u frames!\n",
+                -RaceManager::Instance()->getCountdownTimer() + 412);
     }
 }
 
@@ -153,8 +155,8 @@ void RaceManagerPlayer::calc() {
         return;
     }
     f32 checkpointCompletion;
-    s16 checkpointId =
-            courseMap->findSector(m_playerIdx, kart->pos(), m_checkpointId, &checkpointCompletion, false);
+    s16 checkpointId = courseMap->findSector(m_playerIdx, kart->pos(), m_checkpointId,
+            &checkpointCompletion, false);
     if (checkpointId == -1) {
         return;
     }
@@ -162,14 +164,14 @@ void RaceManagerPlayer::calc() {
     // for m_bWrongWay
     // MapdataCheckPoint *ckpt;
     if (m_checkpointFactor < 0 || m_checkpointId != checkpointId) {
-    //     ckpt = calcCheckpoint(checkpointId, checkpointCompletion, false);
+        // ckpt = calcCheckpoint(checkpointId, checkpointCompletion, false);
         calcCheckpoint(checkpointId, checkpointCompletion, false);
     } else {
         // ckpt = courseMap->getCheckPoint(m_checkpointId);
     }
 
-    // checkpoint comletion MMM 470 desync ; mkw 0x3df8ae32 vs kinoko 0x3df8ae3e
-    m_raceCompletion = m_currentLap + m_checkpointStartLapCompletion + m_checkpointFactor * checkpointCompletion;
+    m_raceCompletion = static_cast<f32>(m_currentLap) +
+            (m_checkpointStartLapCompletion + m_checkpointFactor * checkpointCompletion);
     m_raceCompletion = std::min(m_raceCompletion, m_currentLap + 0.99999f);
     m_raceCompletionMax = std::max(m_raceCompletionMax, m_raceCompletion);
 
@@ -253,7 +255,7 @@ void RaceManagerPlayer::init() {
     if (courseMap->getCheckPointCount() != 0 && courseMap->getCheckPathCount() != 0) {
         auto pos = Kart::KartObjectManager::Instance()->object(m_playerIdx)->pos();
         f32 checkpointCompletion;
-        s16 sector = courseMap->findSector(m_playerIdx, pos, 0, &checkpointCompletion, true);//false);
+        s16 sector = courseMap->findSector(m_playerIdx, pos, 0, &checkpointCompletion, true);
         m_checkpointId = std::max<s16>(0, sector);
         auto *ckpt = courseMap->getCheckPoint(m_checkpointId);
         m_respawn = ckpt->jugemIndex();
@@ -273,8 +275,8 @@ RaceManagerPlayer::RaceManagerPlayer(u8 idx, u8 lapCount)
     : m_playerIdx(idx), m_checkpointId(0), m_raceCompletion(0.0f), m_checkpointFactor(-1.0f),
       m_checkpointStartLapCompletion(0.0f), m_lapCompletion(0.999999f), m_currentLap(0),
       m_maxLap(0), m_currentKcp(CourseMap::Instance()->lastKcpType()),
-      m_maxKcp(CourseMap::Instance()->lastKcpType()), m_lapFinishTimes(lapCount),
-      m_inputs(&KPadDirector::Instance()->playerInput()) {}
+      m_maxKcp(CourseMap::Instance()->lastKcpType()), m_bFinished(false),
+      m_lapFinishTimes(lapCount), m_inputs(&KPadDirector::Instance()->playerInput()) {}
 
 RaceManager *RaceManager::s_instance = nullptr; ///< @addr{0x809BD730}
 

@@ -9,7 +9,8 @@
 
 namespace System {
 
-MapdataCheckPoint::MapdataCheckPoint(const SData *data) : m_rawData(data), m_nextCount(0), m_prevCount(0) {
+MapdataCheckPoint::MapdataCheckPoint(const SData *data)
+    : m_rawData(data), m_nextCount(0), m_prevCount(0) {
     u8 *unsafeData = reinterpret_cast<u8 *>(const_cast<SData *>(data));
     EGG::RamStream stream = EGG::RamStream(unsafeData, sizeof(SData));
     read(stream);
@@ -35,7 +36,8 @@ void MapdataCheckPoint::read(EGG::Stream &stream) {
     m_nextPt = stream.read_u8();
 }
 
-/// @breief TODO document this; sets linkedcheckpoint values for m_nectpoins and m_prevpoints from sdata->mprev,mnext etc.
+/// @breief TODO document this; sets linkedcheckpoint values for m_nectpoins and m_prevpoints from
+/// sdata->mprev,mnext etc.
 /// @addr{0x80515624}
 void MapdataCheckPoint::initCheckpointLinks(MapdataCheckPointAccessor &accessor, int id) {
     m_id = id;
@@ -107,8 +109,8 @@ void MapdataCheckPoint::initCheckpointLinks(MapdataCheckPointAccessor &accessor,
 
 /// @addr{0x80510D7C}
 /// @see MapdataCheckPoint::checkSectorAndCheckpointCompletion_
-MapdataCheckPoint::Completion MapdataCheckPoint::checkSectorAndCheckpointCompletion(const EGG::Vector3f &pos,
-        float *completion) const {
+MapdataCheckPoint::Completion MapdataCheckPoint::checkSectorAndCheckpointCompletion(
+        const EGG::Vector3f &pos, float *completion) const {
     EGG::Vector2f p1 = EGG::Vector2f(right().x, right().y);
     p1.y = pos.z - p1.y;
     p1.x = pos.x - p1.x;
@@ -239,9 +241,10 @@ bool MapdataCheckPoint::checkSector(const LinkedCheckpoint &next, const EGG::Vec
 /// @addr{Inlined in 0x80510C74}
 bool MapdataCheckPoint::checkCheckpointCompletion(const LinkedCheckpoint &next,
         const EGG::Vector2f &p0, const EGG::Vector2f &p1, float *checkpointCompletion) const {
-            // desync!! checkpointCompletion aforementionsed
+    // desync!! checkpointCompletion aforementionsed
     f32 d1 = m_dir.dot(p1);
-    // desync!!! next.checkpoint->m_dir.x is supposed to be negatice; :)-0.47688546776771545 :(0x3ef42a55 v :)0xbef42a55
+    // desync!!! next.checkpoint->m_dir.x is supposed to be negatice; :)-0.47688546776771545
+    // :(0x3ef42a55 v :)0xbef42a55
     f32 d2 = -(next.checkpoint->m_dir.dot(p0));
     // This is where the divide by zero thing happens @todo
     f32 checkpointCompletion_ = d1 / (d1 + d2);
@@ -292,7 +295,8 @@ f32 MapdataCheckPointAccessor::calculateMeanTotalDistance() {
     return calculateMeanTotalDistanceRecursive(m_finishLineCheckpointId);
 }
 
-/// @brief find finish line and last key checkpoint indexes; also initCheckpointLinks for all checkpoints
+/// @brief find finish line and last key checkpoint indexes; also initCheckpointLinks for all
+/// checkpoints
 /// @addr{Inlined in 0x80515244} fake. not real. it's not in the base game. in the base
 /// game, it's inlined into `init()`. i, kooshnoo, split it out because i wanted to.
 void MapdataCheckPointAccessor::findFinishAndLastKcp() {
