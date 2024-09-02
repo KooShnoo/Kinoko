@@ -130,18 +130,16 @@ void RaceManagerPlayer::endLap() {
     }
     m_maxKcp = 0;
     m_currentLap += 1;
-    printf("finished lap @ %02i:%02i\n", -RaceManager::Instance()->getCountdownTimer() / 3600,
-            -RaceManager::Instance()->getCountdownTimer() / 60 % 60);
-    if (m_currentLap == 4) {
-        printf("finished course in %u frames!\n",
-                -RaceManager::Instance()->getCountdownTimer() + 412);
-    }
+    // printf("finished lap @ %02i:%02i\n", -RaceManager::Instance()->getCountdownTimer() / 3600,
+    //         -RaceManager::Instance()->getCountdownTimer() / 60 % 60);
+    // if (m_currentLap == 4) {
+    //     printf("finished course in %u frames!\n",
+    //             -RaceManager::Instance()->getCountdownTimer() + 412);
+    // }
 }
 
 /// @addr{0x80535304}
 void RaceManagerPlayer::calc() {
-    // printf("timr: %+04i, raceCompletion: %+02.4f, m_lapCompletion: %+02.4f, m_checkpointId: %04u, m_checkpointStartLapCompletion: %+02.4f\n", RaceManager::Instance()->getCountdownTimer(), m_raceCompletion, m_lapCompletion, m_checkpointId, m_checkpointStartLapCompletion);
-    // auto playerType = RaceConfig::Instance()->raceScenario().players[m_idx].type;
     if (m_bFinished) {
         // if (m_position == 1) {
         //     m_framesInFirst++;

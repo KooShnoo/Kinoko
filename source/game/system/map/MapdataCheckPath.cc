@@ -105,7 +105,7 @@ MapdataCheckPath *MapdataCheckPathAccessor::findCheckpathForCheckpoint(u16 check
 void MapdataCheckPathAccessor::loadPaths() {
     // maximum number of checkpaths one could traverse through in a lap
     s8 maxDepth = -1;
-    get(0)->findDepth(-1, *this);
+    get(0)->findDepth(0, *this);
     for (size_t i = 0; i < size(); i++) {
         s8 depth = get(i)->depth();
         if (depth > maxDepth) {
