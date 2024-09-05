@@ -324,7 +324,8 @@ void MapdataCheckPointAccessor::init() {
     findFinishAndLastKcp();
     MapdataCheckPoint *finishLine = get(m_finishLineCheckpointId);
     finishLine->linkPrevKcpIds(0);
-    CourseMap::Instance()->clearSectorChecked();
+    // CourseMap::Instance()->clearSectorChecked(); //<- unnecessary, introduces UB maybe?
+    //                                              //    (CourseMap::Instance()->m_checkpoint is uninitialized)
     // m_meanTotalDistance = calculateMeanTotalDistance(); //<- unused
 }
 
