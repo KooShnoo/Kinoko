@@ -376,8 +376,8 @@ void KartObjectProxy::apply(size_t idx) {
 /// @brief For all proxies in the static list, synchronizes all pointers to the KartAccessor.
 /// @param pointers The pointer to synchronize all other proxies to.
 void KartObjectProxy::ApplyAll(const KartAccessor *pointers) {
-    for (auto iter = s_proxyList.begin(); iter != s_proxyList.end(); ++iter) {
-        (*iter)->m_accessor = pointers;
+    for (auto kart : s_proxyList) {
+        kart->m_accessor = pointers;
     }
 }
 

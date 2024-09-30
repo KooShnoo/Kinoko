@@ -1,7 +1,5 @@
 #include "ResourceManager.hh"
 
-#include "game/system/RaceConfig.hh"
-
 namespace System {
 
 #define ARCHIVE_COUNT 2
