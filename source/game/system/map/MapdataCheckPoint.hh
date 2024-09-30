@@ -117,7 +117,7 @@ private:
     void init();
     s8 m_lastKcpType;
     u16 m_finishLineCheckpointId;
-    f32 m_meanTotalDistance;
+    f32 m_meanTotalDistance;  ///< @unused
 };
 
 } // namespace System
