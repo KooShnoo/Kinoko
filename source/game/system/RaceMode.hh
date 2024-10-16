@@ -4,12 +4,17 @@
 
 namespace System {
 
+class RaceManager;
+
 class RaceMode {
 public:
-    RaceMode();
+    RaceMode(RaceManager *raceManager);
     ~RaceMode();
 
     const MapdataJugemPoint *jugemPoint();
+
+    private:
+        const RaceManager *m_raceManager;
 };
 
 } // namespace System
