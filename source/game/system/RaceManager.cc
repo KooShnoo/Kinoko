@@ -12,10 +12,6 @@
 #include <game/system/map/MapdataCheckPath.hh>
 #include <game/system/map/MapdataCheckPoint.hh>
 
-#include <algorithm>
-#include <cassert>
-#include <cfloat>
-
 namespace System {
 
 /// @addr{0x80532F88}
@@ -130,20 +126,11 @@ void RaceManagerPlayer::endLap() {
     }
     m_maxKcp = 0;
     m_currentLap += 1;
-    // printf("finished lap @ %02i:%02i\n", -RaceManager::Instance()->getCountdownTimer() / 3600,
-    //         -RaceManager::Instance()->getCountdownTimer() / 60 % 60);
-    // if (m_currentLap == 4) {
-    //     printf("finished course in %u frames!\n",
-    //             -RaceManager::Instance()->getCountdownTimer() + 412);
-    // }
 }
 
 /// @addr{0x80535304}
 void RaceManagerPlayer::calc() {
     if (m_bFinished) {
-        // if (m_position == 1) {
-        //     m_framesInFirst++;
-        // }
         m_frameCounter++;
     }
     auto courseMap = CourseMap::Instance();
@@ -159,21 +146,13 @@ void RaceManagerPlayer::calc() {
         return;
     }
 
-    // for m_bWrongWay
-    // MapdataCheckPoint *ckpt;
     if (m_checkpointFactor < 0 || m_checkpointId != checkpointId) {
-        // ckpt = calcCheckpoint(checkpointId, checkpointCompletion, false);
         calcCheckpoint(checkpointId, checkpointCompletion, false);
-    } else {
-        // ckpt = courseMap->getCheckPoint(m_checkpointId);
     }
-
     m_raceCompletion = static_cast<f32>(m_currentLap) +
             (m_checkpointStartLapCompletion + m_checkpointFactor * checkpointCompletion);
     m_raceCompletion = std::min(m_raceCompletion, m_currentLap + 0.99999f);
     m_raceCompletionMax = std::max(m_raceCompletionMax, m_raceCompletion);
-
-    // wrong way-related code for m_bWrongWay
 }
 
 /// @brief whether @param nextCheckpointId is directly after @param checkpoint
@@ -217,16 +196,6 @@ MapdataCheckPoint *RaceManagerPlayer::calcCheckpoint(u16 checkpointId, f32 check
         m_respawn = respawn;
     }
 
-    // no remote players in kinoko
-    // if (isRemote) {
-    //     if (dLapCompletion < 0.6f) {
-    //         decrementLap();
-    //     } else if (dLapCompletion > -0.6f) { // idk what it compares against
-    //         endLap();
-    //     }
-    //     return newCheckpoint;
-    // }
-
     if (!newCheckpoint->isNormalCheckpoint()) {
         if (newCheckpoint->type() > m_maxKcp) {
             m_maxKcp = newCheckpoint->type();
@@ -249,7 +218,6 @@ MapdataCheckPoint *RaceManagerPlayer::calcCheckpoint(u16 checkpointId, f32 check
 /// @addr{0x80534194}
 void RaceManagerPlayer::init() {
     auto courseMap = CourseMap::Instance();
-    assert(courseMap);
     if (courseMap->getCheckPointCount() != 0 && courseMap->getCheckPathCount() != 0) {
         auto pos = Kart::KartObjectManager::Instance()->object(m_playerIdx)->pos();
         f32 checkpointCompletion;

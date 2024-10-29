@@ -1,9 +1,6 @@
 #include "MapdataCheckPoint.hh"
 #include "MapdataCheckPath.hh"
 #include <Common.hh>
-#include <cassert>
-#include <cstddef>
-#include <cstdio>
 #include <egg/math/Vector.hh>
 #include <game/system/CourseMap.hh>
 
@@ -14,16 +11,8 @@ MapdataCheckPoint::MapdataCheckPoint(const SData *data)
     u8 *unsafeData = reinterpret_cast<u8 *>(const_cast<SData *>(data));
     EGG::RamStream stream = EGG::RamStream(unsafeData, sizeof(SData));
     read(stream);
-    // clang-format off
-    m_midpoint = EGG::Vector2f(
-        (left().x + right().x) / 2.0f, 
-        (left().y + right().y) / 2.0f
-    );
-    m_dir = EGG::Vector2f(
-         left().y - right().y,
-        right().x -  left().x
-    );
-    // clang-format on
+    m_midpoint = EGG::Vector2f((left().x + right().x) / 2.0f, (left().y + right().y) / 2.0f);
+    m_dir = EGG::Vector2f(left().y - right().y, right().x - left().x);
     m_dir.normalise();
 }
 
@@ -47,17 +36,15 @@ void MapdataCheckPoint::initCheckpointLinks(MapdataCheckPointAccessor &accessor,
     if (m_prevPt == 0xff) {
         MapdataCheckPath *checkpath = courseMap->checkPath()->findCheckpathForCheckpoint(id);
 
-        if (checkpath != nullptr) {
-            m_prevCount = 0;
-            for (size_t i = 0; i < 6; i++) {
-                u16 prevID = checkpath->getPrev(i);
-                if (prevID == 0xff) {
-                    continue;
-                }
-                MapdataCheckPath *prev = courseMap->checkPath()->get(prevID);
-                m_prevPoints[i] = accessor.get(prev->end());
-                m_prevCount++;
+        m_prevCount = 0;
+        for (size_t i = 0; i < 6; i++) {
+            u16 prevID = checkpath->getPrev(i);
+            if (prevID == 0xff) {
+                continue;
             }
+            MapdataCheckPath *prev = courseMap->checkPath()->get(prevID);
+            m_prevPoints[i] = accessor.get(prev->end());
+            m_prevCount++;
         }
     } else {
         m_prevPoints[0] = accessor.get(m_prevPt);
@@ -67,26 +54,17 @@ void MapdataCheckPoint::initCheckpointLinks(MapdataCheckPointAccessor &accessor,
     // can have multiple quadrilaterals (and nextCheckpoint) which are determined by its next
     // path(s)
     if (m_nextPt == 0xff) {
-        // Finds the checkpath that contains the given checkpoint id
-        MapdataCheckPath *checkpath = nullptr;
-        for (size_t i = 0; i < courseMap->getCheckPathCount(); i++) {
-            checkpath = courseMap->getCheckPath(i);
-            if (checkpath->isPointInPath(id)) {
-                break;
-            }
-        }
+        MapdataCheckPath *checkpath = courseMap->checkPath()->findCheckpathForCheckpoint(id);
 
-        if (checkpath != nullptr) {
-            m_nextCount = 0;
-            for (size_t i = 0; i < 6; i++) {
-                u16 nextID = checkpath->getNext(i);
-                if (nextID == 0xff) {
-                    continue;
-                }
-                MapdataCheckPath *next = courseMap->checkPath()->get(nextID);
-                m_nextPoints[i].checkpoint = accessor.get(next->start());
-                m_nextCount++;
+        m_nextCount = 0;
+        for (size_t i = 0; i < 6; i++) {
+            u16 nextID = checkpath->getNext(i);
+            if (nextID == 0xff) {
+                continue;
             }
+            MapdataCheckPath *next = courseMap->checkPath()->get(nextID);
+            m_nextPoints[i].checkpoint = accessor.get(next->start());
+            m_nextCount++;
         }
     } else {
         m_nextPoints[0].checkpoint = accessor.get(m_nextPt);
@@ -103,7 +81,10 @@ void MapdataCheckPoint::initCheckpointLinks(MapdataCheckPointAccessor &accessor,
                     EGG::Vector2f(next->left().x - left().x, next->left().y - left().y);
             m_nextPoints[i].p1diff =
                     EGG::Vector2f(next->right().x - right().x, next->right().y - right().y);
-        } // else mkw initalizes to zero (pointless)
+        } // else mkw initalizes to zero (pointless) at 0x80515a20
+        // i can't prove it's pointless, but if the PR reviewer would kindly please advise, thank
+        // you i didn't bytematch this btw but i tried a little and gave up
+        // https://decomp.me/scratch/jYvUa
     }
 }
 
@@ -241,10 +222,7 @@ bool MapdataCheckPoint::checkSector(const LinkedCheckpoint &next, const EGG::Vec
 /// @addr{Inlined in 0x80510C74}
 bool MapdataCheckPoint::checkCheckpointCompletion(const LinkedCheckpoint &next,
         const EGG::Vector2f &p0, const EGG::Vector2f &p1, float *checkpointCompletion) const {
-    // desync!! checkpointCompletion aforementionsed
     f32 d1 = m_dir.dot(p1);
-    // desync!!! next.checkpoint->m_dir.x is supposed to be negatice; :)-0.47688546776771545
-    // :(0x3ef42a55 v :)0xbef42a55
     f32 d2 = -(next.checkpoint->m_dir.dot(p0));
     // This is where the divide by zero thing happens @todo
     f32 checkpointCompletion_ = d1 / (d1 + d2);
@@ -278,7 +256,6 @@ f32 MapdataCheckPointAccessor::calculateMeanTotalDistanceRecursive(u16 ckptId) {
         if (m_finishLineCheckpointId == ckpt->id()) {
             continue;
         }
-        // ckpt = ckpt->nextPoint(i);
         sumDist += calculateMeanTotalDistanceRecursive(ckpt->id());
     }
 
@@ -291,7 +268,6 @@ s8 MapdataCheckPointAccessor::lastKcpType() const {
 
 /// @addr{80512370}
 f32 MapdataCheckPointAccessor::calculateMeanTotalDistance() {
-    assert(size() != 0);
     return calculateMeanTotalDistanceRecursive(m_finishLineCheckpointId);
 }
 
@@ -299,6 +275,10 @@ f32 MapdataCheckPointAccessor::calculateMeanTotalDistance() {
 /// checkpoints
 /// @addr{Inlined in 0x80515244} fake. not real. it's not in the base game. in the base
 /// game, it's inlined into `init()`. i, kooshnoo, split it out because i wanted to.
+// I'm not sure if this should be split; it feels like a separate function,
+//  but idk if i can somehow prove nintendo wrote it as a separate function,
+//  and i don't know if we care what nintendo extracted to a separate function and what they
+//  inlined. would the PR reviewer kindly please advise, thank you
 void MapdataCheckPointAccessor::findFinishAndLastKcp() {
     s8 lastKcpType = -1;
     s16 finishLineCheckpointId = -1;
@@ -319,13 +299,14 @@ void MapdataCheckPointAccessor::findFinishAndLastKcp() {
 
 /// @addr{0x80515244}
 void MapdataCheckPointAccessor::init() {
-    assert(size() != 0);
-
     findFinishAndLastKcp();
     MapdataCheckPoint *finishLine = get(m_finishLineCheckpointId);
     finishLine->linkPrevKcpIds(0);
     // CourseMap::Instance()->clearSectorChecked(); //<- unnecessary, introduces UB maybe?
-    //                                              //    (CourseMap::Instance()->m_checkpoint is uninitialized)
+    //                                              //    (CourseMap::Instance()->m_checkpoint is
+    //                                              uninitialized)
+    //                                              //    would the PR reviewer kindly please
+    //                                              advise, thank you
     // m_meanTotalDistance = calculateMeanTotalDistance(); //<- unused
 }
 
@@ -334,7 +315,6 @@ MapdataCheckPointAccessor::MapdataCheckPointAccessor(const MapSectionHeader *hea
     MapdataAccessorBase::init(
             reinterpret_cast<const MapdataCheckPoint::SData *>(m_sectionHeader + 1),
             parse<u16>(m_sectionHeader->count));
-    assert(size() != 0);
     init();
 }
 

@@ -1,6 +1,4 @@
 #include "game/system/map/MapdataCheckPath.hh"
-#include <cassert>
-#include <cstddef>
 
 namespace System {
 
@@ -40,7 +38,6 @@ void MapdataCheckPath::findDepth(s8 depth, const MapdataCheckPathAccessor &acces
             continue;
         }
         MapdataCheckPath *next = accessor.get(nextID);
-        assert(next);
         next->findDepth(depth + 1, accessor);
     }
 }

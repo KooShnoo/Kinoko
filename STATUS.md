@@ -55,7 +55,7 @@ Test Case                                                 | Frames      |     | 
 [`rpg-rta-1-58-890`](https://youtu.be/vu0vpmTmcbg)        | 7538 / 7538 | ✔️ |
 [`rdkm-rta-1-58-133`](https://youtu.be/s3uqTaxr_4A)       | 2544 / 7492 | ❌ | KMP bridge object
 [`rdkm-ng-rta-2-04-775`](https://youtu.be/jk5NIcHWQ-Y)    | 2717 / 7890 | ❌ | KMP bridge object
-[`rbc-rta-2-17-997`](https://youtu.be/6Wri7nBtZMk)        | 1168 / 8683 | ✔️ |
+[`rbc-rta-2-17-997`](https://youtu.be/6Wri7nBtZMk)        | 8683 / 8683 | ✔️ |
 [`rbc-ng-rta-2-30-459`](https://youtu.be/twZes-RI6Sc)     | 9430 / 9430 | ✔️ |
 [`TAS/LC-UR-3lap-1-02-466`]()                             | 4156 / 4156 | ✔️ |
 [`TAS/MMM-UR-3lap-52-321`]()                              | 3548 / 3548 | ✔️ |
@@ -70,7 +70,7 @@ Test Case                                                 | Frames      |     | 
 [`TAS/MT-UR-3lap-1-15-170`]()                             | 1700 / 4917 | ❌ | KMP
 [`TAS/GV-UR-3lap-13-326`]()                               | 467 / 1210  | ❌ | KMP 
 [`TAS/MH-UR-3lap-1-33-639`]()                             | 6024 / 6024 | ✔️ |
-[`TAS/BC-UR-3lap-1-59-483`]()                             | 785 / 7573  | ✔️ |
+[`TAS/BC-UR-3lap-1-59-483`]()                             | 785 / 7573  | ❌ | KMP
 [`TAS/RR-UR-3lap-38-695`]()                               | 2731 / 2731 | ✔️ |
 [`TAS/rPB-UR-3lap-47-420`]()                              | 1464 / 3254 | ❌ | KMP
 [`TAS/rYF-UR-3lap-54-769`]()                              | 579 / 3694  | ❌ | Moving water
@@ -85,7 +85,7 @@ Test Case                                                 | Frames      |     | 
 [`TAS/rMC-UR-3lap-1-27-494`]()                            | 5656 / 5656 | ✔️ |
 [`TAS/rMC3-UR-3lap-1-16-208`]()                           | 4979 / 4979 | ✔️ |
 [`TAS/rDKM-UR-3lap-1-52-997`]()                           | 2458 / 7185 | ❌ | KMP
-[`TAS/rBC-UR-3lap-2-05-116`]()                            | 3909 / 7911 | ❌ | Respawn position
+[`TAS/rBC-UR-3lap-2-05-116`]()                            | 7911 / 7911 | ✔️ |
 [`TAS/MMM-NU-3lap-1-12-159`]()                            | 2958 / 4737 | ❌ | KMP
 [`TAS/MG-NU-3lap-1-26-859`]()                             | 565 / 5618  | ❌ | Mushroom
 [`TAS/rSL-NU-3lap-1-57-053`]()                            | 4173 / 7428 | ❌ | KMP

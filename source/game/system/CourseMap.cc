@@ -136,12 +136,12 @@ MapdataCannonPoint *CourseMap::getCannonPoint(u16 i) const {
     return m_cannonPoint && m_cannonPoint->size() != 0 ? m_cannonPoint->get(i) : nullptr;
 }
 
-/// @addr{0x80518AE0}
+/// @addr{0x80515C24}
 MapdataCheckPoint *CourseMap::getCheckPoint(u16 i) const {
     return m_checkPoint && m_checkPoint->size() != 0 ? m_checkPoint->get(i) : nullptr;
 }
 
-/// @addr{0x80518AE0}
+/// @addr{0x80515C70}
 MapdataCheckPath *CourseMap::getCheckPath(u16 i) const {
     return m_checkPath && m_checkPath->size() != 0 ? m_checkPath->get(i) : nullptr;
 }
@@ -174,10 +174,7 @@ u16 CourseMap::getJugemPointCount() const {
     return m_jugemPoint ? m_jugemPoint->size() : 0;
 }
 
-///@addr{Inlined in several places: in RceaMgrPlye::calcCheckpoint indirectly via decrementLap(an
-/// inline), and also inlined directly in calcCheckpoint }
 s8 CourseMap::lastKcpType() const {
-    assert(getCheckPointCount() != 0 && getCheckPathCount() != 0);
     return m_checkPoint->lastKcpType();
 }
 
@@ -206,11 +203,11 @@ f32 CourseMap::startTmp3() const {
 }
 
 u16 CourseMap::getCheckPointCount() const {
-    return m_checkPoint ? m_checkPoint->size() : 0;
+    return m_checkPoint->size();
 }
 
 u16 CourseMap::getCheckPathCount() const {
-    return m_checkPath ? m_checkPath->size() : 0;
+    return m_checkPath->size();
 }
 
 MapdataCheckPathAccessor *CourseMap::checkPath() const {
@@ -224,7 +221,6 @@ void CourseMap::clearSectorChecked() {
     }
 }
 
-// This is a disaster
 /// @addr{0x80511500}
 s16 CourseMap::findSector(s32 playerIdx, const EGG::Vector3f &pos, u16 checkpointIdx,
         f32 *checkpointCompletion, bool isRemote) {

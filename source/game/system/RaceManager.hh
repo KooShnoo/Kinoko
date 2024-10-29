@@ -1,6 +1,5 @@
 #pragma once
 
-#include <cstdio>
 #include <game/system/map/MapdataCheckPoint.hh>
 #include "game/system/KPadController.hh"
 #include "game/system/RaceMode.hh"

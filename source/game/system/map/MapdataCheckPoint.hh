@@ -84,7 +84,7 @@ private:
                      ///< here will be respawned at this point.
     /// either:
     /// - a @ref `NORMAL_CHECKPOINT` (0) used to calulate respawns,
-    /// - a @ref `START_FINISH_LINE` (-1) which updates the lap count when crossed, or
+    /// - a @ref `FINISH_LINE` (-1) which updates the lap count when crossed, or
     /// - a "key checkpoint" (1-127) used to ensure racers travel around the entire
     /// course before proceeding to the next lap. the type value represents the index,
     /// i.e. racers must pass checkpoint with @ref `m_type` 1, then 2, then 3 etc..

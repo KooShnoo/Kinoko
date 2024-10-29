@@ -19,7 +19,7 @@ enum Changelog {
     AddedIntVel = 3,
     AddedSpeed = 4,
     AddedRotation = 5,
-    Checkpoints = 6,
+    AddedCheckpoints = 6,
 };
 
 TestDirector::TestDirector(const std::span<u8> &suiteData) {
@@ -141,7 +141,7 @@ void TestDirector::test(const TestData &data) {
     u16 currentLap = System::RaceManager::Instance()->player().currentLap();
 
     switch (m_versionMinor) {
-    case Changelog::Checkpoints:
+    case Changelog::AddedCheckpoints:
         checkDesync(data.raceCompletion, raceCompletion, "raceCompletion");
         checkDesync(data.checkpointId, checkpointId, "checkpointId");
         checkDesync(data.currentLap, currentLap, "currentLap");
@@ -222,7 +222,7 @@ TestData TestDirector::findNextEntry() {
         angVel2.read(m_stream);
     }
 
-    if (m_versionMinor >= Changelog::Checkpoints) {
+    if (m_versionMinor >= Changelog::AddedCheckpoints) {
         raceCompletion = m_stream.read_f32();
         checkpointId = m_stream.read_u16();
         currentLap = m_stream.read_u16();
