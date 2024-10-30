@@ -19,7 +19,7 @@ class MapdataCheckPointAccessor;
 class MapdataCheckPoint {
 public:
     static constexpr s8 NORMAL_CHECKPOINT = -1; ///< only used for picking respawn position
-    static constexpr s8 FINISH_LINE = 0;        ///< triggers a lap count; also the starting line
+    static constexpr s8 FINISH_LINE = 0;        ///< triggers a lap change; also the starting line
 
     struct SData {
         EGG::Vector2f left;
@@ -30,11 +30,11 @@ public:
         u8 nextPt;
     };
 
-    enum Completion {
-        Completion_0, ///< if player is inside the checkpoint quad
-        Completion_1, ///< if player is not between the sides of the quad (may still be between this
+    enum SectorOccupancy {
+        InsideSector, ///< if player is inside the checkpoint quad
+        OutsideSector, ///< if player is not between the sides of the quad (may still be between this
                       ///< checkpoint and next); player is likely in a different checkpoint group
-        Completion_2, ///< if player is between the sides of the quad, but NOT between this
+        OutsideSector_BetweenSides, ///< if player is between the sides of the quad, but NOT between this
                       ///< checkpoint and next; player is likely in the same checkpoint group
     };
 
@@ -42,7 +42,7 @@ public:
     void read(EGG::Stream &stream);
 
     void initCheckpointLinks(MapdataCheckPointAccessor &accessor, int id);
-    [[nodiscard]] Completion checkSectorAndCheckpointCompletion(const EGG::Vector3f &pos, f32 *checkpointCompletion) const;
+    [[nodiscard]] SectorOccupancy checkSectorAndCheckpointCompletion(const EGG::Vector3f &pos, f32 *checkpointCompletion) const;
     bool isPlayerFlagged(s32 playerIdx) const;
     void setPlayerFlags(s32 playerIdx);
     void resetFlags();
@@ -75,7 +75,7 @@ private:
             const EGG::Vector2f &p1) const;
     [[nodiscard]] bool isInCheckpoint(const LinkedCheckpoint &next, const EGG::Vector2f &p0,
             const EGG::Vector2f &p1, float *completion) const;
-    [[nodiscard]] Completion checkSectorAndCheckpointCompletion_(const LinkedCheckpoint &next,
+    [[nodiscard]] SectorOccupancy checkSectorAndCheckpointCompletion_(const LinkedCheckpoint &next,
             const EGG::Vector2f &p0, const EGG::Vector2f &p1, float *checkpointCompletion) const;
     const SData *m_rawData;
     EGG::Vector2f m_left;
@@ -97,7 +97,7 @@ private:
     EGG::Vector2f m_dir;
     bool m_flag; ///< visited flag, for recursive fucntions.
     u16 m_id;
-    u8 m_prevKcpId;
+    u8 m_prevKcpId; ///< @unused
     MapdataCheckPoint *m_prevPoints[6];
     LinkedCheckpoint m_nextPoints[6];
 };

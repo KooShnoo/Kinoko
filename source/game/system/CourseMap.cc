@@ -228,7 +228,7 @@ s16 CourseMap::findSector(s32 playerIdx, const EGG::Vector3f &pos, u16 checkpoin
     MapdataCheckPoint *checkpoint = getCheckPoint(checkpointIdx);
     s16 id = -1;
     // check if player is in starting checkpoint
-    MapdataCheckPoint::Completion completion =
+    MapdataCheckPoint::SectorOccupancy completion =
             checkpoint->checkSectorAndCheckpointCompletion(pos, checkpointCompletion);
     // flag starting checkpoint as searched
     checkpoint->setPlayerFlags(playerIdx);
@@ -243,13 +243,13 @@ s16 CourseMap::findSector(s32 playerIdx, const EGG::Vector3f &pos, u16 checkpoin
     // encountered.
     switch (completion) {
     // Case 1: the player is fully inside the current checkpoint, so just set to current checkpoint
-    case MapdataCheckPoint::Completion_0:
+    case MapdataCheckPoint::InsideSector:
         id = checkpoint->id();
         break;
 
     // Case 2: the player is between the sides of the quad, but NOT between this checkpoint and
     // next; player is likely in the same checkpoint group
-    case MapdataCheckPoint::Completion_2:
+    case MapdataCheckPoint::OutsideSector_BetweenSides:
 
         // Case 2a: the player is closer to the next checkpoint than the current checkpoint; player
         // is most likely to be in NEXT checkpoints
@@ -391,7 +391,7 @@ s16 CourseMap::findSector(s32 playerIdx, const EGG::Vector3f &pos, u16 checkpoin
 
     // Case 3: the player is not between the sides of the quad (may still be between this checkpoint
     // and next); player is likely in a different checkpoint group
-    case MapdataCheckPoint::Completion_1:
+    case MapdataCheckPoint::OutsideSector:
         // Search next -> prev
         for (s32 i = 0; i < checkpoint->nextCount(); i++) {
             MapdataCheckPoint *next =
@@ -493,10 +493,10 @@ s16 CourseMap::findSector(s32 playerIdx, const EGG::Vector3f &pos, u16 checkpoin
         for (u16 i = 0; i < getCheckPointCount(); i++) {
             MapdataCheckPoint *checkpoint_ = getCheckPoint(i);
             if (!checkpoint_->isPlayerFlagged(playerIdx)) { // search all unsearched checkpoints
-                MapdataCheckPoint::Completion completion =
+                MapdataCheckPoint::SectorOccupancy completion =
                         checkpoint_->checkSectorAndCheckpointCompletion(pos, checkpointCompletion);
                 checkpoint_->setPlayerFlags(playerIdx);
-                if (completion == MapdataCheckPoint::Completion_0) {
+                if (completion == MapdataCheckPoint::InsideSector) {
                     id = i;
                     break;
                 }
@@ -569,14 +569,14 @@ s16 CourseMap::findRecursiveSector(s32 playerIdx, const EGG::Vector3f &pos, s16 
     // if this checkpoint has been searched already, force set completion type to Completion_1
     // (why?)
     bool flagged = checkpoint.isPlayerFlagged(playerIdx);
-    MapdataCheckPoint::Completion completion = MapdataCheckPoint::Completion_1;
+    MapdataCheckPoint::SectorOccupancy completion = MapdataCheckPoint::OutsideSector;
     if (!flagged) {
         completion = checkpoint.checkSectorAndCheckpointCompletion(pos, checkpointCompletion);
     }
     checkpoint.setPlayerFlags(playerIdx);
 
     // if player is inside current checkpoint, return current checkpoint
-    if (completion == MapdataCheckPoint::Completion_0) {
+    if (completion == MapdataCheckPoint::InsideSector) {
         return checkpoint.id();
     }
 
@@ -584,7 +584,7 @@ s16 CourseMap::findRecursiveSector(s32 playerIdx, const EGG::Vector3f &pos, s16 
     if (param_5 == 0) {
         // If "player is forwards" flag is true but completion < 0, force completion to 0 and return
         // current checkpoint (GHOST CHECKPOINT!)
-        if (params & 1 && completion == MapdataCheckPoint::Completion_2 &&
+        if (params & 1 && completion == MapdataCheckPoint::OutsideSector_BetweenSides &&
                 *checkpointCompletion < 0.0f) {
             *checkpointCompletion = 0.0f;
             return checkpoint.id();
@@ -598,7 +598,7 @@ s16 CourseMap::findRecursiveSector(s32 playerIdx, const EGG::Vector3f &pos, s16 
         // If player is between the sides of the quad but NOT between this checkpoint and next, AND
         // completion > 0, then set "player is forwards" flag
         u32 params_;
-        if (completion == MapdataCheckPoint::Completion_2 && *checkpointCompletion > 0.0f) {
+        if (completion == MapdataCheckPoint::OutsideSector_BetweenSides && *checkpointCompletion > 0.0f) {
             params_ = params | 1;
         } else {
             params_ = params & ~1;
@@ -617,7 +617,7 @@ s16 CourseMap::findRecursiveSector(s32 playerIdx, const EGG::Vector3f &pos, s16 
 
     // If "player is backwards" flag is true but completion > 1, force completion to 1 and return
     // current checkpoint (GHOST CHECKPOINT!)
-    if (params & 1 && completion == MapdataCheckPoint::Completion_2 &&
+    if (params & 1 && completion == MapdataCheckPoint::OutsideSector_BetweenSides &&
             *checkpointCompletion > 1.0f) {
         *checkpointCompletion = 1.0f;
         return checkpoint.id();
@@ -631,7 +631,7 @@ s16 CourseMap::findRecursiveSector(s32 playerIdx, const EGG::Vector3f &pos, s16 
     // If player is between the sides of the quad but NOT between this checkpoint and next, AND
     // completion < 0, then set "player is backwards" flag
     u32 params_;
-    if (completion == MapdataCheckPoint::Completion_2 && *checkpointCompletion < 0.0f) {
+    if (completion == MapdataCheckPoint::OutsideSector_BetweenSides && *checkpointCompletion < 0.0f) {
         params_ = params | 1;
     } else {
         params_ = params & ~1;

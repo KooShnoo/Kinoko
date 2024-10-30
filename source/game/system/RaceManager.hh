@@ -94,7 +94,6 @@ private:
     RaceManager();
     ~RaceManager();
 
-    // this is supposed to an array of all players, but kinoko only supports the one.
     RaceManagerPlayer m_player;
     RaceMode m_raceMode;
     Stage m_stage;

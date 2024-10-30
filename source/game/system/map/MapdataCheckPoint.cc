@@ -25,13 +25,13 @@ void MapdataCheckPoint::read(EGG::Stream &stream) {
     m_nextPt = stream.read_u8();
 }
 
-/// @breief TODO document this; sets linkedcheckpoint values for m_nectpoins and m_prevpoints from
-/// sdata->mprev,mnext etc.
+/// @brief Calculates @ref m_nextPoints and @ref m_prevPoints from @ref m_nextPt and @ref m_prevPt.
+/// @details 
 /// @addr{0x80515624}
 void MapdataCheckPoint::initCheckpointLinks(MapdataCheckPointAccessor &accessor, int id) {
     m_id = id;
     auto courseMap = CourseMap::Instance();
-    // If the check point is the first in its group (prev == -1), it has multiple previous
+    // Calculate the quadrilateral's `m_prevPoints`. If the check point is the first in its group (prev == -1), it has multiple previous
     // checkpoints defined by its preceding checkpaths
     if (m_prevPt == 0xff) {
         MapdataCheckPath *checkpath = courseMap->checkPath()->findCheckpathForCheckpoint(id);
@@ -50,7 +50,7 @@ void MapdataCheckPoint::initCheckpointLinks(MapdataCheckPointAccessor &accessor,
         m_prevPoints[0] = accessor.get(m_prevPt);
         m_prevCount++;
     }
-    // Calculate the quadrilateral's nextCheckpoint. If the checkpoint is the last in its group, it
+    // Calculate the quadrilateral's `m_nextPoints`. If the checkpoint is the last in its group, it
     // can have multiple quadrilaterals (and nextCheckpoint) which are determined by its next
     // path(s)
     if (m_nextPt == 0xff) {
@@ -90,28 +90,27 @@ void MapdataCheckPoint::initCheckpointLinks(MapdataCheckPointAccessor &accessor,
 
 /// @addr{0x80510D7C}
 /// @see MapdataCheckPoint::checkSectorAndCheckpointCompletion_
-MapdataCheckPoint::Completion MapdataCheckPoint::checkSectorAndCheckpointCompletion(
+MapdataCheckPoint::SectorOccupancy MapdataCheckPoint::checkSectorAndCheckpointCompletion(
         const EGG::Vector3f &pos, float *completion) const {
-    EGG::Vector2f p1 = EGG::Vector2f(right().x, right().y);
+    EGG::Vector2f p1 = right();
     p1.y = pos.z - p1.y;
     p1.x = pos.x - p1.x;
 
     for (s32 nextIdx = 0; nextIdx < m_nextCount; nextIdx++) {
-        EGG::Vector2f p0(m_nextPoints[nextIdx].checkpoint->left().x,
-                m_nextPoints[nextIdx].checkpoint->left().y);
+        EGG::Vector2f p0 = m_nextPoints[nextIdx].checkpoint->left();
         p0.y = pos.z - p0.y;
         p0.x = pos.x - p0.x;
-        MapdataCheckPoint::Completion result =
+        MapdataCheckPoint::SectorOccupancy result =
                 checkSectorAndCheckpointCompletion_(m_nextPoints[nextIdx], p0, p1, completion);
 
-        if (result == Completion_1) {
+        if (result == OutsideSector) {
             continue;
         } else {
             return result;
         }
     }
 
-    return Completion_1;
+    return OutsideSector;
 }
 
 bool MapdataCheckPoint::isPlayerFlagged(s32 /* playerIdx */) const {
@@ -217,7 +216,7 @@ bool MapdataCheckPoint::checkSector(const LinkedCheckpoint &next, const EGG::Vec
 
 /// @brief Updates @param checkpointCompletion\, which is the percentage of distance
 /// the player has traveled through the checkpoint quad
-/// @return True if 0 <= checkpointCompletion <= 1, meaning the player is between this checkpoint
+/// @return True if 0 <= checkpointCompletion <= 1, meaning the player is between the current checkpoint
 /// line and the next; otherwise, false
 /// @addr{Inlined in 0x80510C74}
 bool MapdataCheckPoint::checkCheckpointCompletion(const LinkedCheckpoint &next,
@@ -233,15 +232,15 @@ bool MapdataCheckPoint::checkCheckpointCompletion(const LinkedCheckpoint &next,
 /// @brief Calls both @ref checkSector and @ref checkCheckpointCompletion; updates @param
 /// checkpointCompletion
 /// @addr{0x80510C74}
-MapdataCheckPoint::Completion MapdataCheckPoint::checkSectorAndCheckpointCompletion_(
+MapdataCheckPoint::SectorOccupancy MapdataCheckPoint::checkSectorAndCheckpointCompletion_(
         const LinkedCheckpoint &next, const EGG::Vector2f &p0, const EGG::Vector2f &p1,
         float *checkpointCompletion) const {
     if (!checkSector(next, p0, p1)) {
-        return Completion_1;
+        return OutsideSector;
     }
 
-    return checkCheckpointCompletion(next, p0, p1, checkpointCompletion) ? Completion_0 :
-                                                                           Completion_2;
+    return checkCheckpointCompletion(next, p0, p1, checkpointCompletion) ? InsideSector :
+                                                                           OutsideSector_BetweenSides;
 }
 
 /// @addr{0x80512064}

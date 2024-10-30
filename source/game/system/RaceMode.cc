@@ -1,7 +1,6 @@
 #include "RaceMode.hh"
 
 #include "game/system/CourseMap.hh"
-#include "game/system/RaceConfig.hh"
 #include "game/system/RaceManager.hh"
 
 namespace System {
