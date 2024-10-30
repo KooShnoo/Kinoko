@@ -105,7 +105,8 @@ void RaceManager::DestroyInstance() {
 }
 
 /// @addr{0x805327A0}
-RaceManager::RaceManager() : m_player(0, 3), m_raceMode(this), m_stage(Stage::Intro), m_introTimer(0), m_timer(0) {}
+RaceManager::RaceManager()
+    : m_player(0, 3), m_raceMode(this), m_stage(Stage::Intro), m_introTimer(0), m_timer(0) {}
 
 /// @addr{0x80532E3C}
 RaceManager::~RaceManager() = default;

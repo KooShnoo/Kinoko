@@ -215,7 +215,7 @@ private:
     bool m_bHalfpipeRamp;              ///< Set while colliding with zipper KCL.
     bool m_bOverZipper;                ///< Set while mid-air from a zipper.
     bool m_bUNK1000;
-    bool m_bDisableBackwardsAccel;     ///< Enforces a 20f delay when reversing after charging SSMT.
+    bool m_bDisableBackwardsAccel; ///< Enforces a 20f delay when reversing after charging SSMT.
     bool m_bZipperBoost;
     bool m_bZipperStick; ///< Set while mid-air and still influenced by the zipper.
     bool m_bZipperTrick;

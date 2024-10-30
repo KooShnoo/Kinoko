@@ -598,7 +598,8 @@ s16 CourseMap::findRecursiveSector(s32 playerIdx, const EGG::Vector3f &pos, s16 
         // If player is between the sides of the quad but NOT between this checkpoint and next, AND
         // completion > 0, then set "player is forwards" flag
         u32 params_;
-        if (completion == MapdataCheckPoint::OutsideSector_BetweenSides && *checkpointCompletion > 0.0f) {
+        if (completion == MapdataCheckPoint::OutsideSector_BetweenSides &&
+                *checkpointCompletion > 0.0f) {
             params_ = params | 1;
         } else {
             params_ = params & ~1;
@@ -631,7 +632,8 @@ s16 CourseMap::findRecursiveSector(s32 playerIdx, const EGG::Vector3f &pos, s16 
     // If player is between the sides of the quad but NOT between this checkpoint and next, AND
     // completion < 0, then set "player is backwards" flag
     u32 params_;
-    if (completion == MapdataCheckPoint::OutsideSector_BetweenSides && *checkpointCompletion < 0.0f) {
+    if (completion == MapdataCheckPoint::OutsideSector_BetweenSides &&
+            *checkpointCompletion < 0.0f) {
         params_ = params | 1;
     } else {
         params_ = params & ~1;

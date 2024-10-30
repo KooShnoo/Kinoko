@@ -14,7 +14,6 @@ struct LinkedCheckpoint {
     f32 distance;
 };
 
-
 class MapdataCheckPointAccessor;
 class MapdataCheckPoint {
 public:
@@ -31,18 +30,21 @@ public:
     };
 
     enum SectorOccupancy {
-        InsideSector, ///< if player is inside the checkpoint quad
-        OutsideSector, ///< if player is not between the sides of the quad (may still be between this
-                      ///< checkpoint and next); player is likely in a different checkpoint group
-        OutsideSector_BetweenSides, ///< if player is between the sides of the quad, but NOT between this
-                      ///< checkpoint and next; player is likely in the same checkpoint group
+        InsideSector,  ///< if player is inside the checkpoint quad
+        OutsideSector, ///< if player is not between the sides of the quad (may still be between
+                       ///< this checkpoint and next); player is likely in a different checkpoint
+                       ///< group
+        OutsideSector_BetweenSides, ///< if player is between the sides of the quad, but NOT between
+                                    ///< this checkpoint and next; player is likely in the same
+                                    ///< checkpoint group
     };
 
     MapdataCheckPoint(const SData *data);
     void read(EGG::Stream &stream);
 
     void initCheckpointLinks(MapdataCheckPointAccessor &accessor, int id);
-    [[nodiscard]] SectorOccupancy checkSectorAndCheckpointCompletion(const EGG::Vector3f &pos, f32 *checkpointCompletion) const;
+    [[nodiscard]] SectorOccupancy checkSectorAndCheckpointCompletion(const EGG::Vector3f &pos,
+            f32 *checkpointCompletion) const;
     bool isPlayerFlagged(s32 playerIdx) const;
     void setPlayerFlags(s32 playerIdx);
     void resetFlags();
@@ -69,8 +71,8 @@ public:
 private:
     [[nodiscard]] bool checkSector(const LinkedCheckpoint &next, const EGG::Vector2f &p0,
             const EGG::Vector2f &p1) const;
-    [[nodiscard]] bool checkCheckpointCompletion(const LinkedCheckpoint &next, const EGG::Vector2f &p0,
-            const EGG::Vector2f &p1, f32 *checkpointCompletion) const;
+    [[nodiscard]] bool checkCheckpointCompletion(const LinkedCheckpoint &next,
+            const EGG::Vector2f &p0, const EGG::Vector2f &p1, f32 *checkpointCompletion) const;
     [[nodiscard]] bool isOrientationNegative(const LinkedCheckpoint &next, const EGG::Vector2f &p0,
             const EGG::Vector2f &p1) const;
     [[nodiscard]] bool isInCheckpoint(const LinkedCheckpoint &next, const EGG::Vector2f &p0,
@@ -117,7 +119,7 @@ private:
     void init();
     s8 m_lastKcpType;
     u16 m_finishLineCheckpointId;
-    f32 m_meanTotalDistance;  ///< @unused
+    f32 m_meanTotalDistance; ///< @unused
 };
 
 } // namespace System

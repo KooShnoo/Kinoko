@@ -13,8 +13,8 @@ public:
 
     const MapdataJugemPoint *jugemPoint();
 
-    private:
-        const RaceManager *m_raceManager;
+private:
+    const RaceManager *m_raceManager;
 };
 
 } // namespace System

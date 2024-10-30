@@ -26,13 +26,13 @@ void MapdataCheckPoint::read(EGG::Stream &stream) {
 }
 
 /// @brief Calculates @ref m_nextPoints and @ref m_prevPoints from @ref m_nextPt and @ref m_prevPt.
-/// @details 
+/// @details
 /// @addr{0x80515624}
 void MapdataCheckPoint::initCheckpointLinks(MapdataCheckPointAccessor &accessor, int id) {
     m_id = id;
     auto courseMap = CourseMap::Instance();
-    // Calculate the quadrilateral's `m_prevPoints`. If the check point is the first in its group (prev == -1), it has multiple previous
-    // checkpoints defined by its preceding checkpaths
+    // Calculate the quadrilateral's `m_prevPoints`. If the check point is the first in its group
+    // (prev == -1), it has multiple previous checkpoints defined by its preceding checkpaths
     if (m_prevPt == 0xff) {
         MapdataCheckPath *checkpath = courseMap->checkPath()->findCheckpathForCheckpoint(id);
 
@@ -216,8 +216,8 @@ bool MapdataCheckPoint::checkSector(const LinkedCheckpoint &next, const EGG::Vec
 
 /// @brief Updates @param checkpointCompletion\, which is the percentage of distance
 /// the player has traveled through the checkpoint quad
-/// @return True if 0 <= checkpointCompletion <= 1, meaning the player is between the current checkpoint
-/// line and the next; otherwise, false
+/// @return True if 0 <= checkpointCompletion <= 1, meaning the player is between the current
+/// checkpoint line and the next; otherwise, false
 /// @addr{Inlined in 0x80510C74}
 bool MapdataCheckPoint::checkCheckpointCompletion(const LinkedCheckpoint &next,
         const EGG::Vector2f &p0, const EGG::Vector2f &p1, float *checkpointCompletion) const {
@@ -239,8 +239,9 @@ MapdataCheckPoint::SectorOccupancy MapdataCheckPoint::checkSectorAndCheckpointCo
         return OutsideSector;
     }
 
-    return checkCheckpointCompletion(next, p0, p1, checkpointCompletion) ? InsideSector :
-                                                                           OutsideSector_BetweenSides;
+    return checkCheckpointCompletion(next, p0, p1, checkpointCompletion) ?
+            InsideSector :
+            OutsideSector_BetweenSides;
 }
 
 /// @addr{0x80512064}

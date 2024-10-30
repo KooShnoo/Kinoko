@@ -1,8 +1,8 @@
 #pragma once
 
-#include <game/system/map/MapdataCheckPoint.hh>
 #include "game/system/KPadController.hh"
 #include "game/system/RaceMode.hh"
+#include <game/system/map/MapdataCheckPoint.hh>
 
 #include <vector>
 
@@ -17,10 +17,18 @@ public:
     void calc();
     [[nodiscard]] const KPad *inputs() const;
 
-    f32 raceCompletion() const { return m_raceCompletion; }
-    u16 checkpointId() const { return m_checkpointId; }
-    u16 currentLap() const { return m_currentLap; }
-    s8 respawn() const { return m_respawn; }
+    f32 raceCompletion() const {
+        return m_raceCompletion;
+    }
+    u16 checkpointId() const {
+        return m_checkpointId;
+    }
+    u16 currentLap() const {
+        return m_currentLap;
+    }
+    s8 respawn() const {
+        return m_respawn;
+    }
 
 private:
     void decrementLap();
