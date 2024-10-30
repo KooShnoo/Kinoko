@@ -26,7 +26,8 @@ void MapdataCheckPoint::read(EGG::Stream &stream) {
 }
 
 /// @brief Calculates @ref m_nextPoints and @ref m_prevPoints from @ref m_nextPt and @ref m_prevPt.
-/// @details
+/// @details Also calculates the quadrilaterals for the next checkpoints, filling the fields of @ref
+/// LinkedCheckpoint for each.
 /// @addr{0x80515624}
 void MapdataCheckPoint::initCheckpointLinks(MapdataCheckPointAccessor &accessor, int id) {
     m_id = id;
@@ -76,7 +77,6 @@ void MapdataCheckPoint::initCheckpointLinks(MapdataCheckPointAccessor &accessor,
         if (i < nextCount()) {
             auto next = nextPoint(i);
             m_nextPoints[i].distance = (next->m_midpoint - m_midpoint).normalise();
-
             m_nextPoints[i].p0diff =
                     EGG::Vector2f(next->left().x - left().x, next->left().y - left().y);
             m_nextPoints[i].p1diff =

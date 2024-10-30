@@ -68,7 +68,8 @@ public:
             const MapdataCheckPoint &checkpoint, float *completion, u32 params,
             const bool param_8) const;
     [[nodiscard]] s16 findRecursiveSector(s32 playerIdx, const EGG::Vector3f &pos, s16 depth,
-            int param_5, MapdataCheckPoint &checkpoint, float *completion, u32 params) const;
+            bool searchBackwardsFirst, MapdataCheckPoint &checkpoint, float *completion,
+            u32 params) const;
 
     static CourseMap *CreateInstance();
     static void DestroyInstance();
