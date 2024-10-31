@@ -36,7 +36,9 @@ struct Vector2f {
     [[nodiscard]] f32 dot(const Vector2f &rhs) const;
     [[nodiscard]] f32 dot() const;
     [[nodiscard]] f32 length() const;
-    [[nodiscard]] f32 normalise();
+    f32 normalise();
+
+    void read(Stream &stream);
 
     f32 x;
     f32 y;
