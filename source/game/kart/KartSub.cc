@@ -226,7 +226,7 @@ void KartSub::calcPass1() {
 
         if (colData.bFloor) {
             // Update floor count
-            addFloor(colData, false);
+            mapMovingWaterFlags(colData, false);
         }
     }
 
@@ -246,7 +246,7 @@ void KartSub::calcPass1() {
 
         if (colData.bFloor) {
             handlingFactor += colData.rotFactor;
-            addFloor(colData, false);
+            mapMovingWaterFlags(colData, false);
         }
     }
 
@@ -309,8 +309,13 @@ void KartSub::resizeAABB(f32 radiusScale) {
     boxColUnit()->resize(radius + 25.0f, move()->hardSpeedLimit());
 }
 
+
+// calcMovingWater
+
+
 /// @addr{0x805980D8}
-void KartSub::addFloor(const CollisionData &, bool) {
+// void KartSub::addFloor(const CollisionData &, bool) {
+void KartSub::mapMovingWaterFlags(const CollisionData &, bool) {
     ++m_floorCollisionCount;
 }
 

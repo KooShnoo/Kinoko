@@ -24,7 +24,7 @@ public:
     void calcPass0();
     void calcPass1();
     void resizeAABB(f32 radiusScale);
-    void addFloor(const CollisionData &, bool);
+    void mapMovingWaterFlags(const CollisionData &, bool);
     void updateSuspOvertravel(const EGG::Vector3f &suspOvertravel);
     void tryEndHWG();
 

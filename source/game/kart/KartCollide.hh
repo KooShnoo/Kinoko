@@ -86,6 +86,7 @@ public:
 
     void processWheel(CollisionData &collisionData, Hitbox &hitbox,
             Field::CourseColMgr::CollisionInfo *colInfo, Field::KCLTypeMask *maskOut);
+    void processMovingWater(CollisionData &collisionData, Field::KCLTypeMask *maskOut);
     void processBody(CollisionData &collisionData, Hitbox &hitbox,
             Field::CourseColMgr::CollisionInfo *colInfo, Field::KCLTypeMask *maskOut);
     [[nodiscard]] bool processWall(CollisionData &collisionData, Field::KCLTypeMask *maskOut);

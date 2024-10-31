@@ -10,6 +10,7 @@
 #include "game/field/ObjectDirector.hh"
 
 #include <egg/math/Math.hh>
+#include <game/field/KCollisionTypes.hh>
 
 namespace Kart {
 
@@ -245,6 +246,7 @@ void KartCollide::calcBodyCollision(f32 totalScale, f32 sinkDepth, const EGG::Qu
 
             if (!FUN_805B6A9C(collisionData, hitbox, minMax, posRel, count, maskOut, colInfo)) {
                 bVar1 = true;
+                // unkown10
                 processBody(collisionData, hitbox, &colInfo, &maskOut);
             }
         }
@@ -491,6 +493,50 @@ void KartCollide::processWheel(CollisionData &collisionData, Hitbox &hitbox,
         Field::CourseColMgr::CollisionInfo *colInfo, Field::KCLTypeMask *maskOut) {
     processFloor(collisionData, hitbox, colInfo, maskOut, true);
 }
+
+void Kart::KartCollide::processMovingWater(CollisionData &collisionData, Field::KCLTypeMask *flags)
+
+{
+//   ushort uVar1;
+//   bool bVar2;
+//   KartState *pKVar3;
+
+//   if (findClo)
+  
+//   if ((*flags & MOVING_WATER) == 0) {
+//     bVar2 = false;
+//   }
+//   else {
+//     bVar2 = findClosestCollisionEntry(flags,MOVING_WATER);
+//   }
+    auto *colDir = Field::CollisionDirector::Instance();
+  if (!colDir->findClosestCollisionEntry(flags ,KCL_TYPE_BIT(COL_TYPE_MOVING_WATER))) {
+    return;
+  }
+    // pKVar3 = ((this->inherit).mpPointers)->state;
+    // pKVar3->bitfield0 = pKVar3->bitfield0 | STICKY_ROAD;
+    state()->setStickyRoad(true);
+    // uVar1 = closestCollisionEntry->attribute >> 5 & 7;
+    u32 v = KCL_VARIANT_TYPE(colDir->closestCollisionEntry()->attribute);
+    
+
+    if (v == 1) {
+      collisionData->types =
+           collisionData->types |
+           (MOVING_WATER_V0|MOVING_WATER_STRONG_CURRENT|MOVING_WATER_DISABLE_ACC);
+    }
+    else if (v == 2) {
+      collisionData->types = collisionData->types | MOVING_WATER_V2;
+    }
+    else if (v == 3) {
+      collisionData->types =
+           collisionData->types | (MOVING_WATER_V2|MOVING_WATER_DISABLE_ACC|MOVING_WATER_V3);
+    }
+    else {
+      collisionData->types = collisionData->types | MOVING_WATER_V0;
+    }
+}
+
 
 /// @addr{0x8056E764}
 void KartCollide::processBody(CollisionData &collisionData, Hitbox &hitbox,

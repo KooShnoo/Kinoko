@@ -171,6 +171,11 @@ def main():
         "-s",
         "testCases.bin"] if sys.platform.startswith('win32') else exec + " -s testCases.bin"
     result = subprocess.run(args, cwd='out', shell=True, capture_output=True, text=True)
+    if result.returncode != 0 and result.returncode != 1:
+        print(f"Kinoko exited with non-zero return code {result.returncode}.")
+        print(f"stdout: {result.stdout}")
+        print(f"stderr: {result.stderr}")
+        sys.exit(1)
 
     # Check each test case is up-to-date. If not, return non-zero exit code so
     # our build action is aware.
