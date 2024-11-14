@@ -11,6 +11,7 @@
 
 #include <egg/math/Math.hh>
 #include <game/field/KCollisionTypes.hh>
+#include <game/kart/KartJump.hh>
 
 namespace Kart {
 
@@ -18,6 +19,7 @@ namespace Kart {
 KartCollide::KartCollide() {
     m_boundingRadius = 100.0f;
     m_surfaceFlags.makeAllZero();
+    m_waterCurrent = new KartWaterCurrent();
 }
 
 /// @addr{0x80573FF0}
@@ -497,43 +499,32 @@ void KartCollide::processWheel(CollisionData &collisionData, Hitbox &hitbox,
 void Kart::KartCollide::processMovingWater(CollisionData &collisionData, Field::KCLTypeMask *flags)
 
 {
-//   ushort uVar1;
-//   bool bVar2;
-//   KartState *pKVar3;
-
-//   if (findClo)
-  
-//   if ((*flags & MOVING_WATER) == 0) {
-//     bVar2 = false;
-//   }
-//   else {
-//     bVar2 = findClosestCollisionEntry(flags,MOVING_WATER);
-//   }
     auto *colDir = Field::CollisionDirector::Instance();
   if (!colDir->findClosestCollisionEntry(flags ,KCL_TYPE_BIT(COL_TYPE_MOVING_WATER))) {
     return;
   }
-    // pKVar3 = ((this->inherit).mpPointers)->state;
-    // pKVar3->bitfield0 = pKVar3->bitfield0 | STICKY_ROAD;
     state()->setStickyRoad(true);
     // uVar1 = closestCollisionEntry->attribute >> 5 & 7;
     u32 v = KCL_VARIANT_TYPE(colDir->closestCollisionEntry()->attribute);
     
 
     if (v == 1) {
-      collisionData->types =
-           collisionData->types |
-           (MOVING_WATER_V0|MOVING_WATER_STRONG_CURRENT|MOVING_WATER_DISABLE_ACC);
+    //        (MOVING_WATER_V0|MOVING_WATER_STRONG_CURRENT|MOVING_WATER_DISABLE_ACC);
+        collisionData.bWaterCurrent0 = true;
+        collisionData.bWaterCurrentCliff = true;
+        collisionData.bWaterCurrentNoAcceleration = true;
     }
     else if (v == 2) {
-      collisionData->types = collisionData->types | MOVING_WATER_V2;
+        collisionData.bWaterCurrent2 = true;
     }
     else if (v == 3) {
-      collisionData->types =
-           collisionData->types | (MOVING_WATER_V2|MOVING_WATER_DISABLE_ACC|MOVING_WATER_V3);
+        //    collisionData->types | (MOVING_WATER_V2|MOVING_WATER_DISABLE_ACC|MOVING_WATER_V3);
+        collisionData.bWaterCurrent2 = true;
+        collisionData.bWaterCurrentNoAcceleration = true;
+        collisionData.bWaterCurrent3 = true;
     }
     else {
-      collisionData->types = collisionData->types | MOVING_WATER_V0;
+        collisionData.bWaterCurrent0 = true;
     }
 }
 
@@ -950,6 +941,10 @@ void KartCollide::setMovement(const EGG::Vector3f &v) {
 
 f32 KartCollide::boundingRadius() const {
     return m_boundingRadius;
+}
+
+const KartWaterCurrent &KartCollide::waterCurrent() const {
+    return *m_waterCurrent;
 }
 
 const KartCollide::SurfaceFlags &KartCollide::surfaceFlags() const {

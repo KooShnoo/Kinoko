@@ -1,0 +1,339 @@
+{
+    "watchList": [
+        {
+            "groupEntries": [
+                {
+                    "address": "809C18F8",
+                    "baseIndex": 0,
+                    "label": "Instance",
+                    "pointerOffsets": [
+                        "20",
+                        "0",
+                        "0",
+                        "18",
+                        "18",
+                        "10"
+                    ],
+                    "typeIndex": 2,
+                    "unsigned": false
+                },
+                {
+                    "groupEntries": [
+                        {
+                            "address": "809C18F8",
+                            "baseIndex": 0,
+                            "label": "Instance",
+                            "pointerOffsets": [
+                                "20",
+                                "0",
+                                "0",
+                                "18",
+                                "18",
+                                "10"
+                            ],
+                            "typeIndex": 2,
+                            "unsigned": false
+                        },
+                        {
+                            "address": "809C18F8",
+                            "baseIndex": 0,
+                            "label": "unk_10",
+                            "pointerOffsets": [
+                                "20",
+                                "0",
+                                "0",
+                                "18",
+                                "18",
+                                "10",
+                                "10"
+                            ],
+                            "typeIndex": 3,
+                            "unsigned": false
+                        },
+                        {
+                            "address": "809C18F8",
+                            "baseIndex": 0,
+                            "label": "pPoti",
+                            "pointerOffsets": [
+                                "20",
+                                "0",
+                                "0",
+                                "18",
+                                "18",
+                                "10",
+                                "14"
+                            ],
+                            "typeIndex": 2,
+                            "unsigned": false
+                        },
+                        {
+                            "address": "809C18F8",
+                            "baseIndex": 0,
+                            "label": "curPt1?",
+                            "pointerOffsets": [
+                                "20",
+                                "0",
+                                "0",
+                                "18",
+                                "18",
+                                "10",
+                                "18"
+                            ],
+                            "typeIndex": 1,
+                            "unsigned": false
+                        },
+                        {
+                            "address": "809C18F8",
+                            "baseIndex": 0,
+                            "label": "curPt2?",
+                            "pointerOffsets": [
+                                "20",
+                                "0",
+                                "0",
+                                "18",
+                                "18",
+                                "10",
+                                "1a"
+                            ],
+                            "typeIndex": 1,
+                            "unsigned": false
+                        },
+                        {
+                            "address": "809C18F8",
+                            "baseIndex": 0,
+                            "label": "flowDir?.x",
+                            "pointerOffsets": [
+                                "20",
+                                "0",
+                                "0",
+                                "18",
+                                "18",
+                                "10",
+                                "1c"
+                            ],
+                            "typeIndex": 3,
+                            "unsigned": false
+                        },
+                        {
+                            "address": "809C18F8",
+                            "baseIndex": 0,
+                            "label": "flowDir?.y",
+                            "pointerOffsets": [
+                                "20",
+                                "0",
+                                "0",
+                                "18",
+                                "18",
+                                "10",
+                                "20"
+                            ],
+                            "typeIndex": 3,
+                            "unsigned": false
+                        },
+                        {
+                            "address": "809C18F8",
+                            "baseIndex": 0,
+                            "label": "flowDir?.z",
+                            "pointerOffsets": [
+                                "20",
+                                "0",
+                                "0",
+                                "18",
+                                "18",
+                                "10",
+                                "24"
+                            ],
+                            "typeIndex": 3,
+                            "unsigned": false
+                        },
+                        {
+                            "address": "809C18F8",
+                            "baseIndex": 0,
+                            "label": "unk_28",
+                            "pointerOffsets": [
+                                "20",
+                                "0",
+                                "0",
+                                "18",
+                                "18",
+                                "10",
+                                "28"
+                            ],
+                            "typeIndex": 3,
+                            "unsigned": false
+                        },
+                        {
+                            "address": "809C18F8",
+                            "baseIndex": 0,
+                            "label": "waterCurrentStrength?",
+                            "pointerOffsets": [
+                                "20",
+                                "0",
+                                "0",
+                                "18",
+                                "18",
+                                "10",
+                                "2c"
+                            ],
+                            "typeIndex": 3,
+                            "unsigned": false
+                        },
+                        {
+                            "address": "809C18F8",
+                            "baseIndex": 0,
+                            "label": "waterCurrentCount?(ghidraLabeled:'count')",
+                            "pointerOffsets": [
+                                "20",
+                                "0",
+                                "0",
+                                "18",
+                                "18",
+                                "10",
+                                "30"
+                            ],
+                            "typeIndex": 0,
+                            "unsigned": false
+                        },
+                        {
+                            "address": "809C18F8",
+                            "baseIndex": 0,
+                            "label": "sub34Holder",
+                            "pointerOffsets": [
+                                "20",
+                                "0",
+                                "0",
+                                "18",
+                                "18",
+                                "10",
+                                "34"
+                            ],
+                            "typeIndex": 2,
+                            "unsigned": false
+                        },
+                        {
+                            "groupEntries": [
+                                {
+                                    "groupEntries": [
+                                        {
+                                            "address": "809C18F8",
+                                            "baseIndex": 0,
+                                            "label": "unk_10",
+                                            "pointerOffsets": [
+                                                "20",
+                                                "0",
+                                                "0",
+                                                "18",
+                                                "18",
+                                                "10",
+                                                "34",
+                                                "0",
+                                                "10"
+                                            ],
+                                            "typeIndex": 1,
+                                            "unsigned": false
+                                        },
+                                        {
+                                            "address": "809C18F8",
+                                            "baseIndex": 0,
+                                            "label": "pPoti",
+                                            "pointerOffsets": [
+                                                "20",
+                                                "0",
+                                                "0",
+                                                "18",
+                                                "18",
+                                                "10",
+                                                "34",
+                                                "0",
+                                                "14"
+                                            ],
+                                            "typeIndex": 2,
+                                            "unsigned": false
+                                        }
+                                    ],
+                                    "groupName": "WaterCurrentRouteSub34Type0"
+                                },
+                                {
+                                    "groupEntries": [
+                                        {
+                                            "address": "809C18F8",
+                                            "baseIndex": 0,
+                                            "label": "unk_10",
+                                            "pointerOffsets": [
+                                                "20",
+                                                "0",
+                                                "0",
+                                                "18",
+                                                "18",
+                                                "10",
+                                                "34",
+                                                "4",
+                                                "10"
+                                            ],
+                                            "typeIndex": 1,
+                                            "unsigned": false
+                                        },
+                                        {
+                                            "address": "809C18F8",
+                                            "baseIndex": 0,
+                                            "label": "pPoti",
+                                            "pointerOffsets": [
+                                                "20",
+                                                "0",
+                                                "0",
+                                                "18",
+                                                "18",
+                                                "10",
+                                                "34",
+                                                "4",
+                                                "14"
+                                            ],
+                                            "typeIndex": 2,
+                                            "unsigned": false
+                                        }
+                                    ],
+                                    "groupName": "WaterCurrentRouteSub34Type0"
+                                }
+                            ],
+                            "groupName": "WaterCurrentRouteSub34Holder"
+                        }
+                    ],
+                    "groupName": "WaterCurrentRoute(10Base)"
+                },
+                {
+                    "address": "809C18F8",
+                    "baseIndex": 0,
+                    "label": "area1SpeedFaktor",
+                    "pointerOffsets": [
+                        "20",
+                        "0",
+                        "0",
+                        "18",
+                        "18",
+                        "10",
+                        "38"
+                    ],
+                    "typeIndex": 3,
+                    "unsigned": false
+                },
+                {
+                    "address": "809C18F8",
+                    "baseIndex": 0,
+                    "label": "areaId",
+                    "pointerOffsets": [
+                        "20",
+                        "0",
+                        "0",
+                        "18",
+                        "18",
+                        "10",
+                        "3c"
+                    ],
+                    "typeIndex": 2,
+                    "unsigned": false
+                }
+            ],
+            "groupName": "WaterCurrentRoute(10Sub)"
+        }
+    ]
+}

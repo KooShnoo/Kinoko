@@ -12,7 +12,10 @@
 
 #include "game/system/RaceManager.hh"
 
+#include <Common.hh>
 #include <egg/math/Math.hh>
+#include <egg/math/Vector.hh>
+#include <game/system/RaceConfig.hh>
 
 namespace Kart {
 
@@ -158,6 +161,7 @@ void KartSub::calcPass1() {
 
     state()->resetEjection();
 
+    m_waterCollisionCount = 0;
     m_floorCollisionCount = 0;
     m_maxSuspOvertravel.setZero();
     m_minSuspOvertravel.setZero();
@@ -226,7 +230,7 @@ void KartSub::calcPass1() {
 
         if (colData.bFloor) {
             // Update floor count
-            mapMovingWaterFlags(colData, false);
+            addFloor(colData, false);
         }
     }
 
@@ -246,7 +250,7 @@ void KartSub::calcPass1() {
 
         if (colData.bFloor) {
             handlingFactor += colData.rotFactor;
-            mapMovingWaterFlags(colData, false);
+            addFloor(colData, false);
         }
     }
 
@@ -296,6 +300,8 @@ void KartSub::calcPass1() {
 
     move()->setFloorCollisionCount(m_floorCollisionCount);
 
+    calcWaterCurrent();
+
     physics()->updatePose();
 
     collide()->resetHitboxes();
@@ -310,13 +316,69 @@ void KartSub::resizeAABB(f32 radiusScale) {
 }
 
 
-// calcMovingWater
+/// @addr{0x80597D4C}
+void KartSub::calcWaterCurrent() {
+    if (m_waterCollisionCount == 0) {
+        f32 movingWaterVel = 1.0f;
+        bool koopaCape =
+                System::RaceConfig::Instance()->raceScenario().course == Course::Koopa_Cape;
+        if (state()->m_bWaterCurrentCliff) {
+            movingWaterVel = 0.5f;
+        } else if (koopaCape && state()->m_bWaterCurrent2) {
+            movingWaterVel = 0.3f;
+        }
 
+        physics()->decayMovingWaterVel(0.7f, movingWaterVel, m_floorCollisionCount != 0);
+
+    } else {
+        EGG::Vector3f flowDir = EGG::Vector3f(-0.325806796550750732421875, -0.029049418866634368896484375, 0.94499003887176513671875);
+
+
+        f32 waterRatio = static_cast<f32>(m_waterCollisionCount) / m_floorCollisionCount;
+        EGG::Vector3f local_48 =
+                flowDir.perpInPlane(move()->smoothedUp(), true);
+                // collide()->waterCurrent().m_flowDir.perpInPlane(move()->smoothedUp(), true);
+
+        // f32 routeWaterCurrentStrength = collide()->waterCurrent().m_routeWaterCurrentStrength;
+        f32 routeWaterCurrentStrength = 15.0f;
+        if (state()->m_bWaterCurrent2) {
+            // f32 parallelWaterCurrentStrength =
+            //         collide()->waterCurrent().m_parallelWaterCurrentStrength;
+            EGG::Vector3f deltaVel = local_48 * routeWaterCurrentStrength;
+            // physics()->shiftDecayMovingWaterVel(parallelWaterCurrentStrength, deltaVel);
+            physics()->shiftDecayMovingWaterVel(1.0f, deltaVel);
+        } else {
+            EGG::Vector3f newVel = local_48 * routeWaterCurrentStrength * waterRatio;
+            physics()->setMovingWaterVel(0.2f, newVel);
+        }
+    }
+
+    if (state()->m_bWaterCurrentCliff) {
+        // strongly pull the player downwards
+        EGG::Vector3f foo = collide()->waterCurrent().m_flowDir.perpInPlane(move()->smoothedUp(), true);
+        dynamics()->m_waterCurrentVel.y = foo.y * 50.0f;
+    }
+}
 
 /// @addr{0x805980D8}
-// void KartSub::addFloor(const CollisionData &, bool) {
-void KartSub::mapMovingWaterFlags(const CollisionData &, bool) {
-    ++m_floorCollisionCount;
+void KartSub::addFloor(const CollisionData &colData, bool) {
+    m_floorCollisionCount++;
+    if (!colData.bWaterCurrent0 && !colData.bWaterCurrent2) {
+        state()->m_bWaterCurrentNot2 = false;
+        state()->m_bDisableAcceleration = false;
+        state()->m_bWaterCurrent3 = false;
+
+        // i hoisted illegally from 0x80598250
+        // SUS double check this
+        state()->m_bWaterCurrentCliff = false;
+        return;
+    } // else {
+
+    m_waterCollisionCount++;
+    state()->m_bWaterCurrent2 = colData.bWaterCurrent2;
+    state()->m_bDisableAcceleration = colData.bWaterCurrentNoAcceleration;
+    state()->m_bWaterCurrent3 = colData.bWaterCurrent3;
+    state()->m_bWaterCurrentCliff = colData.bWaterCurrentCliff;
 }
 
 /// @addr{0x805979EC}

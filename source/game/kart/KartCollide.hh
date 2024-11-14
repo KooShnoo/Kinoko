@@ -7,6 +7,7 @@
 #include "game/field/CourseColMgr.hh"
 
 #include <egg/core/BitFlag.hh>
+#include <egg/math/Vector.hh>
 
 namespace Kart {
 
@@ -42,6 +43,8 @@ enum class Reaction {
     CrushRespawn = 31,
     ExplosionLoseItem = 32,
 };
+
+class KartWaterCurrent;
 
 /// @brief Manages body+wheel collision and its influence on position/velocity/etc.
 /// @nosubgrouping
@@ -130,6 +133,7 @@ public:
     /// @endSetters
 
     /// @beginGetters
+    [[nodiscard]] const KartWaterCurrent &waterCurrent() const;
     [[nodiscard]] f32 boundingRadius() const;
     [[nodiscard]] const SurfaceFlags &surfaceFlags() const;
     [[nodiscard]] const EGG::Vector3f &tangentOff() const;
@@ -146,6 +150,7 @@ private:
 
     f32 m_boundingRadius;
     EGG::Vector3f m_totalReactionWallNrm;
+    KartWaterCurrent *m_waterCurrent;
     SurfaceFlags m_surfaceFlags;
     EGG::Vector3f m_tangentOff;
     EGG::Vector3f m_movement;
@@ -158,6 +163,24 @@ private:
     f32 m_colPerpendicularity;
 
     static std::array<ObjectCollisionHandler, 33> s_objectCollisionHandlers;
+};
+
+class KartWaterCurrent: KartObjectProxy {
+public:
+    u32 m_routeId = -1;
+    f32 m_weirdFloat = -1.0f;
+//     System::MapdataPointInfo *route = nullptr;
+    u16 m_currentPoint = -1;
+    EGG::Vector3f m_flowDir = EGG::Vector3f::zero;
+    f32 m_routeWaterCurrentStrength = 0.0f;
+    f32 m_parallelWaterCurrentStrength = 0.0f;
+    const u8 m_count = 2; ///< this is always two; there are two types of water currents in mario kart wii, route-based and parallel(two-point route)
+
+    // sub34
+
+    f32 m_area1SpeedFactor = 1.0f;
+    u32 m_areaId = -1;
+
 };
 
 } // namespace Kart

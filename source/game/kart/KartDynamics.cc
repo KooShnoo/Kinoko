@@ -103,7 +103,7 @@ void KartDynamics::calc(f32 dt, f32 maxSpeed, bool /*air*/) {
         }
     }
 
-    m_velocity = m_extVel * dt + m_intVel + m_movingObjVel + m_movingRoadVel;
+    m_velocity = m_extVel * dt + m_intVel + m_movingObjVel + m_waterCurrentVel;
     m_speedNorm = std::min(m_velocity.normalise(), maxSpeed);
     m_velocity *= m_speedNorm;
     m_pos += m_velocity;
@@ -156,7 +156,7 @@ void KartDynamics::reset() {
     m_angVel0.setZero();
     m_movingObjVel.setZero();
     m_angVel1.setZero();
-    m_movingRoadVel.setZero();
+    m_waterCurrentVel.setZero();
     m_angVel2.setZero();
     m_totalForce.setZero();
     m_totalTorque.setZero();

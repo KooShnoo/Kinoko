@@ -132,7 +132,7 @@ public:
     [[nodiscard]] s16 trickableTimer() const;
     /// @endGetters
 
-private:
+// private:
     // Bits from the base game's bitfields are marked with prefix 'b'
 
     /// @name bitfield0
@@ -140,6 +140,7 @@ private:
     /// @{
     bool m_bAccelerate; ///< Accel button is pressed.
     bool m_bBrake;      ///< Brake button is pressed.
+    bool m_bDisableAcceleration; ///< Accel button is pressed.
     /// @brief A "fake" button, normally set if you meet the speed requirement to hop.
     /// @warning When playing back a ghost, the game will register a hop regardless of whether or
     /// not the acceleration button is pressed. This can lead to "successful" synchronization of
@@ -193,6 +194,9 @@ private:
     bool m_bWheelieRot;
     bool m_bSkipWheelCalc;
     bool m_bJumpPadDisableYsusForce;
+    bool m_bWaterCurrentCliff;
+    bool m_bWaterCurrent2;
+    bool m_bWaterCurrentNot2;
     /// @}
 
     /// @name bitfield3
@@ -203,6 +207,7 @@ private:
     bool m_bSoftWallDrift;
     bool m_bHWG;              ///< Set when "Horizontal Wall Glitch" is active.
     bool m_bChargeStartBoost; ///< Like @ref m_bAccelerate but during countdown.
+    bool m_bWaterCurrent3;
     /// @}
 
     /// @name bitfield4

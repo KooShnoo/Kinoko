@@ -1,5 +1,6 @@
 #include "KartPhysics.hh"
 
+#include <algorithm>
 #include <egg/math/Quat.hh>
 
 namespace Kart {
@@ -86,6 +87,30 @@ void KartPhysics::composeStuntRot(const EGG::Quatf &rot) {
 /// @addr{0x8059FDD0}
 void KartPhysics::composeDecayingRot(const EGG::Quatf &rot) {
     m_decayingStuntRot *= rot;
+}
+
+/// @addr{0x805A02B8}
+void KartPhysics::decayMovingWaterVel(float param_1,float param_2,bool param_4) {
+    f32 velDecayFactor = param_4 ? param_1 : param_2;
+    m_waterCurrentVel *= velDecayFactor;
+    dynamics()->m_waterCurrentVel = m_waterCurrentVel;
+}
+
+/// @addr{0x805A014C}
+void KartPhysics::setMovingWaterVel(float factor, const EGG::Vector3f &newVel) {
+    m_waterCurrentVel += factor * (newVel - m_waterCurrentVel);
+    dynamics()->m_waterCurrentVel = m_waterCurrentVel;
+}
+
+/// @addr{0x805A01CC}
+void KartPhysics::shiftDecayMovingWaterVel(float velDecayFactor, const EGG::Vector3f &deltaVel) {
+    m_waterCurrentVel += deltaVel;
+    if (m_waterCurrentVel.dot() <= 0.00000011920928955078125f) {
+        return;
+    }
+    velDecayFactor = std::min(m_waterCurrentVel.normalise(), velDecayFactor);
+    m_waterCurrentVel *= velDecayFactor;
+    dynamics()->m_waterCurrentVel = m_waterCurrentVel;
 }
 
 /// @addr{0x805A0410}

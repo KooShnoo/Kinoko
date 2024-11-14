@@ -1,6 +1,7 @@
 #pragma once
 
 #include <egg/math/Matrix.hh>
+#include <egg/math/Vector.hh>
 
 namespace Kart {
 
@@ -64,7 +65,7 @@ public:
     [[nodiscard]] f32 speedFix() const;
     /// @endGetters
 
-protected:
+// protected:
     EGG::Matrix34f m_inertiaTensor;    ///< Resistance to rotational change, as a 3x3 matrix.
     EGG::Matrix34f m_invInertiaTensor; ///< The inverse of @ref m_inertiaTensor.
     f32 m_angVel0Factor;               ///< Scalar for damping angular velocity.
@@ -74,7 +75,7 @@ protected:
     EGG::Vector3f m_angVel0;           ///< Angular velocity from @ref m_totalTorque.
     EGG::Vector3f m_movingObjVel;      ///< Velocity from things like TF conveyers.
     EGG::Vector3f m_angVel1;           ///< @unused
-    EGG::Vector3f m_movingRoadVel;     ///< Velocity from Koopa Cape water.
+    EGG::Vector3f m_waterCurrentVel = EGG::Vector3f::zero;   ///< Velocity from a water current.
     EGG::Vector3f m_velocity;          ///< Sum of the linear velocities.
     f32 m_speedNorm;                   ///< Min of the max speed and @ref m_velocity magnitude.
     EGG::Vector3f m_angVel2;           ///< The main component of angular velocity.

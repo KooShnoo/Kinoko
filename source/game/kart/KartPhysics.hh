@@ -5,6 +5,7 @@
 #include "game/kart/KartParam.hh"
 
 #include <egg/math/Matrix.hh>
+#include <egg/math/Vector.hh>
 
 namespace Kart {
 
@@ -26,6 +27,10 @@ public:
     void set_fc(f32 val);
     void composeStuntRot(const EGG::Quatf &rot);
     void composeDecayingRot(const EGG::Quatf &rot);
+
+    void decayMovingWaterVel(float param_1,float param_2, bool param_4);
+    void setMovingWaterVel(float factor, const EGG::Vector3f &newVel);
+    void shiftDecayMovingWaterVel(float velDecayFactor, const EGG::Vector3f &deltaVel);
     void clearDecayingRot();
     /// @endSetters
 
@@ -53,6 +58,8 @@ private:
     /// @brief Rotation that occurs when landing from a trick.
     EGG::Quatf m_decayingExtraRot;
     EGG::Quatf m_instantaneousExtraRot;
+    // EGG::Vector3f m_movingRoadVel;
+    EGG::Vector3f m_waterCurrentVel = EGG::Vector3f::zero;
     EGG::Quatf m_extraRot;
     EGG::Matrix34f m_pose;    ///< The kart's current rotation and position.
     EGG::Vector3f m_xAxis;    ///< The first column of the pose.

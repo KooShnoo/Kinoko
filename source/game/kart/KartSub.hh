@@ -24,7 +24,8 @@ public:
     void calcPass0();
     void calcPass1();
     void resizeAABB(f32 radiusScale);
-    void mapMovingWaterFlags(const CollisionData &, bool);
+    void calcWaterCurrent();
+    void addFloor(const CollisionData &, bool);
     void updateSuspOvertravel(const EGG::Vector3f &suspOvertravel);
     void tryEndHWG();
 
@@ -39,6 +40,7 @@ private:
     EGG::Vector3f m_maxSuspOvertravel;
     EGG::Vector3f m_minSuspOvertravel;
     u16 m_floorCollisionCount;
+    u16 m_waterCollisionCount;
     s16 m_sideCollisionTimer;  ///< Number of frames to apply movement from wall collision.
     f32 m_colPerpendicularity; ///< Dot product between floor and colliding wall normals.
     f32 m_someScale;           /// @rename
