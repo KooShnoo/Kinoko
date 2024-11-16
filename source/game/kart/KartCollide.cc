@@ -493,16 +493,16 @@ void KartCollide::calcObjectCollision() {
 /// @addr{0x8056E8D4}
 void KartCollide::processWheel(CollisionData &collisionData, Hitbox &hitbox,
         Field::CourseColMgr::CollisionInfo *colInfo, Field::KCLTypeMask *maskOut) {
+    processMovingWater(collisionData, maskOut);
     processFloor(collisionData, hitbox, colInfo, maskOut, true);
 }
 
-void Kart::KartCollide::processMovingWater(CollisionData &collisionData, Field::KCLTypeMask *flags)
-
-{
+/// @addr{0x8056E930}
+void Kart::KartCollide::processMovingWater(CollisionData &collisionData, Field::KCLTypeMask *flags) {
     auto *colDir = Field::CollisionDirector::Instance();
-  if (!colDir->findClosestCollisionEntry(flags ,KCL_TYPE_BIT(COL_TYPE_MOVING_WATER))) {
+    if (!colDir->findClosestCollisionEntry(flags ,KCL_TYPE_BIT(COL_TYPE_MOVING_WATER))) {
     return;
-  }
+    }
     state()->setStickyRoad(true);
     // uVar1 = closestCollisionEntry->attribute >> 5 & 7;
     u32 v = KCL_VARIANT_TYPE(colDir->closestCollisionEntry()->attribute);
@@ -532,6 +532,8 @@ void Kart::KartCollide::processMovingWater(CollisionData &collisionData, Field::
 /// @addr{0x8056E764}
 void KartCollide::processBody(CollisionData &collisionData, Hitbox &hitbox,
         Field::CourseColMgr::CollisionInfo *colInfo, Field::KCLTypeMask *maskOut) {
+    
+    processMovingWater(collisionData, maskOut);
     bool hasWallCollision = processWall(collisionData, maskOut);
 
     processFloor(collisionData, hitbox, colInfo, maskOut, false);

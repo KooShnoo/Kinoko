@@ -17,13 +17,18 @@ void CollisionData::reset() {
     intensity = 0.0f;
     colPerpendicularity = 0.0f;
 
-    bFloor = false;
-    bWall = false;
-    bWall3 = false;
-    bSoftWall = false;
-    bTrickable = false;
-    bWallAtLeftCloser = false;
-    bWallAtRightCloser = false;
+    bFloor= false;
+    bWall= false;
+    bWaterCurrent0= false;
+    bWall3= false;
+    bWaterCurrent2= false;
+    bSoftWall= false;
+    bWaterCurrentCliff= false;
+    bWaterCurrentNoAcceleration= false;
+    bTrickable= false;
+    bWallAtLeftCloser= false;
+    bWallAtRightCloser= false;
+    bWaterCurrent3= false;
 }
 
 /// @addr{0x805B7F48}
