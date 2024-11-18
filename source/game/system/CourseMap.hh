@@ -11,6 +11,8 @@ class MapdataCannonPointAccessor;
 class MapdataFileAccessor;
 class MapdataGeoObj;
 class MapdataGeoObjAccessor;
+class MapdataPointInfo;
+class MapdataPointInfoAccessor;
 class MapdataStageInfo;
 class MapdataStageInfoAccessor;
 class MapdataStartPoint;
@@ -24,12 +26,14 @@ public:
     void init();
     [[nodiscard]] MapdataCannonPointAccessor *parseCannonPoint(u32 sectionName);
     [[nodiscard]] MapdataGeoObjAccessor *parseGeoObj(u32 sectionName);
+    [[nodiscard]] MapdataPointInfoAccessor *parsePointInfo(u32 sectionName);
     [[nodiscard]] MapdataStageInfoAccessor *parseStageInfo(u32 sectionName);
     [[nodiscard]] MapdataStartPointAccessor *parseStartPoint(u32 sectionName);
 
     /// @beginGetters
     [[nodiscard]] MapdataCannonPoint *getCannonPoint(u16 i) const;
     [[nodiscard]] MapdataGeoObj *getGeoObj(u16 i) const;
+    [[nodiscard]] MapdataPointInfo *getPointInfo(u16 i) const;
     [[nodiscard]] MapdataStageInfo *getStageInfo() const;
     [[nodiscard]] MapdataStartPoint *getStartPoint(u16 i) const;
     [[nodiscard]] u16 getGeoObjCount() const;
@@ -52,6 +56,7 @@ private:
     MapdataFileAccessor *m_course;
     MapdataStartPointAccessor *m_startPoint;
     MapdataGeoObjAccessor *m_geoObj;
+    MapdataPointInfoAccessor *m_pointInfo;
     MapdataCannonPointAccessor *m_cannonPoint;
     MapdataStageInfoAccessor *m_stageInfo;
 
