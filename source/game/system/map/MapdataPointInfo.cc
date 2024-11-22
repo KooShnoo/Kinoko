@@ -12,6 +12,7 @@ void MapdataPointInfo::Point::read(EGG::Stream & stream) {
 
 MapdataPointInfo::MapdataPointInfo(const SData *data) : m_rawData(data) {
     u8 *unsafeData = reinterpret_cast<u8 *>(const_cast<SData *>(data));
+    // todo
     EGG::RamStream stream = EGG::RamStream(unsafeData, sizeof(SData));
     read(stream);
 }
