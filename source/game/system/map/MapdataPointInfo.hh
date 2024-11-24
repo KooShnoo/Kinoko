@@ -6,13 +6,16 @@
 #include <vector>
 
 namespace System {
+class MapdataPointInfoAccessor;
 
 class MapdataPointInfo {
 public:
+    friend MapdataPointInfoAccessor;
+
     struct Point {
         EGG::Vector3f pos;
-        u8 setting1;
-        u8 setting2;
+        u16 setting1;
+        u16 setting2;
 
         void read(EGG::Stream &stream);
     };
@@ -30,7 +33,7 @@ public:
 
     void read(EGG::Stream &stream);
 
-    // private:
+private:
     const SData *m_rawData;
     u16 m_pointCount; ///< number of points comprising this route
     u8 m_setting1;
@@ -55,9 +58,8 @@ public:
             m_entries[i] = route;
             // @todo unsafe pointer arithmetic
             rawData++;
-            rawData = reinterpret_cast<MapdataPointInfo::SData *>(
-                    reinterpret_cast<MapdataPointInfo::Point *>(&route->m_points) +
-                    route->m_pointCount);
+            rawData = reinterpret_cast<const MapdataPointInfo::SData *>(
+                    &route->m_rawData->points[route->m_pointCount]);
         }
     }
 };
