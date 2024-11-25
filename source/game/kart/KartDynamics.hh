@@ -38,6 +38,7 @@ public:
     void setSpecialRot(const EGG::Quatf &q);
     void setExtraRot(const EGG::Quatf &q);
     void setIntVel(const EGG::Vector3f &v);
+    void setWaterCurrentVel(const EGG::Vector3f &waterCurrentVel);
     void setTop(const EGG::Vector3f &v);
     void setStabilizationFactor(f32 val);
     void setTotalForce(const EGG::Vector3f &v);
@@ -56,6 +57,7 @@ public:
     [[nodiscard]] const EGG::Vector3f &velocity() const;
     [[nodiscard]] f32 gravity() const;
     [[nodiscard]] const EGG::Vector3f &intVel() const;
+    [[nodiscard]] const EGG::Vector3f &waterCurrentVel() const;
     [[nodiscard]] const EGG::Quatf &mainRot() const;
     [[nodiscard]] const EGG::Quatf &fullRot() const;
     [[nodiscard]] const EGG::Vector3f &totalForce() const;
@@ -65,7 +67,7 @@ public:
     [[nodiscard]] f32 speedFix() const;
     /// @endGetters
 
-// protected:
+protected:
     EGG::Matrix34f m_inertiaTensor;    ///< Resistance to rotational change, as a 3x3 matrix.
     EGG::Matrix34f m_invInertiaTensor; ///< The inverse of @ref m_inertiaTensor.
     f32 m_angVel0Factor;               ///< Scalar for damping angular velocity.
@@ -75,7 +77,7 @@ public:
     EGG::Vector3f m_angVel0;           ///< Angular velocity from @ref m_totalTorque.
     EGG::Vector3f m_movingObjVel;      ///< Velocity from things like TF conveyers.
     EGG::Vector3f m_angVel1;           ///< @unused
-    EGG::Vector3f m_waterCurrentVel = EGG::Vector3f::zero;   ///< Velocity from a water current.
+    EGG::Vector3f m_waterCurrentVel;   ///< Velocity from a water current.
     EGG::Vector3f m_velocity;          ///< Sum of the linear velocities.
     f32 m_speedNorm;                   ///< Min of the max speed and @ref m_velocity magnitude.
     EGG::Vector3f m_angVel2;           ///< The main component of angular velocity.

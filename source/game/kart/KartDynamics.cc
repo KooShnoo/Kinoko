@@ -30,6 +30,7 @@ void KartDynamics::stabilize() {
 
 /// @addr{0x805B4B54}
 void KartDynamics::init() {
+    m_waterCurrentVel.setZero();
     m_speedNorm = 0.0f;
     m_gravity = -1.0f;
     m_top = EGG::Vector3f::ey;
@@ -225,6 +226,10 @@ void KartDynamics::setIntVel(const EGG::Vector3f &v) {
     m_intVel = v;
 }
 
+void KartDynamics::setWaterCurrentVel(const EGG::Vector3f &waterCurrentVel) {
+    m_waterCurrentVel = waterCurrentVel;
+}
+
 void KartDynamics::setTop(const EGG::Vector3f &v) {
     m_top = v;
 }
@@ -283,6 +288,10 @@ f32 KartDynamics::gravity() const {
 
 const EGG::Vector3f &KartDynamics::intVel() const {
     return m_intVel;
+}
+
+const EGG::Vector3f &KartDynamics::waterCurrentVel() const {
+    return m_waterCurrentVel;
 }
 
 const EGG::Quatf &KartDynamics::mainRot() const {

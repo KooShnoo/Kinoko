@@ -357,7 +357,10 @@ void KartSub::calcWaterCurrent() {
     if (state()->m_bWaterCurrentCliff) {
         // strongly pull the player downwards
         EGG::Vector3f foo = collide()->waterCurrent().flowDir().perpInPlane(move()->smoothedUp(), true);
-        dynamics()->m_waterCurrentVel.y = foo.y * 50.0f;
+        // dynamics()->waterCurrentVel().y = foo.y * 50.0f;
+        auto tmp = dynamics()->waterCurrentVel();
+        tmp.y = foo.y * 50.0f;
+        dynamics()->setWaterCurrentVel(tmp);
     }
 }
 

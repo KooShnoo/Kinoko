@@ -28,6 +28,7 @@ public:
     void composeStuntRot(const EGG::Quatf &rot);
     void composeDecayingRot(const EGG::Quatf &rot);
 
+    // todo rename to match m_waterCurrentVel
     void decayMovingWaterVel(float param_1,float param_2, bool param_4);
     void setMovingWaterVel(float factor, const EGG::Vector3f &newVel);
     void shiftDecayMovingWaterVel(float velDecayFactor, const EGG::Vector3f &deltaVel);

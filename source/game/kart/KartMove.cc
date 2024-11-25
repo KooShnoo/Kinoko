@@ -468,7 +468,7 @@ void KartMove::calcStickyRoad() {
 
     EGG::Vector3f pos = dynamics()->pos();
     EGG::Vector3f vel = m_speed * m_vel1Dir;
-    EGG::Vector3f down = -STICKY_RADIUS * componentYAxis();
+    // EGG::Vector3f down = -STICKY_RADIUS * componentYAxis();
     Field::CourseColMgr::CollisionInfo colInfo;
     colInfo.bbox.setZero();
     Field::KCLTypeMask kcl_flags = KCL_NONE;
@@ -479,6 +479,7 @@ void KartMove::calcStickyRoad() {
         if (Field::CollisionDirector::Instance()->checkSphereFull(STICKY_RADIUS, newPos,
                     EGG::Vector3f::inf, STICKY_MASK, &colInfo, &kcl_flags, 0)) {
             m_vel1Dir = m_vel1Dir.perpInPlane(colInfo.floorNrm, true);
+            dynamics()->setWaterCurrentVel(dynamics()->waterCurrentVel().rej(colInfo.floorNrm));
             stickyRoad = true;
 
             break;
