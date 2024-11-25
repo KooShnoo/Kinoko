@@ -33,6 +33,18 @@ public:
 
     void read(EGG::Stream &stream);
 
+        inline bool isIdxValidU(u32 idx) {
+        return (idx < m_pointCount);
+    }
+
+    inline bool isIdxValid(s32 idx) {
+        return (idx < m_pointCount);
+    }
+
+    inline const Point &get(u16 idx) {
+        return m_points[idx];
+    }
+
 private:
     const SData *m_rawData;
     u16 m_pointCount; ///< number of points comprising this route

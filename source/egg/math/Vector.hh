@@ -142,6 +142,7 @@ struct Vector3f {
     [[nodiscard]] f32 ps_sqDistance(const Vector3f &rhs) const;
     [[nodiscard]] Vector3f abs() const;
     [[nodiscard]] Vector3f perpInPlane(const EGG::Vector3f &rhs, bool normalise) const;
+    [[nodiscard]] std::pair<bool, Vector3f> surfNormal(const EGG::Vector3f &rhs) const;
 
     void read(Stream &stream);
 

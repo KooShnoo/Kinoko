@@ -6,6 +6,7 @@
 #include "game/kart/KartObject.hh"
 #include "game/kart/KartState.hh"
 #include "game/kart/KartSuspensionPhysics.hh"
+#include "game/kart/KartWaterCurrent.hh"
 
 #include "game/field/BoxColManager.hh"
 #include "game/field/CollisionDirector.hh"
@@ -355,7 +356,7 @@ void KartSub::calcWaterCurrent() {
 
     if (state()->m_bWaterCurrentCliff) {
         // strongly pull the player downwards
-        EGG::Vector3f foo = collide()->waterCurrent().m_flowDir.perpInPlane(move()->smoothedUp(), true);
+        EGG::Vector3f foo = collide()->waterCurrent().flowDir().perpInPlane(move()->smoothedUp(), true);
         dynamics()->m_waterCurrentVel.y = foo.y * 50.0f;
     }
 }

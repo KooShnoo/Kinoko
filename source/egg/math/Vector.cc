@@ -1,6 +1,7 @@
 #include "Vector.hh"
 
 #include "egg/math/Math.hh"
+#include <utility>
 
 namespace EGG {
 
@@ -160,6 +161,17 @@ Vector3f Vector3f::perpInPlane(const EGG::Vector3f &rhs, bool normalise) const {
     }
 
     return ret;
+}
+
+std::pair<bool, Vector3f> Vector3f::surfNormal(const EGG::Vector3f &rhs) const {
+    if (dot(rhs) == 1.0f) {
+        return std::pair(true, Vector3f::zero);
+    } else {
+        Vector3f surfNormal = cross(rhs);
+        surfNormal.normalise();
+        return std::pair(false, surfNormal);
+
+    }
 }
 
 /// @brief Constructs a Vector3f by reading 12 bytes from the stream.

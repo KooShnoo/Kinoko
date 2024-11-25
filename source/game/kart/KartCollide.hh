@@ -165,22 +165,4 @@ private:
     static std::array<ObjectCollisionHandler, 33> s_objectCollisionHandlers;
 };
 
-class KartWaterCurrent: KartObjectProxy {
-public:
-    u32 m_routeId = -1;
-    f32 m_weirdFloat = -1.0f;
-//     System::MapdataPointInfo *route = nullptr;
-    u16 m_currentPoint = -1;
-    EGG::Vector3f m_flowDir = EGG::Vector3f::zero;
-    f32 m_routeWaterCurrentStrength = 0.0f;
-    f32 m_parallelWaterCurrentStrength = 0.0f;
-    const u8 m_count = 2; ///< this is always two; there are two types of water currents in mario kart wii, route-based and parallel(two-point route)
-
-    // sub34
-
-    f32 m_area1SpeedFactor = 1.0f;
-    u32 m_areaId = -1;
-
-};
-
 } // namespace Kart

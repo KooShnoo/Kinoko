@@ -4,6 +4,7 @@
 #include "game/kart/KartMove.hh"
 #include "game/kart/KartPhysics.hh"
 #include "game/kart/KartState.hh"
+#include "game/kart/KartWaterCurrent.hh"
 
 #include "game/field/CollisionDirector.hh"
 #include "game/field/ObjectCollisionKart.hh"
