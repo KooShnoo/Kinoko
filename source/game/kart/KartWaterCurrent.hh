@@ -11,9 +11,11 @@ class KartWaterCurrentVariantZero;
 class KartWaterCurrent : KartObjectProxy {
 public:
     // née ks unk touches field 7, field 7 is `m_routeWaterCurrentStrength`
-    void calcIpml();
+    void updatePoint();
     // vf10
-    void calc(f64 unk, u16 newPt);
+    void onNewPoint(f64 unk, u16 newPt);
+    void calc();
+    bool calcArea();
 
     [[nodiscard]] const EGG::Vector3f &flowDir() const {
         return m_flowDir;

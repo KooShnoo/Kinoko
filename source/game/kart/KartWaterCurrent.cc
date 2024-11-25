@@ -1,3 +1,4 @@
+#include <cmath>
 #include <egg/math/Math.hh>
 #include <egg/math/ProjThing.hh>
 #include <egg/math/Vector.hh>
@@ -6,7 +7,7 @@
 namespace Kart {
 
 /// @addr {0x80593E18}
-void KartWaterCurrent::calcIpml() {
+void KartWaterCurrent::updatePoint() {
     if (m_lastCalcdPoint == m_currentPoint) {
         return;
     }
@@ -26,17 +27,36 @@ void KartWaterCurrent::calcIpml() {
     m_lastCalcdPoint = m_currentPoint;
 }
 
-void KartWaterCurrent::calc(f64 unk, u16 newPt) {
+/// @addr {0x80593DBC}
+void KartWaterCurrent::onNewPoint(f64 unk, u16 newPt) {
     if ((m_weirdFloat >= 0 || unk >= 3000.0f) && m_weirdFloat <= unk) {
         return;
     }
     m_currentPoint = newPt;
     m_weirdFloat = unk;
     // this->sub34->type1->currentPt = newPt;
-    // ks_unk_touchesField7(this);
-    calcIpml();
+    // m_variantOne->m_currentPt = newPt;
+    updatePoint();
 }
 
+/// @addr {0x80594134}
+void KartWaterCurrent::calc() {
+    if (calcArea() && m_route->count() > 2) {
+        m_variantZero->vf0c();
+        // m_variantOne->vf0c();
+    }
+}
+
+/// @addr {0x805941BC}
+/// @brief checks the currently occupied AREA and updates the water current details appropriately
+/// @returns whether the player is in an AREA associated with a water current.
+bool KartWaterCurrent::calcArea() {
+    // @todo
+    return false;
+}
+
+
+/// {@addr 0x8059345C}
 bool KartWaterCurrentVariantZero::doWeirdPointMath(s32 ptOffset, s16 &outNewPt,
         EGG::Vector3f &outVec1, EGG::Vector3f &outVec2) {
     s32 ptOfsMinus1 = -1;
@@ -129,10 +149,16 @@ void KartWaterCurrentVariantZero::vf0c() {
     s16 newPt;
     if (doWeirdPointMath(0, newPt, local3c, local48)) {
         EGG::Vector3f foo = pos() - local3c;
-        auto dVar4 = foo.dot();
+        auto dVar4 = sqrt(foo.dot());
         auto fVar1 = EGG::Mathf::abs(foo.dot(local48));
         auto dvar3 = EGG::Mathf::sqrt(dVar4 * dVar4 - fVar1 * fVar1);
-        m_waterCurrent.calc(dvar3, newPt);
+        m_waterCurrent.onNewPoint(dvar3, newPt);
+    }
+    // sus
+    m_currentPt++;
+    if (m_currentPt >= m_poti->count() - 1) {
+        // if (m_poti->setting2() == 1) {}
+        m_currentPt = 0;
     }
 }
 

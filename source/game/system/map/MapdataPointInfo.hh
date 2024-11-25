@@ -33,7 +33,15 @@ public:
 
     void read(EGG::Stream &stream);
 
-        inline bool isIdxValidU(u32 idx) {
+    u16 count() {
+        return m_pointCount;
+    }
+
+    u8 setting2() {
+        return m_setting2;
+    }
+
+    inline bool isIdxValidU(u32 idx) {
         return (idx < m_pointCount);
     }
 
