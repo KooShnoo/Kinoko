@@ -1,12 +1,19 @@
+#include <Logger.hh>
 #include <cmath>
 #include <egg/math/Math.hh>
 #include <egg/math/ProjThing.hh>
 #include <egg/math/Vector.hh>
 #include <game/kart/KartWaterCurrent.hh>
+#include <game/system/CourseMap.hh>
+#include <game/system/RaceManager.hh>
 
 namespace Kart {
 
-/// @addr {0x80593E18}
+KartWaterCurrent::KartWaterCurrent() {
+    m_variantZero = new KartWaterCurrentVariantZero(this);
+}
+
+/// @addr{0x80593E18}
 void KartWaterCurrent::updatePoint() {
     if (m_lastCalcdPoint == m_currentPoint) {
         return;
@@ -27,19 +34,18 @@ void KartWaterCurrent::updatePoint() {
     m_lastCalcdPoint = m_currentPoint;
 }
 
-/// @addr {0x80593DBC}
+/// @addr{0x80593DBC}
 void KartWaterCurrent::onNewPoint(f64 unk, u16 newPt) {
     if ((m_weirdFloat >= 0 || unk >= 3000.0f) && m_weirdFloat <= unk) {
         return;
     }
     m_currentPoint = newPt;
     m_weirdFloat = unk;
-    // this->sub34->type1->currentPt = newPt;
     // m_variantOne->m_currentPt = newPt;
     updatePoint();
 }
 
-/// @addr {0x80594134}
+/// @addr{0x80594134}
 void KartWaterCurrent::calc() {
     if (calcArea() && m_route->count() > 2) {
         m_variantZero->vf0c();
@@ -47,16 +53,21 @@ void KartWaterCurrent::calc() {
     }
 }
 
-/// @addr {0x805941BC}
+/// @addr{0x805941BC}
 /// @brief checks the currently occupied AREA and updates the water current details appropriately
 /// @returns whether the player is in an AREA associated with a water current.
 bool KartWaterCurrent::calcArea() {
     // @todo
-    return false;
+    if (System::RaceManager::Instance()->m_timer < 1252) {
+        return false;
+    }
+    m_route = System::CourseMap::Instance()->getPointInfo(0);
+    m_variantZero->m_route = m_route;
+    return true;
 }
 
 
-/// {@addr 0x8059345C}
+/// @addr{0x8059345C}
 bool KartWaterCurrentVariantZero::doWeirdPointMath(s32 ptOffset, s16 &outNewPt,
         EGG::Vector3f &outVec1, EGG::Vector3f &outVec2) {
     s32 ptOfsMinus1 = -1;
@@ -81,7 +92,7 @@ bool KartWaterCurrentVariantZero::doWeirdPointMath(s32 ptOffset, s16 &outNewPt,
     bool off0Works = false;
     s32 idx_pt0 = m_currentPt + ptOfs0;
 
-    if ((idx_pt0 >= 0) && m_poti->isIdxValid(idx_pt0)) {
+    if ((idx_pt0 >= 0) && m_route->isIdxValid(idx_pt0)) {
         off0Works = true;
     }
 
@@ -90,7 +101,7 @@ bool KartWaterCurrentVariantZero::doWeirdPointMath(s32 ptOffset, s16 &outNewPt,
         bool off1Works = false;
 
         if (idx_pt1 >= 0) {
-            if (m_poti->isIdxValid(idx_pt1)) {
+            if (m_route->isIdxValid(idx_pt1)) {
                 off1Works = true;
             }
 
@@ -100,13 +111,13 @@ bool KartWaterCurrentVariantZero::doWeirdPointMath(s32 ptOffset, s16 &outNewPt,
                 EGG::Vector3f offM1Pos;
 
                 u16 newPt1 = idx_pt1;
-                if (m_poti->isIdxValidU(newPt1)) {
-                    off1Pos = m_poti->get(newPt1).pos;
+                if (m_route->isIdxValidU(newPt1)) {
+                    off1Pos = m_route->get(newPt1).pos;
                 }
 
                 u16 newPt = m_currentPt + ptOfsPlus1;
-                if (m_poti->isIdxValidU(newPt)) {
-                    off2Pos = m_poti->get(newPt).pos;
+                if (m_route->isIdxValidU(newPt)) {
+                    off2Pos = m_route->get(newPt).pos;
                 }
 
                 EGG::Vector3f routeDirRaw = (off1Pos - off2Pos);
@@ -115,14 +126,14 @@ bool KartWaterCurrentVariantZero::doWeirdPointMath(s32 ptOffset, s16 &outNewPt,
                 EGG::Vector3f routeDir = -routeDirRaw;
 
                 s32 idx_ptMinus1 = m_currentPt + ptOfsMinus1;
-                if (idx_ptMinus1 >= 0 && m_poti->isIdxValid(idx_ptMinus1)) {
+                if (idx_ptMinus1 >= 0 && m_route->isIdxValid(idx_ptMinus1)) {
                     offM1Works = true;
                 }
                 if (offM1Works) {
                     u16 ptCheck = idx_ptMinus1;
 
-                    if (m_poti->isIdxValidU(ptCheck)) {
-                        offM1Pos = m_poti->get(ptCheck).pos;
+                    if (m_route->isIdxValidU(ptCheck)) {
+                        offM1Pos = m_route->get(ptCheck).pos;
                     }
 
                     (offM1Pos - off1Pos).normalise();
@@ -143,20 +154,28 @@ bool KartWaterCurrentVariantZero::doWeirdPointMath(s32 ptOffset, s16 &outNewPt,
 
     return result;
 }
+KartWaterCurrentVariantZero::KartWaterCurrentVariantZero(KartWaterCurrent *waterCurrent) {
+    m_currentPt = 0;
+    m_route = nullptr;
+    m_waterCurrent = waterCurrent;
+}
 
+/// @addr {0x80593138}
 void KartWaterCurrentVariantZero::vf0c() {
     EGG::Vector3f local3c, local48;
     s16 newPt;
     if (doWeirdPointMath(0, newPt, local3c, local48)) {
+        REPORT("newpt");
         EGG::Vector3f foo = pos() - local3c;
-        auto dVar4 = sqrt(foo.dot());
+        auto dVar4 = foo.length();
         auto fVar1 = EGG::Mathf::abs(foo.dot(local48));
         auto dvar3 = EGG::Mathf::sqrt(dVar4 * dVar4 - fVar1 * fVar1);
-        m_waterCurrent.onNewPoint(dvar3, newPt);
+        m_waterCurrent->onNewPoint(dvar3, newPt);
     }
     // sus
+    REPORT("inc pt, %d", m_currentPt);
     m_currentPt++;
-    if (m_currentPt >= m_poti->count() - 1) {
+    if (m_currentPt >= m_route->count() - 1) {
         // if (m_poti->setting2() == 1) {}
         m_currentPt = 0;
     }

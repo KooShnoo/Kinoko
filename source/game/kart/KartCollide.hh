@@ -133,7 +133,7 @@ public:
     /// @endSetters
 
     /// @beginGetters
-    [[nodiscard]] const KartWaterCurrent &waterCurrent() const;
+    [[nodiscard]] KartWaterCurrent &waterCurrent() const;
     [[nodiscard]] f32 boundingRadius() const;
     [[nodiscard]] const SurfaceFlags &surfaceFlags() const;
     [[nodiscard]] const EGG::Vector3f &tangentOff() const;

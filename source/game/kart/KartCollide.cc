@@ -946,7 +946,7 @@ f32 KartCollide::boundingRadius() const {
     return m_boundingRadius;
 }
 
-const KartWaterCurrent &KartCollide::waterCurrent() const {
+KartWaterCurrent &KartCollide::waterCurrent() const {
     return *m_waterCurrent;
 }
 

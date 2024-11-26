@@ -50,7 +50,7 @@ public:
     [[nodiscard]] static RaceManager *Instance();
     static void DestroyInstance();
 
-private:
+// private:
     RaceManager();
     ~RaceManager() override;
 

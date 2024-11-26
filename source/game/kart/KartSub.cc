@@ -17,6 +17,7 @@
 #include <egg/math/Math.hh>
 #include <egg/math/Vector.hh>
 #include <game/system/RaceConfig.hh>
+#include <string>
 
 namespace Kart {
 
@@ -113,6 +114,7 @@ void KartSub::calcPass0() {
 
     state()->calcInput();
     move()->calc();
+    collide()->waterCurrent().calc();
 
     if (state()->isSkipWheelCalc()) {
         for (size_t tireIdx = 0; tireIdx < tireCount(); ++tireIdx) {
@@ -338,8 +340,8 @@ void KartSub::calcWaterCurrent() {
         f32 waterRatio = static_cast<f32>(m_waterCollisionCount) / m_floorCollisionCount;
         EGG::Vector3f local_48 =
                 flowDir.perpInPlane(move()->smoothedUp(), true);
-                // collide()->waterCurrent().m_flowDir.perpInPlane(move()->smoothedUp(), true);
-
+                // collide()->waterCurrent().flowDir().perpInPlane(move()->smoothedUp(), true);
+        REPORT("flowdir: %s",static_cast<std::string>(collide()->waterCurrent().flowDir()).c_str());
         // f32 routeWaterCurrentStrength = collide()->waterCurrent().m_routeWaterCurrentStrength;
         f32 routeWaterCurrentStrength = 15.0f;
         if (state()->m_bWaterCurrent2) {

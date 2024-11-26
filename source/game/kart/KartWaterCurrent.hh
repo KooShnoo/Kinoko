@@ -10,6 +10,8 @@ class KartWaterCurrentVariantZero;
 
 class KartWaterCurrent : KartObjectProxy {
 public:
+    KartWaterCurrent();
+
     // née ks unk touches field 7, field 7 is `m_routeWaterCurrentStrength`
     void updatePoint();
     // vf10
@@ -21,12 +23,12 @@ public:
         return m_flowDir;
     }
 
-private:
+// private:
     u32 m_routeId = -1;
     f32 m_weirdFloat = -1.0f;
     System::MapdataPointInfo *m_route = nullptr;
-    u16 m_currentPoint = -1;
-    u16 m_lastCalcdPoint = -1;
+    s16 m_currentPoint = -1;
+    s16 m_lastCalcdPoint = -1;
     EGG::Vector3f m_flowDir = EGG::Vector3f::zero;
     f32 m_routeWaterCurrentStrength = 0.0f;
     f32 m_parallelWaterCurrentStrength = 0.0f;
@@ -48,14 +50,18 @@ public:
 
 class KartWaterCurrentVariantZero : KartWaterCurrentVariant {
 public:
+    friend KartWaterCurrent;
+
+    KartWaterCurrentVariantZero(KartWaterCurrent *waterCurrent);
+
     virtual void vf0c() override;
     bool doWeirdPointMath(s32 ptOffset, s16 &outNewPt, EGG::Vector3f &outVec1,
             EGG::Vector3f &outVec2);
 
 private:
     s16 m_currentPt;
-    System::MapdataPointInfo *m_poti;
-    KartWaterCurrent m_waterCurrent;
+    System::MapdataPointInfo *m_route;
+    KartWaterCurrent *m_waterCurrent;
 };
 
 } // namespace Kart
