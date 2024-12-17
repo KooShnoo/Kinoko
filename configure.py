@@ -23,7 +23,8 @@ n.variable('builddir', 'build')
 n.variable('outdir', 'out')
 n.newline()
 
-n.variable('compiler', 'g++')
+# n.variable('compiler', 'g++')
+n.variable('compiler', 'clang++')
 n.newline()
 
 common_ccflags = [
@@ -46,6 +47,7 @@ common_ccflags = [
     '-Wno-delete-non-virtual-dtor',
     '-Wno-packed-bitfield-compat',
     '-Wsuggest-override',
+    '-Wno-everything',
 ]
 
 target_cflags = [

@@ -7,6 +7,10 @@
 
 #include <egg/core/Heap.hh>
 
+#ifdef __clang__
+#include <bit>
+#include <span>
+#endif
 #include <array>
 #include <cassert>
 #include <limits>

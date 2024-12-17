@@ -41,8 +41,12 @@ void MapdataCheckPoint::initCheckpointLinks(MapdataCheckPointAccessor &accessor,
         MapdataCheckPath *checkpath = checkPathAccessor->findCheckpathForCheckpoint(id);
         if (checkpath) {
             m_prevCount = 0;
-
+#ifdef __clang__
+            // clang does not support std::views::enumerate, a cpp23 feature :(
+            for (auto [i, prevID] : std::views::zip(std::views::iota(0), (checkpath->prev()))) {
+#else
             for (auto [i, prevID] : std::views::enumerate(checkpath->prev())) {
+#endif
                 if (prevID == 0xFF) {
                     continue;
                 }
@@ -63,8 +67,11 @@ void MapdataCheckPoint::initCheckpointLinks(MapdataCheckPointAccessor &accessor,
         MapdataCheckPath *checkpath = checkPathAccessor->findCheckpathForCheckpoint(id);
         if (checkpath) {
             m_nextCount = 0;
-
+#ifdef __clang__
+            for (auto [i, nextID] : std::views::zip(std::views::iota(0), (checkpath->next()))) {
+#else
             for (auto [i, nextID] : std::views::enumerate(checkpath->next())) {
+#endif
                 if (nextID == 0xFF) {
                     continue;
                 }
@@ -79,7 +86,11 @@ void MapdataCheckPoint::initCheckpointLinks(MapdataCheckPointAccessor &accessor,
     }
 
     // Form the checkpoint's quadrilateral(s)
+#ifdef __clang__
+    for (auto [i, next] : std::views::zip(std::views::iota(0), (m_nextPoints))) {
+#else
     for (auto [i, next] : std::views::enumerate(m_nextPoints)) {
+#endif
         if (i < m_nextCount) {
             auto &nextLinked = m_nextPoints[i];
             auto *nextPoint = nextLinked.checkpoint;
