@@ -259,7 +259,11 @@ void TestDirector::OnInit(System::RaceConfig *config, void * /* arg */) {
     config->setGhost(rkg);
     delete[] rkg;
 
-    config->raceScenario().players[0].type = System::RaceConfig::Player::Type::Ghost;
+    auto &players = config->raceScenario().players;
+    if (players.size() <= 0) {
+        players.emplace_back();
+    }
+    players.front().type = System::RaceConfig::Player::Type::Ghost;
 }
 
 void TestDirector::readHeader() {

@@ -33,7 +33,7 @@ int KSystem::main(int argc, char **argv) {
     }
 
     init();
-    m_sceneMgr->changeScene(0);
+    m_sceneMgr->changeScene(static_cast<int>(Host::SceneId::Root));
     bool success = true;
 
     while (true) {

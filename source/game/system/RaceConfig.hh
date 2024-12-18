@@ -37,8 +37,7 @@ public:
 
         void init();
 
-        std::array<Player, 12> players;
-        u8 playerCount;
+        std::vector<Player> players;
         Course course;
     };
 

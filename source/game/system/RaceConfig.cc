@@ -15,8 +15,6 @@ void RaceConfig::init() {
 /// @details Normally we copy the menu scenario into the race scenario.
 /// However, Kinoko doesn't support menus, so we use a callback.
 void RaceConfig::initRace() {
-    m_raceScenario.playerCount = 1;
-
     if (s_onInitCallback) {
         s_onInitCallback(this, s_onInitCallbackArg);
     }
@@ -93,15 +91,7 @@ RaceConfig::~RaceConfig() {
 
 /// @addr{Inlined in 0x8052DD40}
 void RaceConfig::Scenario::init() {
-    playerCount = 0;
-    course = Course::GCN_Mario_Circuit;
-
-    for (size_t i = 0; i < players.size(); ++i) {
-        Player &player = players[i];
-        player.character = Character::Mario;
-        player.vehicle = Vehicle::Standard_Kart_M;
-        player.type = Player::Type::None;
-    }
+    this->course = Course::GCN_Mario_Circuit;
 }
 
 RaceConfig *RaceConfig::s_instance = nullptr; ///< @addr{0x809BD728}

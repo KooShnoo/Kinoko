@@ -39,7 +39,7 @@ ItemDirector *ItemDirector::Instance() {
 
 /// @addr{0x807992D8}
 ItemDirector::ItemDirector() {
-    size_t playerCount = System::RaceConfig::Instance()->raceScenario().playerCount;
+    size_t playerCount = System::RaceConfig::Instance()->raceScenario().players.size();
     m_karts = std::span<KartItem>(new KartItem[playerCount], playerCount);
 
     for (size_t i = 0; i < playerCount; ++i) {
