@@ -10,6 +10,9 @@
 #include "game/system/RaceConfig.hh"
 #include "game/system/RaceManager.hh"
 #include "game/system/ResourceManager.hh"
+#include <Common.hh>
+#include <cstdlib>
+// #include <print>
 
 namespace Scene {
 
@@ -76,7 +79,15 @@ void RaceScene::configure() {
     auto *commonArc = resMgr->load(0, nullptr);
     appendResource(commonArc, 0);
 
-    auto *courseArc = resMgr->load(raceCfg->raceScenario().course);
+    auto course = raceCfg->raceScenario().course;
+    // ASSERT(course < Course::COURSE_MAX);
+    // ASSERT_MSG(course < Course::COURSE_MAX, "oops");
+    if (course >= Course::COURSE_MAX) {
+        PANIC("You forgot to set the course. Consult the documentation, you have to have a callback or something blah labh");
+        // std::println("You forgot to set the course. Consult the documentation, you have to have a callback or something blah labh");
+        // abort();
+    }
+    auto *courseArc = resMgr->load(course);
     appendResource(courseArc, 1);
 }
 

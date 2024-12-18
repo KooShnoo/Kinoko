@@ -76,6 +76,7 @@ enum class Course {
     Lose_Demo = 56,
     Draw_Demo = 57,
     Ending_Demo = 58,
+    COURSE_MAX,
 };
 
 enum class Vehicle {

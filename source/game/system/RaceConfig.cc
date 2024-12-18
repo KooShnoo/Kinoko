@@ -91,7 +91,7 @@ RaceConfig::~RaceConfig() {
 
 /// @addr{Inlined in 0x8052DD40}
 void RaceConfig::Scenario::init() {
-    this->course = Course::GCN_Mario_Circuit;
+    this->course = Course::COURSE_MAX;
 }
 
 RaceConfig *RaceConfig::s_instance = nullptr; ///< @addr{0x809BD728}
