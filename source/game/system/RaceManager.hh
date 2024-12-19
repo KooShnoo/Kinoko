@@ -5,6 +5,7 @@
 #include "game/system/map/MapdataJugemPoint.hh"
 
 #include <egg/math/Vector.hh>
+#include <vector>
 
 namespace System {
 
@@ -19,7 +20,7 @@ class RaceManager : EGG::Disposer {
 public:
     class Player {
     public:
-        Player();
+        Player(size_t playerIdx);
         virtual ~Player() {}
 
         void init();
@@ -66,11 +67,11 @@ public:
     void calc();
 
     [[nodiscard]] bool isStageReached(Stage stage) const;
-    [[nodiscard]] MapdataJugemPoint *jugemPoint() const;
+    [[nodiscard]] MapdataJugemPoint *jugemPoint(size_t playerIdx) const;
 
     /// @beginGetters
     [[nodiscard]] int getCountdownTimer() const;
-    [[nodiscard]] const Player &player() const;
+    [[nodiscard]] const Player &player(size_t i) const;
     [[nodiscard]] Stage stage() const;
     /// @endGetters
 
@@ -82,7 +83,7 @@ private:
     RaceManager();
     ~RaceManager() override;
 
-    Player m_player;
+    std::vector<Player> m_players;
     Stage m_stage;
     u16 m_introTimer;
     u32 m_timer;

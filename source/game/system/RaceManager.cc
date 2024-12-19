@@ -7,12 +7,20 @@
 
 #include "game/kart/KartObjectManager.hh"
 #include "game/kart/KartState.hh"
+#include <cstddef>
+#include <game/system/RaceConfig.hh>
+#include <ranges>
 
 namespace System {
 
 /// @addr{0x80532F88}
 void RaceManager::init() {
-    m_player.init();
+    size_t playerCount = RaceConfig::Instance()->raceScenario().players.size();
+    m_players.reserve(playerCount);
+    for (auto i : std::views::iota(0uz, playerCount)) {
+        m_players.emplace_back(i);
+        m_players[i].init();
+    }
 }
 
 /// @addr{0x805362DC}
@@ -36,7 +44,9 @@ void RaceManager::findKartStartPoint(EGG::Vector3f &pos, EGG::Vector3f &angles) 
 void RaceManager::calc() {
     constexpr u16 STAGE_INTRO_DURATION = 172;
 
-    m_player.calc();
+    for (auto &player : m_players) {
+        player.calc();
+    }
 
     switch (m_stage) {
     case Stage::Intro:
@@ -65,8 +75,8 @@ bool RaceManager::isStageReached(Stage stage) const {
 }
 
 /// @addr{0x8053621C}
-MapdataJugemPoint *RaceManager::jugemPoint() const {
-    s8 jugemId = std::max<s8>(m_player.jugemId(), 0);
+MapdataJugemPoint *RaceManager::jugemPoint(size_t playerIdx) const {
+    s8 jugemId = std::max<s8>(m_players.at(playerIdx).jugemId(), 0);
     return System::CourseMap::Instance()->getJugemPoint(static_cast<u16>(jugemId));
 }
 
@@ -75,8 +85,9 @@ int RaceManager::getCountdownTimer() const {
     return STAGE_COUNTDOWN_DURATION - m_timer;
 }
 
-const RaceManager::Player &RaceManager::player() const {
-    return m_player;
+const RaceManager::Player &RaceManager::player(size_t i) const {
+    ASSERT(i < m_players.size());
+    return m_players[i];
 }
 
 RaceManager::Stage RaceManager::stage() const {
@@ -114,7 +125,7 @@ RaceManager::~RaceManager() {
 }
 
 /// @addr{0x80533ED8}
-RaceManager::Player::Player() {
+RaceManager::Player::Player(size_t playerIdx) {
     m_checkpointId = 0;
     m_raceCompletion = 0.0f;
     m_checkpointFactor = -1.0f;
@@ -130,7 +141,9 @@ RaceManager::Player::Player() {
     }
 
     m_currentLap = 0;
-    m_inputs = &KPadDirector::Instance()->playerInput();
+
+    // RaceConfig::Instance()->raceScenario().players[playerIdx].input
+    m_inputs = &KPadDirector::Instance()->playerInputs(playerIdx);
 }
 
 /// @addr{0x80534194}

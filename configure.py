@@ -130,6 +130,7 @@ n.build(
     variables={
         'ldflags': ' '.join([
             *common_ldflags,
+            "-L/usr/local/Cellar/llvm/19.1.3/lib/c++/"
         ])
     },
 )
