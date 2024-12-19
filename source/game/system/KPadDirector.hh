@@ -15,7 +15,7 @@ public:
     void startGhostProxies();
     void endGhostProxies();
 
-    [[nodiscard]] const KPadPlayer &playerInput() const;
+    [[nodiscard]] const KPadPlayer &playerInputs(size_t i) const;
     [[nodiscard]] KPadHostController *hostController();
 
     void setGhostPad(const u8 *inputs, bool driftIsAuto);
@@ -30,6 +30,8 @@ private:
     ~KPadDirector() override;
 
     KPadPlayer m_playerInput;
+
+    // todo: remove
     KPadGhostController *m_ghostController;
     KPadHostController *m_hostController;
 

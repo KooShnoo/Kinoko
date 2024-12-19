@@ -26,27 +26,28 @@ void RaceConfig::initRace() {
 /// @brief Initializes the controllers.
 /// @details This is normally scoped within RaceConfig::Scenario, but Kinoko doesn't support menus.
 void RaceConfig::initControllers() {
-    switch (m_raceScenario.players[0].type) {
-    case Player::Type::Ghost:
-        initGhost();
-        break;
-    case Player::Type::Local:
-        KPadDirector::Instance()->setHostPad(m_raceScenario.players[0].driftIsAuto);
-        break;
-    default:
-        PANIC("Players must be either local or ghost!");
-        break;
+    for (auto &player : m_raceScenario.players) {
+        switch (player.type) {
+        case Player::Type::Ghost:
+            initGhost(player);
+            break;
+        case Player::Type::Local:
+            KPadDirector::Instance()->setHostPad(player.driftIsAuto);
+            break;
+        default:
+            PANIC("Players must be either local or ghost!");
+            break;
+        }
     }
 }
 
 /// @addr{0x8052EEF0}
 /// @brief Initializes the ghost.
 /// @details This is normally scoped within RaceConfig::Scenario, but Kinoko doesn't support menus.
-void RaceConfig::initGhost() {
-    GhostFile ghost(m_ghost);
+void RaceConfig::initGhost(RaceConfig::Player &player) {
+    GhostFile ghost(m_ghost[player.ghostIdx]);
 
     m_raceScenario.course = ghost.course();
-    Player &player = m_raceScenario.players[0];
     player.character = ghost.character();
     player.vehicle = ghost.vehicle();
     player.driftIsAuto = ghost.driftIsAuto();

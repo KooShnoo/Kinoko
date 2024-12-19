@@ -32,7 +32,9 @@ void KPadDirector::endGhostProxies() {
     m_playerInput.endGhostProxy();
 }
 
-const KPadPlayer &KPadDirector::playerInput() const {
+const KPadPlayer &KPadDirector::playerInputs(size_t i) const {
+    // return m_playerInput[i];
+    (void)i;
     return m_playerInput;
 }
 

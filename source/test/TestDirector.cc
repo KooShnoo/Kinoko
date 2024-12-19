@@ -1,5 +1,7 @@
 #include "TestDirector.hh"
 
+#include <cstdlib>
+#include <egg/util/Stream.hh>
 #include <game/kart/KartObjectManager.hh>
 #include <game/system/RaceManager.hh>
 
@@ -7,6 +9,7 @@
 #include <host/System.hh>
 
 #include <format>
+#include <print>
 
 namespace Test {
 
@@ -26,6 +29,10 @@ TestDirector::TestDirector(const std::span<u8> &suiteData) {
     EGG::RamStream stream = EGG::RamStream(suiteData.data(), suiteData.size());
     stream.setEndian(std::endian::big);
     parseSuite(stream);
+    std::println("{} tcs", m_testCases.size());
+    ASSERT(m_testCases.size() == 2);
+    ASSERT(m_testCases.front().name == "rmc-rta");
+    ASSERT(m_testCases.back().name == "rmc-ng");
     init();
 }
 
@@ -92,6 +99,7 @@ void TestDirector::init() {
     size_t size;
     u8 *krkg = Abstract::File::Load(testCase().krkgPath.data(), size);
     m_stream = EGG::RamStream(krkg, static_cast<u32>(size));
+    m_stream2 = EGG::RamStream(krkg, static_cast<u32>(size));
     m_currentFrame = -1;
     m_sync = true;
 
@@ -99,10 +107,12 @@ void TestDirector::init() {
     u16 mark = *reinterpret_cast<u16 *>(krkg + offsetof(TestHeader, byteOrderMark));
     std::endian endian = parse<u16>(mark) == 0xfeff ? std::endian::big : std::endian::little;
     m_stream.setEndian(endian);
+    m_stream2.setEndian(endian);
 
     readHeader();
 
     ASSERT(m_stream.read_u32() == m_stream.index());
+    ASSERT(m_stream2.read_u32() == m_stream2.index());
 }
 
 bool TestDirector::calc() {
@@ -116,13 +126,15 @@ bool TestDirector::calc() {
     }
 
     // Test the current frame
-    TestData data = findNextEntry();
-    test(data);
+    TestData data = findNextEntry(m_stream);
+    TestData data2 = findNextEntry(m_stream2);
+    test(data, 0);
+    test(data2, 1);
     return m_sync;
 }
 
-void TestDirector::test(const TestData &data) {
-    auto *object = Kart::KartObjectManager::Instance()->object(0);
+void TestDirector::test(const TestData &data, int i) {
+    auto *object = Kart::KartObjectManager::Instance()->object(i);
     const auto &pos = object->pos();
     const auto &fullRot = object->fullRot();
     const auto &extVel = object->extVel();
@@ -184,7 +196,7 @@ bool TestDirector::popTestCase() {
     return !m_testCases.empty();
 }
 
-TestData TestDirector::findNextEntry() {
+TestData TestDirector::findNextEntry(EGG::Stream &stream) {
     EGG::Vector3f pos;
     EGG::Quatf fullRot;
     EGG::Vector3f extVel;
@@ -198,33 +210,33 @@ TestData TestDirector::findNextEntry() {
     u16 checkpointId = 0;
     u8 jugemId = 0;
 
-    pos.read(m_stream);
-    fullRot.read(m_stream);
+    pos.read(stream);
+    fullRot.read(stream);
 
     if (m_versionMinor >= Changelog::AddedExtVel) {
-        extVel.read(m_stream);
+        extVel.read(stream);
     }
 
     if (m_versionMinor >= Changelog::AddedIntVel) {
-        intVel.read(m_stream);
+        intVel.read(stream);
     }
 
     if (m_versionMinor >= Changelog::AddedSpeed) {
-        speed = m_stream.read_f32();
-        acceleration = m_stream.read_f32();
-        softSpeedLimit = m_stream.read_f32();
+        speed = stream.read_f32();
+        acceleration = stream.read_f32();
+        softSpeedLimit = stream.read_f32();
     }
 
     if (m_versionMinor >= Changelog::AddedRotation) {
-        mainRot.read(m_stream);
-        angVel2.read(m_stream);
+        mainRot.read(stream);
+        angVel2.read(stream);
     }
 
     if (m_versionMinor >= Changelog::AddedCheckpoints) {
-        raceCompletion = m_stream.read_f32();
-        checkpointId = m_stream.read_u16();
-        jugemId = m_stream.read_u8();
-        m_stream.skip(1);
+        raceCompletion = stream.read_f32();
+        checkpointId = stream.read_u16();
+        jugemId = stream.read_u8();
+        stream.skip(1);
     }
 
     TestData data;
@@ -262,8 +274,11 @@ void TestDirector::OnInit(System::RaceConfig *config, void * /* arg */) {
     auto &players = config->raceScenario().players;
     if (players.size() <= 0) {
         players.emplace_back();
+        // multiplayer test
+        players.emplace_back();
     }
     players.front().type = System::RaceConfig::Player::Type::Ghost;
+    players[1].type = System::RaceConfig::Player::Type::Ghost;
 }
 
 void TestDirector::readHeader() {

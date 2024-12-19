@@ -33,11 +33,11 @@ public:
     void parseSuite(EGG::RamStream &stream);
     void init();
     [[nodiscard]] bool calc();
-    void test(const TestData &data);
+    void test(const TestData &data, int i);
     void writeTestOutput() const;
     bool popTestCase();
 
-    [[nodiscard]] TestData findNextEntry();
+    [[nodiscard]] TestData findNextEntry(EGG::Stream &stream);
     [[nodiscard]] const TestCase &testCase() const;
 
     [[nodiscard]] bool sync() const;
@@ -107,6 +107,8 @@ private:
     std::queue<TestCase> m_testCases;
 
     EGG::RamStream m_stream;
+    // temprorty; for multiplayer testing
+    EGG::RamStream m_stream2;
 
     u16 m_versionMajor;
     u16 m_versionMinor;
