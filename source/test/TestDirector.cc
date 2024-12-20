@@ -99,7 +99,8 @@ void TestDirector::init() {
     size_t size;
     u8 *krkg = Abstract::File::Load(testCase().krkgPath.data(), size);
     m_stream = EGG::RamStream(krkg, static_cast<u32>(size));
-    m_stream2 = EGG::RamStream(krkg, static_cast<u32>(size));
+    u8 *krkg2 = Abstract::File::Load(m_testCases.back().krkgPath.data(), size);
+    m_stream2 = EGG::RamStream(krkg2, static_cast<u32>(size));
     m_currentFrame = -1;
     m_sync = true;
 
@@ -109,7 +110,8 @@ void TestDirector::init() {
     m_stream.setEndian(endian);
     m_stream2.setEndian(endian);
 
-    readHeader();
+    readHeader(m_stream);
+    readHeader(m_stream2);
 
     ASSERT(m_stream.read_u32() == m_stream.index());
     ASSERT(m_stream2.read_u32() == m_stream2.index());
@@ -268,7 +270,7 @@ void TestDirector::OnInit(System::RaceConfig *config, void * /* arg */) {
     size_t size;
     const auto *testDirector = Host::KSystem::Instance().testDirector();
     u8 *rkg = Abstract::File::Load(testDirector->testCase().rkgPath.data(), size);
-    config->setGhost(rkg);
+    config->setGhost(rkg, 0);
     delete[] rkg;
 
     auto &players = config->raceScenario().players;
@@ -281,14 +283,14 @@ void TestDirector::OnInit(System::RaceConfig *config, void * /* arg */) {
     players[1].type = System::RaceConfig::Player::Type::Ghost;
 }
 
-void TestDirector::readHeader() {
+void TestDirector::readHeader(EGG::Stream &stream) {
     constexpr u32 KRKG_SIGNATURE = 0x4b524b47; // KRKG
 
-    ASSERT(m_stream.read_u32() == KRKG_SIGNATURE);
-    m_stream.skip(2);
-    m_frameCount = m_stream.read_u16();
-    m_versionMajor = m_stream.read_u16();
-    m_versionMinor = m_stream.read_u16();
+    ASSERT(stream.read_u32() == KRKG_SIGNATURE);
+    stream.skip(2);
+    m_frameCount = stream.read_u16();
+    m_versionMajor = stream.read_u16();
+    m_versionMinor = stream.read_u16();
 }
 
 } // namespace Test

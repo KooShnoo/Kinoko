@@ -45,7 +45,7 @@ public:
     static void OnInit(System::RaceConfig *config, void *arg);
 
 private:
-    void readHeader();
+    void readHeader(EGG::Stream &stream);
 
     template <IntegralType T>
     void checkDesync(const T &t0, const T &t1, const char *name) {
