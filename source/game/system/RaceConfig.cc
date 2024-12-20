@@ -3,6 +3,8 @@
 #include "game/system/KPadDirector.hh"
 
 #include <abstract/File.hh>
+#include <game/system/GhostFile.hh>
+#include <ranges>
 
 namespace System {
 
@@ -26,10 +28,15 @@ void RaceConfig::initRace() {
 /// @brief Initializes the controllers.
 /// @details This is normally scoped within RaceConfig::Scenario, but Kinoko doesn't support menus.
 void RaceConfig::initControllers() {
-    for (auto &player : m_raceScenario.players) {
+#ifdef __clang__
+            // clang does not support std::views::enumerate, a cpp23 feature :(
+            for (auto [idx, player] : std::views::zip(std::views::iota(0), m_raceScenario.players)) {
+#else
+            for (auto [idx, player] : std::ranges::views::enumerate(m_raceScenario.players)) {
+#endif
         switch (player.type) {
         case Player::Type::Ghost:
-            initGhost(player);
+            initGhost(player, m_ghosts[idx]);
             break;
         case Player::Type::Local:
             KPadDirector::Instance()->setHostPad(player.driftIsAuto);
@@ -44,8 +51,8 @@ void RaceConfig::initControllers() {
 /// @addr{0x8052EEF0}
 /// @brief Initializes the ghost.
 /// @details This is normally scoped within RaceConfig::Scenario, but Kinoko doesn't support menus.
-void RaceConfig::initGhost(RaceConfig::Player &player) {
-    GhostFile ghost(m_ghost[player.ghostIdx]);
+void RaceConfig::initGhost(Player &player, RawGhostFile rawGhost) {
+    GhostFile ghost(rawGhost);
 
     m_raceScenario.course = ghost.course();
     player.character = ghost.character();

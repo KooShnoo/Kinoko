@@ -3,6 +3,7 @@
 #include "game/system/GhostFile.hh"
 
 #include <functional>
+#include <unordered_map>
 #include <vector>
 
 namespace System {
@@ -28,7 +29,7 @@ public:
         Type type;
         bool driftIsAuto;
 
-        size_t ghostIdx = 0; ///< for multiplayer testing; valid only if Type::Ghost; index of which rawghostfile to use
+        // size_t ghostIdx = 0; ///< for multiplayer testing; valid only if Type::Ghost; index of which rawghostfile to use
         size_t playerInputIdx = 0; // todo(ks)
     };
 
@@ -50,7 +51,7 @@ public:
     void init();
     void initRace();
     void initControllers();
-    void initGhost(RaceConfig::Player &player);
+    void initGhost(Player &player, RawGhostFile rawGhost);
 
     [[nodiscard]] const Scenario &raceScenario() const {
         return m_raceScenario;
@@ -61,9 +62,7 @@ public:
     }
 
     void setGhost(const u8 *rkg, size_t playerIdx) {
-        ASSERT(playerIdx < m_raceScenario.players.size());
-        m_raceScenario.players[playerIdx].ghostIdx = m_ghost.size();
-        m_ghost.push_back(rkg);
+        m_ghosts[playerIdx] = RawGhostFile(rkg);
     }
 
     static void RegisterInitCallback(const InitCallback &callback, void *arg);
@@ -77,7 +76,7 @@ private:
     ~RaceConfig() override;
 
     Scenario m_raceScenario;
-    std::vector<RawGhostFile> m_ghost;
+    std::unordered_map<size_t, RawGhostFile> m_ghosts;
 
     static RaceConfig *s_instance; ///< @addr{0x809BD728}
     static InitCallback s_onInitCallback;
