@@ -3,6 +3,7 @@
 #include "game/item/KartItem.hh"
 
 #include <span>
+#include <vector>
 
 /// @brief Pertains to item handling.
 namespace Item {
@@ -21,7 +22,7 @@ private:
     ItemDirector();
     ~ItemDirector() override;
 
-    std::span<KartItem> m_karts;
+    std::vector<KartItem> m_karts;
 
     static ItemDirector *s_instance; ///< @addr{0x809C3618}
 };

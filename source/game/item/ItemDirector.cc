@@ -1,6 +1,7 @@
 #include "ItemDirector.hh"
 
 #include "game/system/RaceConfig.hh"
+#include <ranges>
 
 namespace Item {
 
@@ -40,10 +41,11 @@ ItemDirector *ItemDirector::Instance() {
 /// @addr{0x807992D8}
 ItemDirector::ItemDirector() {
     size_t playerCount = System::RaceConfig::Instance()->raceScenario().players.size();
-    m_karts = std::span<KartItem>(new KartItem[playerCount], playerCount);
+    m_karts.reserve(playerCount);
 
-    for (size_t i = 0; i < playerCount; ++i) {
-        m_karts[i].init(i);
+    for (auto i : std::ranges::views::iota(0uz, playerCount)) {
+        m_karts.emplace_back();
+        m_karts.back().init(i);
     }
 }
 
