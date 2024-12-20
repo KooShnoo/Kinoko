@@ -193,6 +193,7 @@ void TestDirector::writeTestOutput() const {
 bool TestDirector::popTestCase() {
     ASSERT(m_testCases.size() > 0);
     m_testCases.pop();
+    m_testCases.pop();
     delete[] m_stream.data();
 
     return !m_testCases.empty();
