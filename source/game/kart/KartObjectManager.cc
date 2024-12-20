@@ -11,26 +11,26 @@ namespace Kart {
 
 /// @addr{0x8058FEE0}
 void KartObjectManager::init() {
-    for (auto &object : m_objects) {
-        object.initImpl();
-        object.prepare();
+    for (auto object : m_objects) {
+        object->initImpl();
+        object->prepare();
     }
 }
 
 /// @addr{0x8058FFE8}
 void KartObjectManager::calc() {
-    for (auto &object : m_objects) {
-        object.collide()->setTangentOff(EGG::Vector3f::zero);
-        object.collide()->setMovement(EGG::Vector3f::zero);
-        object.calcSub();
-        object.calc();
+    for (auto object : m_objects) {
+        object->collide()->setTangentOff(EGG::Vector3f::zero);
+        object->collide()->setMovement(EGG::Vector3f::zero);
+        object->calcSub();
+        object->calc();
     }
 }
 
 /// @addr{0x80590100}
 KartObject *KartObjectManager::object(size_t i) {
     ASSERT(i < m_objects.size());
-    return &m_objects[i];
+    return m_objects[i];
 }
 
 /// @addr{0x8058FAA8}
@@ -62,8 +62,8 @@ KartObjectManager::KartObjectManager() {
     KartParamFileManager::CreateInstance();
     for (auto [player, idx] : zip(raceScenario.players, iota(0))) {
         // useless memory moving? idc tho
-        m_objects.emplace_back(*KartObject::Create(player.character, player.vehicle, idx));
-        m_objects[idx].createModel();
+        m_objects.emplace_back(KartObject::Create(player.character, player.vehicle, idx));
+        m_objects[idx]->createModel();
     }
 }
 

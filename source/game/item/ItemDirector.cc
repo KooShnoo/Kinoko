@@ -55,8 +55,6 @@ ItemDirector::~ItemDirector() {
         s_instance = nullptr;
         WARN("ItemDirector instance not explicitly handled!");
     }
-
-    delete[] m_karts.data();
 }
 
 ItemDirector *ItemDirector::s_instance = nullptr; ///< @addr{0x809C3618}

@@ -24,7 +24,7 @@ private:
     KartObjectManager();
     ~KartObjectManager() override;
 
-    std::vector<KartObject> m_objects;
+    std::vector<KartObject *> m_objects;
 
     static KartObjectManager *s_instance; ///< @addr{0x809C18F8}
 };
