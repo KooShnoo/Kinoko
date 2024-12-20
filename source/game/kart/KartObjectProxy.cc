@@ -205,7 +205,9 @@ const CollisionData &KartObjectProxy::collisionData() const {
 
 /// @addr{0x805903F4}
 const System::KPad *KartObjectProxy::inputs() const {
-    return System::RaceManager::Instance()->player().inputs();
+    // todo(ks) at this point this->m_accessor is nullptr, we havne been "apply"ied. :rolling_eyes"
+    // return System::RaceManager::Instance()->player(playerIdx()).inputs();
+    return System::RaceManager::Instance()->player(0).inputs();
 }
 
 /// @addr{0x80590A40}

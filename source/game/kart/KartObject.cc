@@ -185,6 +185,7 @@ KartObject *KartObject::Create(Character character, Vehicle vehicle, u8 playerId
         object = new KartObjectBike(param);
     }
 
+    object->m_pointers.m_playerIdx = playerIdx;
     object->init();
     object->m_pointers.sub->copyPointers(object->m_pointers);
 

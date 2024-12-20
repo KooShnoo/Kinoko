@@ -133,7 +133,7 @@ void TestDirector::test(const TestData &data) {
     const auto &mainRot = object->mainRot();
     const auto &angVel2 = object->angVel2();
 
-    const auto &player = System::RaceManager::Instance()->player();
+    const auto &player = System::RaceManager::Instance()->player(0);
     f32 raceCompletion = player.raceCompletion();
     u16 checkpointId = player.checkpointId();
     u8 jugemId = player.jugemId();

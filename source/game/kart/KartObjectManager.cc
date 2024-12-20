@@ -60,10 +60,10 @@ KartObjectManager::KartObjectManager() {
     const auto &raceScenario = System::RaceConfig::Instance()->raceScenario();
     m_objects.reserve(raceScenario.players.size());
     KartParamFileManager::CreateInstance();
-    for (auto [player, object, idx] : zip(raceScenario.players, m_objects, iota(0))) {
+    for (auto [player, idx] : zip(raceScenario.players, iota(0))) {
         // useless memory moving? idc tho
-        object = *KartObject::Create(player.character, player.vehicle, idx);
-        object.createModel();
+        m_objects.emplace_back(*KartObject::Create(player.character, player.vehicle, idx));
+        m_objects[idx].createModel();
     }
 }
 

@@ -15,12 +15,8 @@ namespace System {
 
 /// @addr{0x80532F88}
 void RaceManager::init() {
-    size_t playerCount = RaceConfig::Instance()->raceScenario().players.size();
-    m_players.reserve(playerCount);
-    for (auto i : std::views::iota(0uz, playerCount)) {
-        m_players.emplace_back(i);
-        m_players[i].init();
-    }
+    for (auto &player : m_players)
+        player.init();
 }
 
 /// @addr{0x805362DC}
@@ -114,7 +110,13 @@ void RaceManager::DestroyInstance() {
 }
 
 /// @addr{0x805327A0}
-RaceManager::RaceManager() : m_stage(Stage::Intro), m_introTimer(0), m_timer(0) {}
+RaceManager::RaceManager() : m_stage(Stage::Intro), m_introTimer(0), m_timer(0) {
+    size_t playerCount = RaceConfig::Instance()->raceScenario().players.size();
+    m_players.reserve(playerCount);
+    for (auto i : std::views::iota(0uz, playerCount)) {
+        m_players.emplace_back(i);
+    }
+}
 
 /// @addr{0x80532E3C}
 RaceManager::~RaceManager() {
@@ -143,7 +145,8 @@ RaceManager::Player::Player(size_t playerIdx) {
     m_currentLap = 0;
 
     // RaceConfig::Instance()->raceScenario().players[playerIdx].input
-    m_inputs = &KPadDirector::Instance()->playerInputs(playerIdx);
+    // m_inputs = &KPadDirector::Instance()->playerInputs(playerIdx);
+    m_inputs = &KPadDirector::Instance()->playerInput();
 }
 
 /// @addr{0x80534194}
