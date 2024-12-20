@@ -145,8 +145,8 @@ RaceManager::Player::Player(size_t playerIdx) {
     m_currentLap = 0;
 
     // RaceConfig::Instance()->raceScenario().players[playerIdx].input
-    // m_inputs = &KPadDirector::Instance()->playerInputs(playerIdx);
-    m_inputs = &KPadDirector::Instance()->playerInput();
+    m_inputs = &KPadDirector::Instance()->playerInputs(playerIdx);
+    // m_inputs = &KPadDirector::Instance()->playerInput();
 }
 
 /// @addr{0x80534194}
