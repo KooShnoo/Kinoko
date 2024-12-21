@@ -204,7 +204,8 @@ public:
     void endGhostProxy();   ///< Signals to stop reading ghost data after race completion.
 
 private:
-    u8 m_ghostBuffer[RKG_UNCOMPRESSED_INPUT_DATA_SECTION_SIZE];
+    // u8 m_ghostBuffer[RKG_UNCOMPRESSED_INPUT_DATA_SECTION_SIZE];
+    u8 *m_ghostBuffer;
 };
 
 } // namespace System

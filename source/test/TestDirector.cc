@@ -123,12 +123,12 @@ bool TestDirector::calc() {
     }
 
     // Test the current frame
-        TestData data = findNextEntry(m_streams.front());
-        test(data, m_testCases.front().name);
-    // for (auto [stream, testCase] : std::ranges::views::zip(m_streams, m_testCases)) {
-        // TestData data = findNextEntry(stream);
-        // test(data, testCase.name);
-    // }
+        // TestData data = findNextEntry(m_streams.front());
+        // test(data, m_testCases.front().name);
+    for (auto [stream, testCase] : std::ranges::views::zip(m_streams, m_testCases)) {
+        TestData data = findNextEntry(stream);
+        test(data, testCase.name);
+    }
 
     // return m_sync;
     return true;
