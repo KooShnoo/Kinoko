@@ -2,10 +2,12 @@
 
 #include "test/Test.hh"
 
+#include <egg/util/Stream.hh>
 #include <game/system/RaceConfig.hh>
 
 #include <queue>
 #include <span>
+#include <vector>
 
 namespace Test {
 
@@ -33,28 +35,28 @@ public:
     void parseSuite(EGG::RamStream &stream);
     void init();
     [[nodiscard]] bool calc();
-    void test(const TestData &data);
+    void test(const TestData &data, std::string testName);
     void writeTestOutput() const;
     bool popTestCase();
 
-    [[nodiscard]] TestData findNextEntry();
-    [[nodiscard]] const TestCase &testCase() const;
+    [[nodiscard]] TestData findNextEntry(EGG::RamStream &stream);
+    // [[nodiscard]] const TestCase &testCase() const;
 
     [[nodiscard]] bool sync() const;
 
     static void OnInit(System::RaceConfig *config, void *arg);
 
 // private:
-    void readHeader();
+    void readHeader(EGG::RamStream &stream);
 
     template <IntegralType T>
-    void checkDesync(const T &t0, const T &t1, const char *name) {
+    void checkDesync(std::string testName, const T &t0, const T &t1, const char *name) {
         if (t0 == t1) {
             return;
         }
 
         if (m_sync) {
-            REPORT("Test Case Failed: %s [%d / %d]", testCase().name.c_str(), m_currentFrame,
+            REPORT("Test Case Failed: %s [%d / %d]", testName.c_str(), m_currentFrame,
                     m_frameCount);
         }
 
@@ -66,13 +68,13 @@ public:
     }
 
     template <typename T>
-    void checkDesync(const T &t0, const T &t1, const char *name) {
+    void checkDesync(std::string testName, const T &t0, const T &t1, const char *name) {
         if (t0 == t1) {
             return;
         }
 
         if (m_sync) {
-            REPORT("Test Case Failed: %s [%d / %d]", testCase().name.c_str(), m_currentFrame,
+            REPORT("Test Case Failed: %s [%d / %d]", testName.c_str(), m_currentFrame,
                     m_frameCount);
         }
 
@@ -85,13 +87,13 @@ public:
         m_sync = false;
     }
 
-    void checkDesync(const f32 &t0, const f32 &t1, const char *name) {
+    void checkDesync(std::string testName, const f32 &t0, const f32 &t1, const char *name) {
         if (t0 == t1) {
             return;
         }
 
         if (m_sync) {
-            REPORT("Test Case Failed: %s [%d / %d]", testCase().name.c_str(), m_currentFrame,
+            REPORT("Test Case Failed: %s [%d / %d]", testName.c_str(), m_currentFrame,
                     m_frameCount);
         }
 
@@ -104,9 +106,9 @@ public:
         m_sync = false;
     }
 
-    std::queue<TestCase> m_testCases;
+    std::vector<TestCase> m_testCases;
 
-    EGG::RamStream m_stream;
+    std::vector<EGG::RamStream> m_streams;
 
     u16 m_versionMajor;
     u16 m_versionMinor;

@@ -1,5 +1,6 @@
 #include "TestDirector.hh"
 
+#include <cstdlib>
 #include <game/kart/KartObjectManager.hh>
 #include <game/system/RaceManager.hh>
 
@@ -7,6 +8,8 @@
 #include <host/System.hh>
 
 #include <format>
+#include <print>
+#include <ranges>
 
 namespace Test {
 
@@ -84,44 +87,51 @@ void TestDirector::parseSuite(EGG::RamStream &stream) {
             PANIC("Unexpected bytes in test case");
         }
 
-        m_testCases.push(testCase);
+        m_testCases.push_back(testCase);
     }
 }
 
 void TestDirector::init() {
-    size_t size;
-    u8 *krkg = Abstract::File::Load(testCase().krkgPath.data(), size);
-    m_stream = EGG::RamStream(krkg, static_cast<u32>(size));
-    m_currentFrame = -1;
-    m_sync = true;
+    for (auto &testCase: m_testCases) {
+        size_t size;
+        u8 *krkg = Abstract::File::Load(testCase.krkgPath.data(), size);
+        m_streams.emplace_back(krkg, static_cast<u32>(size));
+        auto &stream = m_streams.back();
+        m_currentFrame = -1;
+        m_sync = true;
 
-    // Initialize endianness for the RAM stream
-    u16 mark = *reinterpret_cast<u16 *>(krkg + offsetof(TestHeader, byteOrderMark));
-    std::endian endian = parse<u16>(mark) == 0xfeff ? std::endian::big : std::endian::little;
-    m_stream.setEndian(endian);
+        // Initialize endianness for the RAM stream
+        u16 mark = *reinterpret_cast<u16 *>(krkg + offsetof(TestHeader, byteOrderMark));
+        std::endian endian = parse<u16>(mark) == 0xfeff ? std::endian::big : std::endian::little;
+        stream.setEndian(endian);
 
-    readHeader();
+        readHeader(stream);
 
-    ASSERT(m_stream.read_u32() == m_stream.index());
+        ASSERT(stream.read_u32() == stream.index());
+    }
 }
 
 bool TestDirector::calc() {
     // Check if we're out of frames
-    u16 targetFrame = testCase().targetFrame;
+    u16 targetFrame = m_testCases.front().targetFrame;
     ASSERT(targetFrame <= m_frameCount);
     if (++m_currentFrame > targetFrame) {
-        REPORT("Test Case Passed: %s [%d / %d]", testCase().name.c_str(), targetFrame,
-                m_frameCount);
+        // REPORT("Test Case Passed: %s [%d / %d]", testCase().name.c_str(), targetFrame,
+                // m_frameCount);
+        std::println("first case passed, stopping.");
         return false;
     }
 
     // Test the current frame
-    TestData data = findNextEntry();
-    test(data);
+    for (auto [stream, testCase] : std::ranges::views::zip(m_streams, m_testCases)) {
+        TestData data = findNextEntry(stream);
+        test(data, testCase.name);
+    }
+
     return m_sync;
 }
 
-void TestDirector::test(const TestData &data) {
+void TestDirector::test(const TestData &data, std::string testName) {
     auto *object = Kart::KartObjectManager::Instance()->object(0);
     const auto &pos = object->pos();
     const auto &fullRot = object->fullRot();
@@ -140,37 +150,37 @@ void TestDirector::test(const TestData &data) {
 
     switch (m_versionMinor) {
     case Changelog::AddedCheckpoints:
-        checkDesync(data.raceCompletion, raceCompletion, "raceCompletion");
-        checkDesync(data.checkpointId, checkpointId, "checkpointId");
-        checkDesync(data.jugemId, jugemId, "jugemId");
+        checkDesync(testName, data.raceCompletion, raceCompletion, "raceCompletion");
+        checkDesync(testName, data.checkpointId, checkpointId, "checkpointId");
+        checkDesync(testName, data.jugemId, jugemId, "jugemId");
         [[fallthrough]];
     case Changelog::AddedRotation:
-        checkDesync(data.mainRot, mainRot, "mainRot");
-        checkDesync(data.angVel2, angVel2, "angVel2");
+        checkDesync(testName, data.mainRot, mainRot, "mainRot");
+        checkDesync(testName, data.angVel2, angVel2, "angVel2");
         [[fallthrough]];
     case Changelog::AddedSpeed:
-        checkDesync(data.speed, speed, "speed");
-        checkDesync(data.acceleration, acceleration, "acceleration");
-        checkDesync(data.softSpeedLimit, softSpeedLimit, "softSpeedLimit");
+        checkDesync(testName, data.speed, speed, "speed");
+        checkDesync(testName, data.acceleration, acceleration, "acceleration");
+        checkDesync(testName, data.softSpeedLimit, softSpeedLimit, "softSpeedLimit");
         [[fallthrough]];
     case Changelog::AddedIntVel:
-        checkDesync(data.intVel, intVel, "intVel");
+        checkDesync(testName, data.intVel, intVel, "intVel");
         [[fallthrough]];
     case Changelog::AddedExtVel:
-        checkDesync(data.extVel, extVel, "extVel");
+        checkDesync(testName, data.extVel, extVel, "extVel");
         [[fallthrough]];
     default:
-        checkDesync(data.pos, pos, "pos");
-        checkDesync(data.fullRot, fullRot, "fullRot");
+        checkDesync(testName, data.pos, pos, "pos");
+        checkDesync(testName, data.fullRot, fullRot, "fullRot");
     }
 }
 
 void TestDirector::writeTestOutput() const {
-    std::string outStr(testCase().name.data());
-    outStr += "\n" + std::string(m_sync ? "1" : "0") + "\n";
-    outStr += std::to_string(testCase().targetFrame) + "\n";
-    outStr += std::to_string(m_frameCount) + "\n";
-    Abstract::File::Append("results.txt", outStr.c_str(), outStr.size());
+    // std::string outStr(testCase().name.data());
+    // outStr += "\n" + std::string(m_sync ? "1" : "0") + "\n";
+    // outStr += std::to_string(testCase().targetFrame) + "\n";
+    // outStr += std::to_string(m_frameCount) + "\n";
+    // Abstract::File::Append("results.txt", outStr.c_str(), outStr.size());
 }
 
 // Pops the first test case in the queue.
@@ -178,13 +188,15 @@ void TestDirector::writeTestOutput() const {
 // Returns whether or not there are remaining test cases.
 bool TestDirector::popTestCase() {
     ASSERT(m_testCases.size() > 0);
-    m_testCases.pop();
-    delete[] m_stream.data();
+    std::println("poppi");
+    exit(42);
+    // m_testCases.pop();
+    // delete[] m_streams.data();
 
-    return !m_testCases.empty();
+    // return !m_testCases.empty();
 }
 
-TestData TestDirector::findNextEntry() {
+TestData TestDirector::findNextEntry(EGG::RamStream &stream) {
     EGG::Vector3f pos;
     EGG::Quatf fullRot;
     EGG::Vector3f extVel;
@@ -198,33 +210,33 @@ TestData TestDirector::findNextEntry() {
     u16 checkpointId = 0;
     u8 jugemId = 0;
 
-    pos.read(m_stream);
-    fullRot.read(m_stream);
+    pos.read(stream);
+    fullRot.read(stream);
 
     if (m_versionMinor >= Changelog::AddedExtVel) {
-        extVel.read(m_stream);
+        extVel.read(stream);
     }
 
     if (m_versionMinor >= Changelog::AddedIntVel) {
-        intVel.read(m_stream);
+        intVel.read(stream);
     }
 
     if (m_versionMinor >= Changelog::AddedSpeed) {
-        speed = m_stream.read_f32();
-        acceleration = m_stream.read_f32();
-        softSpeedLimit = m_stream.read_f32();
+        speed = stream.read_f32();
+        acceleration = stream.read_f32();
+        softSpeedLimit = stream.read_f32();
     }
 
     if (m_versionMinor >= Changelog::AddedRotation) {
-        mainRot.read(m_stream);
-        angVel2.read(m_stream);
+        mainRot.read(stream);
+        angVel2.read(stream);
     }
 
     if (m_versionMinor >= Changelog::AddedCheckpoints) {
-        raceCompletion = m_stream.read_f32();
-        checkpointId = m_stream.read_u16();
-        jugemId = m_stream.read_u8();
-        m_stream.skip(1);
+        raceCompletion = stream.read_f32();
+        checkpointId = stream.read_u16();
+        jugemId = stream.read_u8();
+        stream.skip(1);
     }
 
     TestData data;
@@ -243,21 +255,28 @@ TestData TestDirector::findNextEntry() {
     return data;
 }
 
-const TestCase &TestDirector::testCase() const {
-    ASSERT(m_testCases.size() > 0);
-    return m_testCases.front();
-}
+// const TestCase &TestDirector::testCase() const {
+//     ASSERT(m_testCases.size() > 0);
+//     return m_testCases.front();
+// }
 
 bool TestDirector::sync() const {
     return m_sync;
 }
 
 void TestDirector::OnInit(System::RaceConfig *config, void * /* arg */) {
-    size_t size;
     const auto *testDirector = Host::KSystem::Instance().testDirector();
-    u8 *rkg = Abstract::File::Load(testDirector->testCase().rkgPath.data(), size);
-    config->setGhost(rkg, 0);
-    delete[] rkg;
+#ifdef __clang__
+    // clang does not support std::views::enumerate, a cpp23 feature :(
+    for (auto [idx, testCase]: std::views::zip(std::views::iota(0), testDirector->m_testCases)) {
+#else
+    for (auto [idx, testCase]: std::views::enumerate(testDirector->m_testCases)) {
+#endif
+        size_t size;
+        u8 *rkg = Abstract::File::Load(testCase.rkgPath.data(), size);
+        config->setGhost(rkg, 0);
+        delete[] rkg;
+    }
 
     auto &players = config->raceScenario().players;
     if (players.size() <= 0) {
@@ -266,14 +285,14 @@ void TestDirector::OnInit(System::RaceConfig *config, void * /* arg */) {
     players.front().type = System::RaceConfig::Player::Type::Ghost;
 }
 
-void TestDirector::readHeader() {
+void TestDirector::readHeader(EGG::RamStream &stream) {
     constexpr u32 KRKG_SIGNATURE = 0x4b524b47; // KRKG
 
-    ASSERT(m_stream.read_u32() == KRKG_SIGNATURE);
-    m_stream.skip(2);
-    m_frameCount = m_stream.read_u16();
-    m_versionMajor = m_stream.read_u16();
-    m_versionMinor = m_stream.read_u16();
+    ASSERT(stream.read_u32() == KRKG_SIGNATURE);
+    stream.skip(2);
+    m_frameCount = stream.read_u16();
+    m_versionMajor = stream.read_u16();
+    m_versionMinor = stream.read_u16();
 }
 
 } // namespace Test

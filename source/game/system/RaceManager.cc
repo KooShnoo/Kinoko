@@ -9,6 +9,8 @@
 #include "game/kart/KartState.hh"
 #include <cstddef>
 #include <game/system/RaceConfig.hh>
+#include <host/System.hh>
+#include <print>
 #include <ranges>
 
 namespace System {
@@ -36,13 +38,17 @@ void RaceManager::findKartStartPoint(EGG::Vector3f &pos, EGG::Vector3f &angles) 
     }
 }
 
+size_t g_test = 0;
+
 /// @addr{0x805331B4}
 void RaceManager::calc() {
     constexpr u16 STAGE_INTRO_DURATION = 172;
 
     for (auto &player : m_players) {
+        g_test ++;
         player.calc();
     }
+        g_test =0;
 
     switch (m_stage) {
     case Stage::Intro:
@@ -282,6 +288,7 @@ void RaceManager::Player::decrementLap() {
 void RaceManager::Player::incrementLap() {
     m_maxKcp = 0;
     ++m_currentLap;
+    std::println("p {} f {} inc lap {}", g_test, Host::KSystem::Instance().testDirector()->m_currentFrame, m_currentLap);
 }
 
 RaceManager *RaceManager::s_instance = nullptr; ///< @addr{0x809BD730}
