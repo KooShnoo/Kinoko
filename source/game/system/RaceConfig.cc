@@ -36,10 +36,11 @@ void RaceConfig::initControllers() {
 #endif
         switch (player.type) {
         case Player::Type::Ghost:
-            initGhost(player, m_ghosts[idx]);
+            initGhost(player, m_ghosts.at(idx));
+            // initGhost(player, m_ghosts[idx]);
             break;
         case Player::Type::Local:
-            KPadDirector::Instance()->setHostPad(player.driftIsAuto);
+            KPadDirector::Instance()->pushHostPad(player.driftIsAuto);
             break;
         default:
             PANIC("Players must be either local or ghost!");
@@ -59,7 +60,7 @@ void RaceConfig::initGhost(Player &player, RawGhostFile rawGhost) {
     player.vehicle = ghost.vehicle();
     player.driftIsAuto = ghost.driftIsAuto();
 
-    KPadDirector::Instance()->setGhostPad(ghost.inputs(), ghost.driftIsAuto());
+    KPadDirector::Instance()->pushGhostPad(ghost.inputs(), ghost.driftIsAuto());
 }
 
 void RaceConfig::RegisterInitCallback(const InitCallback &callback, void *arg) {

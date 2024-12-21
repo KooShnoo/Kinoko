@@ -127,11 +127,17 @@ bool TestDirector::calc() {
         return false;
     }
 
+    // if (m_currentFrame < 300) {return true; }
+    std::println("fc {}",m_currentFrame);
+
     // Test the current frame
     TestData data = findNextEntry(m_stream);
     TestData data2 = findNextEntry(m_stream2);
-    test(data, 0);
+    ASSERT(m_sync);
+    test(data2, 0);
+    ASSERT(m_sync);
     test(data2, 1);
+    ASSERT(m_sync);
     return m_sync;
 }
 
@@ -272,6 +278,8 @@ void TestDirector::OnInit(System::RaceConfig *config, void * /* arg */) {
     const auto *testDirector = Host::KSystem::Instance().testDirector();
     u8 *rkg = Abstract::File::Load(testDirector->testCase().rkgPath.data(), size);
     config->setGhost(rkg, 0);
+    rkg = Abstract::File::Load(testDirector->m_testCases.back().rkgPath.data(), size);
+    config->setGhost(rkg, 1);
     delete[] rkg;
 
     auto &players = config->raceScenario().players;

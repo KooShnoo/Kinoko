@@ -397,6 +397,7 @@ KPad::~KPad() = default;
 
 /// @addr{0x80521198}
 void KPad::calc() {
+    m_controller->calc();
     m_lastInputState = m_currentInputState;
     m_currentInputState = m_controller->raceInputState();
 }
