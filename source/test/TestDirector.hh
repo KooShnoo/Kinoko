@@ -33,19 +33,19 @@ public:
     void parseSuite(EGG::RamStream &stream);
     void init();
     [[nodiscard]] bool calc();
-    void test(const TestData &data, int i);
+    void test(const TestData &data);
     void writeTestOutput() const;
     bool popTestCase();
 
-    [[nodiscard]] TestData findNextEntry(EGG::Stream &stream);
+    [[nodiscard]] TestData findNextEntry();
     [[nodiscard]] const TestCase &testCase() const;
 
     [[nodiscard]] bool sync() const;
 
     static void OnInit(System::RaceConfig *config, void *arg);
 
-private:
-    void readHeader(EGG::Stream &stream);
+// private:
+    void readHeader();
 
     template <IntegralType T>
     void checkDesync(const T &t0, const T &t1, const char *name) {
@@ -107,8 +107,6 @@ private:
     std::queue<TestCase> m_testCases;
 
     EGG::RamStream m_stream;
-    // temprorty; for multiplayer testing
-    EGG::RamStream m_stream2;
 
     u16 m_versionMajor;
     u16 m_versionMinor;

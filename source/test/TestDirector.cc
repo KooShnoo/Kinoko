@@ -1,7 +1,5 @@
 #include "TestDirector.hh"
 
-#include <cstdlib>
-#include <egg/util/Stream.hh>
 #include <game/kart/KartObjectManager.hh>
 #include <game/system/RaceManager.hh>
 
@@ -9,7 +7,6 @@
 #include <host/System.hh>
 
 #include <format>
-#include <print>
 
 namespace Test {
 
@@ -29,10 +26,6 @@ TestDirector::TestDirector(const std::span<u8> &suiteData) {
     EGG::RamStream stream = EGG::RamStream(suiteData.data(), suiteData.size());
     stream.setEndian(std::endian::big);
     parseSuite(stream);
-    std::println("{} tcs", m_testCases.size());
-    ASSERT(m_testCases.size() == 2);
-    ASSERT(m_testCases.front().name == "rmc-rta");
-    ASSERT(m_testCases.back().name == "rmc-ng");
     init();
 }
 
@@ -99,8 +92,6 @@ void TestDirector::init() {
     size_t size;
     u8 *krkg = Abstract::File::Load(testCase().krkgPath.data(), size);
     m_stream = EGG::RamStream(krkg, static_cast<u32>(size));
-    u8 *krkg2 = Abstract::File::Load(m_testCases.back().krkgPath.data(), size);
-    m_stream2 = EGG::RamStream(krkg2, static_cast<u32>(size));
     m_currentFrame = -1;
     m_sync = true;
 
@@ -108,13 +99,10 @@ void TestDirector::init() {
     u16 mark = *reinterpret_cast<u16 *>(krkg + offsetof(TestHeader, byteOrderMark));
     std::endian endian = parse<u16>(mark) == 0xfeff ? std::endian::big : std::endian::little;
     m_stream.setEndian(endian);
-    m_stream2.setEndian(endian);
 
-    readHeader(m_stream);
-    readHeader(m_stream2);
+    readHeader();
 
     ASSERT(m_stream.read_u32() == m_stream.index());
-    ASSERT(m_stream2.read_u32() == m_stream2.index());
 }
 
 bool TestDirector::calc() {
@@ -127,22 +115,14 @@ bool TestDirector::calc() {
         return false;
     }
 
-    // if (m_currentFrame < 300) {return true; }
-    std::println("fc {}",m_currentFrame);
-
     // Test the current frame
-    TestData data = findNextEntry(m_stream);
-    TestData data2 = findNextEntry(m_stream2);
-    ASSERT(m_sync);
-    test(data2, 0);
-    ASSERT(m_sync);
-    test(data2, 1);
-    ASSERT(m_sync);
+    TestData data = findNextEntry();
+    test(data);
     return m_sync;
 }
 
-void TestDirector::test(const TestData &data, int i) {
-    auto *object = Kart::KartObjectManager::Instance()->object(i);
+void TestDirector::test(const TestData &data) {
+    auto *object = Kart::KartObjectManager::Instance()->object(0);
     const auto &pos = object->pos();
     const auto &fullRot = object->fullRot();
     const auto &extVel = object->extVel();
@@ -199,13 +179,12 @@ void TestDirector::writeTestOutput() const {
 bool TestDirector::popTestCase() {
     ASSERT(m_testCases.size() > 0);
     m_testCases.pop();
-    m_testCases.pop();
     delete[] m_stream.data();
 
     return !m_testCases.empty();
 }
 
-TestData TestDirector::findNextEntry(EGG::Stream &stream) {
+TestData TestDirector::findNextEntry() {
     EGG::Vector3f pos;
     EGG::Quatf fullRot;
     EGG::Vector3f extVel;
@@ -219,33 +198,33 @@ TestData TestDirector::findNextEntry(EGG::Stream &stream) {
     u16 checkpointId = 0;
     u8 jugemId = 0;
 
-    pos.read(stream);
-    fullRot.read(stream);
+    pos.read(m_stream);
+    fullRot.read(m_stream);
 
     if (m_versionMinor >= Changelog::AddedExtVel) {
-        extVel.read(stream);
+        extVel.read(m_stream);
     }
 
     if (m_versionMinor >= Changelog::AddedIntVel) {
-        intVel.read(stream);
+        intVel.read(m_stream);
     }
 
     if (m_versionMinor >= Changelog::AddedSpeed) {
-        speed = stream.read_f32();
-        acceleration = stream.read_f32();
-        softSpeedLimit = stream.read_f32();
+        speed = m_stream.read_f32();
+        acceleration = m_stream.read_f32();
+        softSpeedLimit = m_stream.read_f32();
     }
 
     if (m_versionMinor >= Changelog::AddedRotation) {
-        mainRot.read(stream);
-        angVel2.read(stream);
+        mainRot.read(m_stream);
+        angVel2.read(m_stream);
     }
 
     if (m_versionMinor >= Changelog::AddedCheckpoints) {
-        raceCompletion = stream.read_f32();
-        checkpointId = stream.read_u16();
-        jugemId = stream.read_u8();
-        stream.skip(1);
+        raceCompletion = m_stream.read_f32();
+        checkpointId = m_stream.read_u16();
+        jugemId = m_stream.read_u8();
+        m_stream.skip(1);
     }
 
     TestData data;
@@ -278,28 +257,23 @@ void TestDirector::OnInit(System::RaceConfig *config, void * /* arg */) {
     const auto *testDirector = Host::KSystem::Instance().testDirector();
     u8 *rkg = Abstract::File::Load(testDirector->testCase().rkgPath.data(), size);
     config->setGhost(rkg, 0);
-    rkg = Abstract::File::Load(testDirector->m_testCases.back().rkgPath.data(), size);
-    config->setGhost(rkg, 1);
     delete[] rkg;
 
     auto &players = config->raceScenario().players;
     if (players.size() <= 0) {
         players.emplace_back();
-        // multiplayer test
-        players.emplace_back();
     }
     players.front().type = System::RaceConfig::Player::Type::Ghost;
-    players[1].type = System::RaceConfig::Player::Type::Ghost;
 }
 
-void TestDirector::readHeader(EGG::Stream &stream) {
+void TestDirector::readHeader() {
     constexpr u32 KRKG_SIGNATURE = 0x4b524b47; // KRKG
 
-    ASSERT(stream.read_u32() == KRKG_SIGNATURE);
-    stream.skip(2);
-    m_frameCount = stream.read_u16();
-    m_versionMajor = stream.read_u16();
-    m_versionMinor = stream.read_u16();
+    ASSERT(m_stream.read_u32() == KRKG_SIGNATURE);
+    m_stream.skip(2);
+    m_frameCount = m_stream.read_u16();
+    m_versionMajor = m_stream.read_u16();
+    m_versionMinor = m_stream.read_u16();
 }
 
 } // namespace Test
