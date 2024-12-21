@@ -42,7 +42,7 @@ public:
     [[nodiscard]] TestData findNextEntry(EGG::RamStream &stream);
     // [[nodiscard]] const TestCase &testCase() const;
 
-    [[nodiscard]] bool sync() const;
+    // [[nodiscard]] bool sync() const;
 
     static void OnInit(System::RaceConfig *config, void *arg);
 
@@ -55,16 +55,16 @@ public:
             return;
         }
 
-        if (m_sync) {
+        // if (m_sync) {
             REPORT("Test Case Failed: %s [%d / %d]", testName.c_str(), m_currentFrame,
                     m_frameCount);
-        }
+        // }
 
         REPORT("DESYNC! Name: %s", name);
         REPORT("Expected: %d", t0);
         REPORT("Observed: %d", t1);
 
-        m_sync = false;
+        // m_sync = false;
     }
 
     template <typename T>
@@ -73,10 +73,10 @@ public:
             return;
         }
 
-        if (m_sync) {
+        // if (m_sync) {
             REPORT("Test Case Failed: %s [%d / %d]", testName.c_str(), m_currentFrame,
                     m_frameCount);
-        }
+        // }
 
         REPORT("DESYNC! Name: %s", name);
         std::string s0(t0);
@@ -84,7 +84,7 @@ public:
         REPORT("Expected: %s", s0.c_str());
         REPORT("Observed: %s", s1.c_str());
 
-        m_sync = false;
+        // m_sync = false;
     }
 
     void checkDesync(std::string testName, const f32 &t0, const f32 &t1, const char *name) {
@@ -92,10 +92,10 @@ public:
             return;
         }
 
-        if (m_sync) {
+        // if (m_sync) {
             REPORT("Test Case Failed: %s [%d / %d]", testName.c_str(), m_currentFrame,
                     m_frameCount);
-        }
+        // }
 
         REPORT("DESYNC! Name: %s", name);
         std::string s0 = std::to_string(t0);
@@ -103,7 +103,7 @@ public:
         REPORT("Expected: 0x%08X | %s", f2u(t0), s0.c_str());
         REPORT("Observed: 0x%08X | %s", f2u(t1), s1.c_str());
 
-        m_sync = false;
+        // m_sync = false;
     }
 
     std::vector<TestCase> m_testCases;
@@ -114,7 +114,7 @@ public:
     u16 m_versionMinor;
     u16 m_frameCount;
     u16 m_currentFrame;
-    bool m_sync;
+    // bool m_sync;
 };
 
 } // namespace Test

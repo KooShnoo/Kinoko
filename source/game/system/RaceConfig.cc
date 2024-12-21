@@ -29,10 +29,10 @@ void RaceConfig::initRace() {
 /// @details This is normally scoped within RaceConfig::Scenario, but Kinoko doesn't support menus.
 void RaceConfig::initControllers() {
 #ifdef __clang__
-            // clang does not support std::views::enumerate, a cpp23 feature :(
-            for (auto [idx, player] : std::views::zip(std::views::iota(0), m_raceScenario.players)) {
+    // clang does not support std::views::enumerate, a cpp23 feature :(
+    for (auto [idx, player] : std::views::zip(std::views::iota(0), m_raceScenario.players)) {
 #else
-            for (auto [idx, player] : std::ranges::views::enumerate(m_raceScenario.players)) {
+    for (auto [idx, player] : std::ranges::views::enumerate(m_raceScenario.players)) {
 #endif
         switch (player.type) {
         case Player::Type::Ghost:

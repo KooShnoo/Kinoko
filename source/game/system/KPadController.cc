@@ -274,7 +274,7 @@ u8 KPadGhostButtonsStream::readFrame() {
                 state = 2;
                 return 0;
             }
-            currentSequence = buffer.read_u16();
+            currentSequence = buffer.read_u16(); // [Stream.hh:47] ASSERT: !eof()
         }
     }
 
@@ -432,7 +432,7 @@ void KPadPlayer::setGhostController(KPadGhostController *controller, const u8 *i
         bool driftIsAuto) {
     m_controller = controller;
 
-    if (inputs) {
+    if (inputs) { // sus?
         memcpy(m_ghostBuffer, inputs, RKG_UNCOMPRESSED_INPUT_DATA_SECTION_SIZE);
     }
 

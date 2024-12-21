@@ -60,7 +60,9 @@ debug_cflags = [
     '-ggdb',
 ]
 
-common_ldflags = []
+common_ldflags = [
+    "-L/usr/local/Cellar/llvm/19.1.3/lib/c++/",
+]
 
 n.rule(
     'cc',
@@ -119,6 +121,7 @@ for in_file in code_in_files:
 #     variables={
 #         'ldflags': ' '.join([
 #             *common_ldflags,
+#             '-flto'
 #         ])
 #     },
 # )
@@ -130,7 +133,6 @@ n.build(
     variables={
         'ldflags': ' '.join([
             *common_ldflags,
-            "-L/usr/local/Cellar/llvm/19.1.3/lib/c++/"
         ])
     },
 )

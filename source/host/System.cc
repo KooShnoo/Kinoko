@@ -139,7 +139,8 @@ bool KSystem::run() {
     }
 
     m_testDirector->writeTestOutput();
-    return m_testDirector->sync();
+    // return m_testDirector->sync();
+    return false;
 }
 
 // EGG::Heap *KSystem::rootHeap() const {
