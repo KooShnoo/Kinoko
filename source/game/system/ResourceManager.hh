@@ -29,7 +29,7 @@ public:
 
 private:
     ResourceManager();
-    ~ResourceManager() override;
+    ~ResourceManager();
 
     // 0: Core archive
     // 1: Course archive

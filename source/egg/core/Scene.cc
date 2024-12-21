@@ -6,7 +6,7 @@ namespace EGG {
 
 /// @addr{0x8023AD10}
 Scene::Scene() {
-    m_heap = SceneManager::heapForCreateScene();
+    // m_heap = SceneManager::heapForCreateScene();
     m_parent = nullptr;
     m_child = nullptr;
     m_id = -1;
@@ -32,9 +32,9 @@ void Scene::setSceneMgr(SceneManager *sceneMgr) {
     m_sceneMgr = sceneMgr;
 }
 
-Heap *Scene::heap() const {
-    return m_heap;
-}
+// Heap *Scene::heap() const {
+//     return m_heap;
+// }
 
 Scene *Scene::parent() const {
     return m_parent;

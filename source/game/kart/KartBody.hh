@@ -37,13 +37,13 @@ protected:
 class KartBodyKart : public KartBody {
 public:
     KartBodyKart(KartPhysics *physics);
-    ~KartBodyKart() override;
+    ~KartBodyKart();
 };
 
 class KartBodyBike : public KartBody {
 public:
     KartBodyBike(KartPhysics *physics);
-    ~KartBodyBike() override;
+    ~KartBodyBike();
 
     [[nodiscard]] EGG::Matrix34f wheelMatrix(u16 wheelIdx) override;
 };
@@ -51,7 +51,7 @@ public:
 class KartBodyQuacker : public KartBodyBike {
 public:
     KartBodyQuacker(KartPhysics *physics);
-    ~KartBodyQuacker() override;
+    ~KartBodyQuacker();
 
     [[nodiscard]] EGG::Matrix34f wheelMatrix(u16 wheelIdx) override;
 };

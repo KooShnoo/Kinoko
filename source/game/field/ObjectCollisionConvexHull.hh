@@ -8,7 +8,7 @@ namespace Field {
 class ObjectCollisionConvexHull : public ObjectCollisionBase {
 public:
     ObjectCollisionConvexHull(const std::span<const EGG::Vector3f> &points);
-    ~ObjectCollisionConvexHull() override;
+    ~ObjectCollisionConvexHull();
 
     void transform(const EGG::Matrix34f &mat, const EGG::Vector3f &scale,
             const EGG::Vector3f &speed) override;

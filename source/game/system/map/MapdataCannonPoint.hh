@@ -40,7 +40,7 @@ class MapdataCannonPointAccessor
     : public MapdataAccessorBase<MapdataCannonPoint, MapdataCannonPoint::SData> {
 public:
     MapdataCannonPointAccessor(const MapSectionHeader *header);
-    ~MapdataCannonPointAccessor() override;
+    ~MapdataCannonPointAccessor();
 };
 
 } // namespace System

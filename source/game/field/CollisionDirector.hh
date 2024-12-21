@@ -55,7 +55,7 @@ public:
 
 private:
     CollisionDirector();
-    ~CollisionDirector() override;
+    ~CollisionDirector();
 
     const CollisionEntry *m_closestCollisionEntry;
     std::array<CollisionEntry, COLLISION_ARR_LENGTH> m_entries;

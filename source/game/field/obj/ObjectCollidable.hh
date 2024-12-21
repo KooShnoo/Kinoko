@@ -16,7 +16,7 @@ namespace Field {
 class ObjectCollidable : public ObjectBase {
 public:
     ObjectCollidable(const System::MapdataGeoObj &params);
-    ~ObjectCollidable() override;
+    ~ObjectCollidable();
 
     void load() override;
     void calcCollisionTransform() override;

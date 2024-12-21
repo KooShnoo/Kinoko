@@ -32,7 +32,7 @@ class MapdataStartPointAccessor
     : public MapdataAccessorBase<MapdataStartPoint, MapdataStartPoint::SData> {
 public:
     MapdataStartPointAccessor(const MapSectionHeader *header);
-    ~MapdataStartPointAccessor() override;
+    ~MapdataStartPointAccessor();
 };
 
 } // namespace System

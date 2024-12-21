@@ -43,7 +43,7 @@ private:
 class MapdataGeoObjAccessor : public MapdataAccessorBase<MapdataGeoObj, MapdataGeoObj::SData> {
 public:
     MapdataGeoObjAccessor(const MapSectionHeader *header);
-    ~MapdataGeoObjAccessor() override;
+    ~MapdataGeoObjAccessor();
 };
 
 } // namespace System

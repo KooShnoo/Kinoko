@@ -8,7 +8,7 @@ namespace Scene {
 class RootScene final : public EGG::Scene {
 public:
     RootScene();
-    ~RootScene() override;
+    ~RootScene();
 
     void enter() override;
 

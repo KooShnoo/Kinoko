@@ -27,7 +27,7 @@ public:
 
 private:
     KPadDirector();
-    ~KPadDirector() override;
+    ~KPadDirector();
 
     std::vector<KPadPlayer> m_playerInputs;
 

@@ -13,7 +13,7 @@ namespace Scene {
 class GameScene : public EGG::Scene {
 public:
     GameScene();
-    ~GameScene() override;
+    ~GameScene();
 
     void calc() final;
     void enter() final;

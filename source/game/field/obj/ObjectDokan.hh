@@ -7,7 +7,7 @@ namespace Field {
 class ObjectDokan final : public ObjectCollidable {
 public:
     ObjectDokan(const System::MapdataGeoObj &params);
-    ~ObjectDokan() override;
+    ~ObjectDokan();
 
     void init() override;
     void calc() override;

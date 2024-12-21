@@ -52,7 +52,7 @@ class MapdataCheckPathAccessor
     : public MapdataAccessorBase<MapdataCheckPath, MapdataCheckPath::SData> {
 public:
     MapdataCheckPathAccessor(const MapSectionHeader *header);
-    ~MapdataCheckPathAccessor() override;
+    ~MapdataCheckPathAccessor();
 
     [[nodiscard]] MapdataCheckPath *findCheckpathForCheckpoint(u16 checkpointId) const;
 

@@ -81,7 +81,7 @@ public:
 
 private:
     CourseColMgr();
-    ~CourseColMgr() override;
+    ~CourseColMgr();
 
     [[nodiscard]] bool doCheckWithPartialInfo(KColData *data, CollisionCheckFunc collisionCheckFunc,
             CollisionInfo *colInfo, KCLTypeMask *typeMask);

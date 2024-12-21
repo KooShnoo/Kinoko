@@ -103,7 +103,7 @@ class MapdataCheckPointAccessor
     : public MapdataAccessorBase<MapdataCheckPoint, MapdataCheckPoint::SData> {
 public:
     MapdataCheckPointAccessor(const MapSectionHeader *header);
-    ~MapdataCheckPointAccessor() override;
+    ~MapdataCheckPointAccessor();
 
     [[nodiscard]] s8 lastKcpType() const;
 

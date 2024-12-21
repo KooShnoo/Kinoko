@@ -20,7 +20,7 @@ public:
 
 private:
     ItemDirector();
-    ~ItemDirector() override;
+    ~ItemDirector();
 
     std::vector<KartItem> m_karts;
 

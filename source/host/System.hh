@@ -23,7 +23,7 @@ public:
     void initMemory();
     [[nodiscard]] bool run();
 
-    [[nodiscard]] EGG::Heap *rootHeap() const;
+    // [[nodiscard]] EGG::Heap *rootHeap() const;
     [[nodiscard]] const Test::TestDirector *testDirector() const;
 
     [[nodiscard]] static KSystem &Instance();
@@ -35,7 +35,7 @@ private:
     ~KSystem();
 
     void *m_memorySpace;
-    EGG::Heap *m_rootHeap;
+    // EGG::Heap *m_rootHeap;
     std::span<u8> m_suiteData;
     EGG::SceneManager *m_sceneMgr;
     Test::TestDirector *m_testDirector;

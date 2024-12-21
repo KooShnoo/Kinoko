@@ -81,7 +81,7 @@ public:
 
 private:
     RaceManager();
-    ~RaceManager() override;
+    ~RaceManager();
 
     std::vector<Player> m_players;
     Stage m_stage;

@@ -41,7 +41,7 @@ public:
     /// @endSetters
 
     /// @beginGetters
-    [[nodiscard]] Heap *heap() const;
+    // [[nodiscard]] Heap *heap() const;
     [[nodiscard]] Scene *parent() const;
     [[nodiscard]] Scene *child() const;
     [[nodiscard]] int id() const;
@@ -53,7 +53,7 @@ protected:
         Members
      *-----------*/
 
-    Heap *m_heap;
+    // Heap *m_heap;
     Scene *m_parent;
     Scene *m_child;
     int m_id;

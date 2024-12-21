@@ -139,7 +139,7 @@ protected:
 class KPadGhostController : public KPadController {
 public:
     KPadGhostController();
-    ~KPadGhostController() override;
+    ~KPadGhostController();
 
     [[nodiscard]] ControlSource controlSource() const override;
     void reset(bool driftIsAuto) override;
@@ -161,7 +161,7 @@ private:
 class KPadHostController : public KPadController {
 public:
     KPadHostController();
-    ~KPadHostController() override;
+    ~KPadHostController();
 
     [[nodiscard]] ControlSource controlSource() const override;
     void reset(bool driftIsAuto) override;
