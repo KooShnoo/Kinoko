@@ -54,9 +54,9 @@ public:
         return m_currentSceneId;
     }
 
-    // [[nodiscard]] static Heap *heapForCreateScene() {
-    //     return s_heapForCreateScene;
-    // }
+    [[nodiscard]] static Heap *heapForCreateScene() {
+        return s_heapForCreateScene;
+    }
 
     /*----------*
         Setters
@@ -77,7 +77,7 @@ private:
     int m_currentSceneId;
     int m_prevSceneId;
 
-    // static Heap *s_heapForCreateScene;
+    static Heap *s_heapForCreateScene;
     static u16 s_heapOptionFlg;
 };
 

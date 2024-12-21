@@ -69,7 +69,7 @@ public:
 
 private:
     CourseMap();
-    ~CourseMap();
+    ~CourseMap() override;
 
     [[nodiscard]] s16 findSectorBetweenSides(const EGG::Vector3f &pos,
             MapdataCheckPoint *checkpoint, f32 &distanceRatio);

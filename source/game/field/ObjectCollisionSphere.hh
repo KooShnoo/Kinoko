@@ -7,7 +7,7 @@ namespace Field {
 class ObjectCollisionSphere : public ObjectCollisionBase {
 public:
     ObjectCollisionSphere(f32 radius, const EGG::Vector3f &center);
-    ~ObjectCollisionSphere();
+    ~ObjectCollisionSphere() override;
 
     void transform(const EGG::Matrix34f &mat, const EGG::Vector3f &scale,
             const EGG::Vector3f &speed) override;

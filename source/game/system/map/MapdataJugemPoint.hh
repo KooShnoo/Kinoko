@@ -34,7 +34,7 @@ class MapdataJugemPointAccessor
     : public MapdataAccessorBase<MapdataJugemPoint, MapdataJugemPoint::SData> {
 public:
     MapdataJugemPointAccessor(const MapSectionHeader *header);
-    ~MapdataJugemPointAccessor();
+    ~MapdataJugemPointAccessor() override;
 };
 
 } // namespace System

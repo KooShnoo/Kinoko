@@ -66,7 +66,7 @@ struct BoxColHighPoint {
 class BoxColManager : EGG::Disposer {
 public:
     BoxColManager();
-    ~BoxColManager();
+    ~BoxColManager() override;
 
     void clear();
     void calc();

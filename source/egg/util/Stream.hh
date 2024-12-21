@@ -59,7 +59,7 @@ class RamStream : public Stream {
 public:
     RamStream();
     RamStream(u8 *buffer, u32 size);
-    ~RamStream();
+    ~RamStream() override;
 
     void read(void *output, u32 size) override;
     void write(void *input, u32 size) override;

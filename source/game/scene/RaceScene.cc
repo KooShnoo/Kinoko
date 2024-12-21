@@ -18,7 +18,7 @@ namespace Scene {
 
 /// @addr{0x80553B88}
 RaceScene::RaceScene() {
-    // m_heap->setName("RaceSceneHeap");
+    m_heap->setName("RaceSceneHeap");
 }
 
 /// @addr{0x80553BD4}
@@ -59,7 +59,6 @@ void RaceScene::calcEngines() {
 /// @addr{0x805549B0}
 void RaceScene::destroyEngines() {
     System::KPadDirector::Instance()->endGhostProxies();
-    // System::RaceConfig::Instance()->clear();
     Kart::KartObjectManager::DestroyInstance();
     Field::ObjectDirector::DestroyInstance();
     Field::CollisionDirector::DestroyInstance();

@@ -36,7 +36,7 @@ private:
     };
 
     KartParamFileManager();
-    ~KartParamFileManager();
+    ~KartParamFileManager() override;
 
     [[nodiscard]] bool validate() const;
 

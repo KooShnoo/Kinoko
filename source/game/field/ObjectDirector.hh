@@ -29,7 +29,7 @@ public:
 
 private:
     ObjectDirector();
-    ~ObjectDirector();
+    ~ObjectDirector() override;
 
     void createObjects();
     ObjectBase *createObject(const System::MapdataGeoObj &params);

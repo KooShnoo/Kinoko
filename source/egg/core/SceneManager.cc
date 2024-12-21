@@ -50,23 +50,23 @@ void SceneManager::createChildScene(int id, Scene *parent) {
 
 /// @addr{0x8023B0E4}
 void SceneManager::createScene(int id, Scene *parent) {
-    // Heap *parentHeap = parent ? parent->heap() : Host::KSystem::Instance().rootHeap();
+    Heap *parentHeap = parent ? parent->heap() : Host::KSystem::Instance().rootHeap();
 
-    // // We need to preserve the locked status to reinstate it later
-    // bool locked = parentHeap->tstDisableAllocation();
-    // if (locked) {
-    //     parentHeap->enableAllocation();
-    // }
+    // We need to preserve the locked status to reinstate it later
+    bool locked = parentHeap->tstDisableAllocation();
+    if (locked) {
+        parentHeap->enableAllocation();
+    }
 
-    // ExpHeap *newHeap = ExpHeap::create(-1, parentHeap, s_heapOptionFlg);
-    // s_heapForCreateScene = newHeap;
+    ExpHeap *newHeap = ExpHeap::create(-1, parentHeap, s_heapOptionFlg);
+    s_heapForCreateScene = newHeap;
 
-    // if (locked) {
-    //     parentHeap->disableAllocation();
-    // }
+    if (locked) {
+        parentHeap->disableAllocation();
+    }
 
-    // newHeap->becomeCurrentHeap();
-    // newHeap->setName("DefaultSceneHeap");
+    newHeap->becomeCurrentHeap();
+    newHeap->setName("DefaultSceneHeap");
 
     Scene *newScene = m_creator->create(id);
 
@@ -97,9 +97,9 @@ void SceneManager::destroyScene(Scene *scene) {
         m_currentScene = parent;
     }
 
-    // scene->heap()->destroy();
-    // Heap *parentHeap = parent ? parent->heap() : Host::KSystem::Instance().rootHeap();
-    // parentHeap->becomeCurrentHeap();
+    scene->heap()->destroy();
+    Heap *parentHeap = parent ? parent->heap() : Host::KSystem::Instance().rootHeap();
+    parentHeap->becomeCurrentHeap();
 }
 
 /// @addr{0x8023AF84}
@@ -209,7 +209,7 @@ void SceneManager::setupNextSceneId() {
     m_nextSceneId = -1;
 }
 
-// Heap *SceneManager::s_heapForCreateScene = nullptr;
+Heap *SceneManager::s_heapForCreateScene = nullptr;
 u16 SceneManager::s_heapOptionFlg = 2;
 
 } // namespace EGG

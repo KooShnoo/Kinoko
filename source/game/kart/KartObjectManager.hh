@@ -22,7 +22,7 @@ public:
 
 private:
     KartObjectManager();
-    ~KartObjectManager();
+    ~KartObjectManager() override;
 
     std::vector<KartObject *> m_objects;
 

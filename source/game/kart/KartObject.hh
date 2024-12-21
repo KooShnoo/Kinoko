@@ -38,7 +38,7 @@ protected:
 class KartObjectBike : public KartObject {
 public:
     KartObjectBike(KartParam *param);
-    ~KartObjectBike();
+    ~KartObjectBike() override;
     [[nodiscard]] KartBody *createBody(KartPhysics *physics) override;
     void createTires() override;
 };

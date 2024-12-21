@@ -8,7 +8,7 @@ namespace Scene {
 class RaceScene final : public GameScene {
 public:
     RaceScene();
-    ~RaceScene();
+    ~RaceScene() override;
 
     void createEngines() override;
     void initEngines() override;

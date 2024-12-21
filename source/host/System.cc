@@ -116,18 +116,18 @@ void KSystem::init() {
 /// @details In the base game, the initial memory space is provided by the OS arena.
 /// For local implementations, we request memory from the OS via malloc, as it's not overwritten.
 void KSystem::initMemory() {
-//     constexpr size_t MEMORY_SPACE_SIZE = 0x1000000;
-//     Abstract::Memory::MEMiHeapHead::OptFlag opt;
-//     opt.setBit(Abstract::Memory::MEMiHeapHead::eOptFlag::ZeroFillAlloc);
+    constexpr size_t MEMORY_SPACE_SIZE = 0x1000000;
+    Abstract::Memory::MEMiHeapHead::OptFlag opt;
+    opt.setBit(Abstract::Memory::MEMiHeapHead::eOptFlag::ZeroFillAlloc);
 
-// #ifdef BUILD_DEBUG
-//     opt.setBit(Abstract::Memory::MEMiHeapHead::eOptFlag::DebugFillAlloc);
-// #endif
+#ifdef BUILD_DEBUG
+    opt.setBit(Abstract::Memory::MEMiHeapHead::eOptFlag::DebugFillAlloc);
+#endif
 
-//     m_memorySpace = malloc(MEMORY_SPACE_SIZE);
-//     m_rootHeap = EGG::ExpHeap::create(m_memorySpace, MEMORY_SPACE_SIZE, opt);
-//     m_rootHeap->setName("EGGRoot");
-//     m_rootHeap->becomeCurrentHeap();
+    m_memorySpace = malloc(MEMORY_SPACE_SIZE);
+    m_rootHeap = EGG::ExpHeap::create(m_memorySpace, MEMORY_SPACE_SIZE, opt);
+    m_rootHeap->setName("EGGRoot");
+    m_rootHeap->becomeCurrentHeap();
 }
 
 /// @brief The main loop of the program.
@@ -143,9 +143,9 @@ bool KSystem::run() {
     return false;
 }
 
-// EGG::Heap *KSystem::rootHeap() const {
-//     return m_rootHeap;
-// }
+EGG::Heap *KSystem::rootHeap() const {
+    return m_rootHeap;
+}
 
 const Test::TestDirector *KSystem::testDirector() const {
     return m_testDirector;

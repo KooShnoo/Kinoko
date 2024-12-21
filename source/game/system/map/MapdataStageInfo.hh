@@ -31,7 +31,7 @@ class MapdataStageInfoAccessor
     : public MapdataAccessorBase<MapdataStageInfo, MapdataStageInfo::SData> {
 public:
     MapdataStageInfoAccessor(const MapSectionHeader *header);
-    ~MapdataStageInfoAccessor();
+    ~MapdataStageInfoAccessor() override;
 };
 
 } // namespace System
