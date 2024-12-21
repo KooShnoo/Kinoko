@@ -36,8 +36,7 @@ void RaceConfig::initControllers() {
 #endif
         switch (player.type) {
         case Player::Type::Ghost:
-            initGhost(player, m_ghosts.at(idx));
-            // initGhost(player, m_ghosts[idx]);
+            initGhost(idx, player);
             break;
         case Player::Type::Local:
             KPadDirector::Instance()->pushHostPad(player.driftIsAuto);
@@ -52,8 +51,8 @@ void RaceConfig::initControllers() {
 /// @addr{0x8052EEF0}
 /// @brief Initializes the ghost.
 /// @details This is normally scoped within RaceConfig::Scenario, but Kinoko doesn't support menus.
-void RaceConfig::initGhost(Player &player, RawGhostFile rawGhost) {
-    GhostFile ghost(rawGhost);
+void RaceConfig::initGhost(size_t playerIdx, Player &player) {
+    GhostFile ghost(m_ghosts.at(playerIdx));
 
     m_raceScenario.course = ghost.course();
     player.character = ghost.character();
@@ -61,6 +60,11 @@ void RaceConfig::initGhost(Player &player, RawGhostFile rawGhost) {
     player.driftIsAuto = ghost.driftIsAuto();
 
     KPadDirector::Instance()->pushGhostPad(ghost.inputs(), ghost.driftIsAuto());
+}
+
+void RaceConfig::setGhost(const u8 *rkg, size_t playerIdx) {
+    auto ghost = RawGhostFile(rkg);
+    m_ghosts.insert_or_assign(playerIdx, ghost);
 }
 
 void RaceConfig::RegisterInitCallback(const InitCallback &callback, void *arg) {

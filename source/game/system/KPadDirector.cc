@@ -19,7 +19,9 @@ void KPadDirector::calc() {
 // }
 
 /// @addr{0x80523724}
-void KPadDirector::clear() {}
+void KPadDirector::clear() {
+    m_playerInputs.clear();
+}
 
 /// @addr{0x80523690}
 void KPadDirector::reset() {

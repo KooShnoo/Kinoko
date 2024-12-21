@@ -2,6 +2,7 @@
 
 #include "game/system/GhostFile.hh"
 
+#include <cstddef>
 #include <functional>
 #include <unordered_map>
 #include <vector>
@@ -51,7 +52,7 @@ public:
     void init();
     void initRace();
     void initControllers();
-    void initGhost(Player &player, RawGhostFile rawGhost);
+    void initGhost(size_t playerIdx, Player &player);
 
     [[nodiscard]] const Scenario &raceScenario() const {
         return m_raceScenario;
@@ -61,9 +62,7 @@ public:
         return m_raceScenario;
     }
 
-    void setGhost(const u8 *rkg, size_t playerIdx) {
-        m_ghosts[playerIdx] = RawGhostFile(rkg);
-    }
+    void setGhost(const u8 *rkg, size_t playerIdx);
 
     static void RegisterInitCallback(const InitCallback &callback, void *arg);
 
@@ -73,7 +72,7 @@ public:
 
 private:
     RaceConfig();
-    ~RaceConfig() override;
+    ~RaceConfig();
 
     Scenario m_raceScenario;
     std::unordered_map<size_t, RawGhostFile> m_ghosts;
