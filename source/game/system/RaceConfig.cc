@@ -4,7 +4,6 @@
 
 #include <abstract/File.hh>
 #include <game/system/GhostFile.hh>
-#include <ranges>
 
 namespace System {
 
@@ -28,12 +27,7 @@ void RaceConfig::initRace() {
 /// @brief Initializes the controllers.
 /// @details This is normally scoped within RaceConfig::Scenario, but Kinoko doesn't support menus.
 void RaceConfig::initControllers() {
-#ifdef __clang__
-    // clang does not support std::views::enumerate, a cpp23 feature :(
-    for (auto [idx, player] : std::views::zip(std::views::iota(0), m_raceScenario.players)) {
-#else
-    for (auto [idx, player] : std::ranges::views::enumerate(m_raceScenario.players)) {
-#endif
+    for (auto [idx, player] : ENUMERATE(m_raceScenario.players)) {
         switch (player.type) {
         case Player::Type::Ghost:
             initGhost(idx, player);

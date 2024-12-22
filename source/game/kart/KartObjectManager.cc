@@ -5,8 +5,6 @@
 #include "game/system/RaceConfig.hh"
 #include "game/kart/KartObject.hh"
 
-#include <ranges>
-
 namespace Kart {
 
 /// @addr{0x8058FEE0}

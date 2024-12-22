@@ -9,7 +9,6 @@
 
 #include <format>
 #include <print>
-#include <ranges>
 
 namespace Test {
 
@@ -269,12 +268,7 @@ TestData TestDirector::findNextEntry(EGG::RamStream &stream) {
 
 void TestDirector::OnInit(System::RaceConfig *config, void * /* arg */) {
     const auto *testDirector = Host::KSystem::Instance().testDirector();
-#ifdef __clang__
-    // clang does not support std::views::enumerate, a cpp23 feature :(
-    for (auto [idx, testCase]: std::views::zip(std::views::iota(0), testDirector->m_testCases)) {
-#else
-    for (auto [idx, testCase]: std::views::enumerate(testDirector->m_testCases)) {
-#endif
+    for (auto [idx, testCase]: ENUMERATE(testDirector->m_testCases)) {
         size_t size;
         u8 *rkg = Abstract::File::Load(testCase.rkgPath.data(), size);
         config->setGhost(rkg, idx);

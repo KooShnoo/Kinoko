@@ -1,7 +1,6 @@
 #include "ItemDirector.hh"
 
 #include "game/system/RaceConfig.hh"
-#include <ranges>
 
 namespace Item {
 

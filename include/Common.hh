@@ -11,6 +11,7 @@
 #include <bit>
 #include <span>
 #endif
+#include <ranges>
 #include <array>
 #include <cassert>
 #include <limits>
@@ -27,6 +28,18 @@ typedef uint64_t u64;
 
 typedef float f32;
 typedef double f64;
+
+#ifdef __clang__
+namespace clang_workarounds {
+    template<typename T>
+    inline auto enumerate(T&& arg) {
+        return std::views::zip(std::views::iota(0), arg);
+    }
+}
+#define ENUMERATE(x) clang_workarounds::enumerate(x)
+#else
+#define ENUMERATE(x) std::ranges::views::enumerate(x)
+#endif
 
 enum class Course {
     Mario_Circuit = 0,
