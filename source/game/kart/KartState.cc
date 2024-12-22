@@ -27,13 +27,13 @@ static constexpr std::array<StartBoostEntry, 6> START_BOOST_ENTRIES = {{
 }};
 
 /// @addr{0x805943B4}
-KartState::KartState() {
+KartState::KartState(size_t playerIdx) {
     clearBitfield0();
     clearBitfield1();
     clearBitfield2();
     clearBitfield3();
 
-    m_bAutoDrift = inputs()->driftIsAuto();
+    m_bAutoDrift = System::RaceManager::Instance()->player(playerIdx).inputs()->driftIsAuto();
 
     m_airtime = 0;
     m_cannonPointId = 0;

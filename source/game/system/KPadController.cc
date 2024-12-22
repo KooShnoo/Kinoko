@@ -433,7 +433,7 @@ void KPadPlayer::setGhostController(KPadGhostController *controller, const u8 *i
     m_controller = controller;
 
     if (inputs) { // sus?
-    m_ghostBuffer = new u8[RKG_UNCOMPRESSED_INPUT_DATA_SECTION_SIZE];
+        m_ghostBuffer = new u8[RKG_UNCOMPRESSED_INPUT_DATA_SECTION_SIZE];
         memcpy(m_ghostBuffer, inputs, RKG_UNCOMPRESSED_INPUT_DATA_SECTION_SIZE);
     }
 

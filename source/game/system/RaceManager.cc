@@ -7,7 +7,6 @@
 
 #include "game/kart/KartObjectManager.hh"
 #include "game/kart/KartState.hh"
-#include <cstddef>
 #include <game/system/RaceConfig.hh>
 #include <host/System.hh>
 #include <print>
@@ -17,8 +16,9 @@ namespace System {
 
 /// @addr{0x80532F88}
 void RaceManager::init() {
-    for (auto &player : m_players)
+    for (auto &player : m_players) {
         player.init();
+    }
 }
 
 /// @addr{0x805362DC}
@@ -38,17 +38,13 @@ void RaceManager::findKartStartPoint(EGG::Vector3f &pos, EGG::Vector3f &angles) 
     }
 }
 
-size_t g_test = 0;
-
 /// @addr{0x805331B4}
 void RaceManager::calc() {
     constexpr u16 STAGE_INTRO_DURATION = 172;
 
     for (auto &player : m_players) {
-        g_test ++;
         player.calc();
     }
-        g_test =0;
 
     switch (m_stage) {
     case Stage::Intro:
@@ -134,6 +130,7 @@ RaceManager::~RaceManager() {
 
 /// @addr{0x80533ED8}
 RaceManager::Player::Player(size_t playerIdx) {
+    m_playerIdx = playerIdx;
     m_checkpointId = 0;
     m_raceCompletion = 0.0f;
     m_checkpointFactor = -1.0f;
@@ -160,7 +157,7 @@ void RaceManager::Player::init() {
     auto *courseMap = CourseMap::Instance();
 
     if (courseMap->getCheckPointCount() != 0 && courseMap->getCheckPathCount() != 0) {
-        const EGG::Vector3f &pos = Kart::KartObjectManager::Instance()->object(0)->pos();
+        const EGG::Vector3f &pos = Kart::KartObjectManager::Instance()->object(m_playerIdx)->pos();
         f32 distanceRatio;
         s16 checkpointId = courseMap->findSector(pos, 0, distanceRatio);
 
@@ -174,7 +171,7 @@ void RaceManager::Player::init() {
 /// @addr{0x80535304}
 void RaceManager::Player::calc() {
     auto *courseMap = CourseMap::Instance();
-    const auto *kart = Kart::KartObjectManager::Instance()->object(0);
+    const auto *kart = Kart::KartObjectManager::Instance()->object(m_playerIdx);
 
     if (courseMap->getCheckPointCount() == 0 || courseMap->getCheckPathCount() == 0 ||
             kart->state()->isBeforeRespawn()) {
@@ -288,7 +285,7 @@ void RaceManager::Player::decrementLap() {
 void RaceManager::Player::incrementLap() {
     m_maxKcp = 0;
     ++m_currentLap;
-    std::println("p {} f {} inc lap {}", g_test, Host::KSystem::Instance().testDirector()->m_currentFrame, m_currentLap);
+    std::println("p {} f {} inc lap {}", m_playerIdx, Host::KSystem::Instance().testDirector()->m_currentFrame, m_currentLap);
 }
 
 RaceManager *RaceManager::s_instance = nullptr; ///< @addr{0x809BD730}

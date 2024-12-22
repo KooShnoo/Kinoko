@@ -4,6 +4,7 @@
 #include "game/system/map/MapdataCheckPoint.hh"
 #include "game/system/map/MapdataJugemPoint.hh"
 
+#include <cstddef>
 #include <egg/math/Vector.hh>
 #include <vector>
 
@@ -41,6 +42,7 @@ public:
         void decrementLap();
         void incrementLap();
 
+        size_t m_playerIdx;
         u16 m_checkpointId;
         f32 m_raceCompletion;
         f32 m_checkpointFactor; ///< The proportion of a lap for the current checkpoint

@@ -26,10 +26,10 @@ KartSub::~KartSub() {
 }
 
 /// @addr{0x80595D48}
-void KartSub::createSubsystems(bool isBike) {
+void KartSub::createSubsystems(bool isBike, size_t playerIdx) {
     m_move = isBike ? new KartMoveBike : new KartMove;
     m_move->createSubsystems();
-    m_state = new KartState;
+    m_state = new KartState(playerIdx);
     m_collide = new KartCollide;
 }
 

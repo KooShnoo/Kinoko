@@ -4,7 +4,7 @@
 
 #include <cstddef>
 #include <functional>
-#include <unordered_map>
+#include <map>
 #include <vector>
 
 namespace System {
@@ -29,9 +29,6 @@ public:
         Vehicle vehicle;
         Type type;
         bool driftIsAuto;
-
-        // size_t ghostIdx = 0; ///< for multiplayer testing; valid only if Type::Ghost; index of which rawghostfile to use
-        size_t playerInputIdx = 0; // todo(ks)
     };
 
     struct Scenario {
@@ -75,7 +72,7 @@ private:
     ~RaceConfig();
 
     Scenario m_raceScenario;
-    std::unordered_map<size_t, RawGhostFile> m_ghosts;
+    std::map<size_t, RawGhostFile> m_ghosts;
 
     static RaceConfig *s_instance; ///< @addr{0x809BD728}
     static InitCallback s_onInitCallback;

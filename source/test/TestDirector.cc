@@ -125,17 +125,17 @@ bool TestDirector::calc() {
     // Test the current frame
         // TestData data = findNextEntry(m_streams.front());
         // test(data, m_testCases.front().name);
-    for (auto [stream, testCase] : std::ranges::views::zip(m_streams, m_testCases)) {
+    for (auto [stream, testCase, idx] : std::ranges::views::zip(m_streams, m_testCases, std::ranges::views::iota(0))) {
         TestData data = findNextEntry(stream);
-        test(data, testCase.name);
+        test(data, testCase.name, idx);
     }
 
     // return m_sync;
     return true;
 }
 
-void TestDirector::test(const TestData &data, std::string testName) {
-    auto *object = Kart::KartObjectManager::Instance()->object(0);
+void TestDirector::test(const TestData &data, std::string testName, size_t playerIdx) {
+    auto *object = Kart::KartObjectManager::Instance()->object(playerIdx);
     const auto &pos = object->pos();
     const auto &fullRot = object->fullRot();
     const auto &extVel = object->extVel();
@@ -146,7 +146,7 @@ void TestDirector::test(const TestData &data, std::string testName) {
     const auto &mainRot = object->mainRot();
     const auto &angVel2 = object->angVel2();
 
-    const auto &player = System::RaceManager::Instance()->player(0);
+    const auto &player = System::RaceManager::Instance()->player(playerIdx);
     f32 raceCompletion = player.raceCompletion();
     u16 checkpointId = player.checkpointId();
     u8 jugemId = player.jugemId();
@@ -157,24 +157,24 @@ void TestDirector::test(const TestData &data, std::string testName) {
         checkDesync(testName, data.checkpointId, checkpointId, "checkpointId");
         checkDesync(testName, data.jugemId, jugemId, "jugemId");
         [[fallthrough]];
-    // case Changelog::AddedRotation:
-    //     checkDesync(testName, data.mainRot, mainRot, "mainRot");
-    //     checkDesync(testName, data.angVel2, angVel2, "angVel2");
-    //     [[fallthrough]];
-    // case Changelog::AddedSpeed:
-    //     checkDesync(testName, data.speed, speed, "speed");
-    //     checkDesync(testName, data.acceleration, acceleration, "acceleration");
-    //     checkDesync(testName, data.softSpeedLimit, softSpeedLimit, "softSpeedLimit");
-    //     [[fallthrough]];
-    // case Changelog::AddedIntVel:
-    //     checkDesync(testName, data.intVel, intVel, "intVel");
-    //     [[fallthrough]];
-    // case Changelog::AddedExtVel:
-    //     checkDesync(testName, data.extVel, extVel, "extVel");
-    //     [[fallthrough]];
+    case Changelog::AddedRotation:
+        checkDesync(testName, data.mainRot, mainRot, "mainRot");
+        checkDesync(testName, data.angVel2, angVel2, "angVel2");
+        [[fallthrough]];
+    case Changelog::AddedSpeed:
+        checkDesync(testName, data.speed, speed, "speed");
+        checkDesync(testName, data.acceleration, acceleration, "acceleration");
+        checkDesync(testName, data.softSpeedLimit, softSpeedLimit, "softSpeedLimit");
+        [[fallthrough]];
+    case Changelog::AddedIntVel:
+        checkDesync(testName, data.intVel, intVel, "intVel");
+        [[fallthrough]];
+    case Changelog::AddedExtVel:
+        checkDesync(testName, data.extVel, extVel, "extVel");
+        [[fallthrough]];
     default:
         checkDesync(testName, data.pos, pos, "pos");
-        // checkDesync(testName, data.fullRot, fullRot, "fullRot");
+        checkDesync(testName, data.fullRot, fullRot, "fullRot");
     }
 }
 

@@ -83,7 +83,7 @@ KartBody *KartObject::createBody(KartPhysics *physics) {
 /// @addr{0x8058E22C}
 void KartObject::init() {
     prepareTiresAndSuspensions();
-    createSub();
+    createSub(m_pointers.m_playerIdx);
     auto *physics = KartPhysics::Create(*m_pointers.param);
     auto *body = createBody(physics);
     m_pointers.body = body;
@@ -137,9 +137,9 @@ void KartObject::prepareTiresAndSuspensions() {
 }
 
 /// @addr{0x8058E724}
-void KartObject::createSub() {
+void KartObject::createSub(size_t playerIdx) {
     m_pointers.sub = new KartSub;
-    m_pointers.sub->createSubsystems(m_pointers.param->isBike());
+    m_pointers.sub->createSubsystems(m_pointers.param->isBike(), playerIdx);
 }
 
 /// @addr{0x8058F820}

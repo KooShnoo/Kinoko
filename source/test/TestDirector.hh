@@ -2,6 +2,7 @@
 
 #include "test/Test.hh"
 
+#include <cstddef>
 #include <egg/util/Stream.hh>
 #include <game/system/RaceConfig.hh>
 
@@ -35,7 +36,7 @@ public:
     void parseSuite(EGG::RamStream &stream);
     void init();
     [[nodiscard]] bool calc();
-    void test(const TestData &data, std::string testName);
+    void test(const TestData &data, std::string testName, size_t playerIdx);
     void writeTestOutput() const;
     bool popTestCase();
 

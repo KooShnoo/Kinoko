@@ -11,7 +11,7 @@ namespace Kart {
 /// @nosubgrouping
 class KartState : KartObjectProxy {
 public:
-    KartState();
+    KartState(size_t playerIdx);
 
     void init();
     void reset();

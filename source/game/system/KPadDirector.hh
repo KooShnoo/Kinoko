@@ -10,7 +10,7 @@ namespace System {
 class KPadDirector : EGG::Disposer {
 public:
     void calc();
-    void calcPads();
+    // void calcPads();
     void clear();
     void reset();
     void startGhostProxies();
