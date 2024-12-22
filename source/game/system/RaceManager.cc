@@ -284,7 +284,6 @@ void RaceManager::Player::decrementLap() {
 void RaceManager::Player::incrementLap() {
     m_maxKcp = 0;
     ++m_currentLap;
-    std::println("p {} f {} inc lap {}", m_playerIdx, Host::KSystem::Instance().testDirector()->m_currentFrame, m_currentLap);
 }
 
 RaceManager *RaceManager::s_instance = nullptr; ///< @addr{0x809BD730}

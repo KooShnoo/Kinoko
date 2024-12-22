@@ -1,5 +1,6 @@
 #include "TestDirector.hh"
 
+#include <algorithm>
 #include <cstdlib>
 #include <game/kart/KartObjectManager.hh>
 #include <game/system/RaceManager.hh>
@@ -9,6 +10,7 @@
 
 #include <format>
 #include <print>
+#include <ranges>
 
 namespace Test {
 
@@ -86,55 +88,56 @@ void TestDirector::parseSuite(EGG::RamStream &stream) {
             PANIC("Unexpected bytes in test case");
         }
 
-        m_testCases.push_back(testCase);
+        m_tests.emplace_back(testCase, i);
     }
 }
 
 void TestDirector::init() {
-    for (auto &testCase: m_testCases) {
+    for (auto &test: m_tests) {
         size_t size;
-        u8 *krkg = Abstract::File::Load(testCase.krkgPath.data(), size);
-        m_streams.emplace_back(krkg, static_cast<u32>(size));
-        auto &stream = m_streams.back();
+        u8 *krkg = Abstract::File::Load(test.testCase.krkgPath.data(), size);
+        test.stream = EGG::RamStream(krkg, static_cast<u32>(size));
         m_currentFrame = -1;
-        // m_sync = true;
+        test.sync = true;
 
         // Initialize endianness for the RAM stream
         u16 mark = *reinterpret_cast<u16 *>(krkg + offsetof(TestHeader, byteOrderMark));
         std::endian endian = parse<u16>(mark) == 0xfeff ? std::endian::big : std::endian::little;
-        stream.setEndian(endian);
+        test.stream.setEndian(endian);
 
-        readHeader(stream);
+        readHeader(test);
 
-        ASSERT(stream.read_u32() == stream.index());
+        ASSERT(test.stream.read_u32() == test.stream.index());
     }
 }
 
 bool TestDirector::calc() {
-    // Check if we're out of frames
-    u16 targetFrame = m_testCases.front().targetFrame;
-    ASSERT(targetFrame <= m_frameCount);
-    if (++m_currentFrame > targetFrame) {
-        // REPORT("Test Case Passed: %s [%d / %d]", testCase().name.c_str(), targetFrame,
-                // m_frameCount);
-        std::println("first case passed, stopping.");
+    for (auto &test : std::ranges::views::filter(m_tests, [] (auto & t) {return !t.done;})) {
+        // Check if we're out of frames
+        u16 targetFrame = test.testCase.targetFrame;
+        ASSERT(targetFrame <= test.frameCount);
+        if (++m_currentFrame > targetFrame) {
+            REPORT("Test Case Passed: %s [%d / %zu]", test.testCase.name.c_str(), targetFrame, test.frameCount);
+            test.done = true;
+        }
+
+        // Test the current frame
+        TestData data = findNextEntry(test.stream);
+        this->test(data, test);
+    }
+
+    if (std::all_of(
+        m_tests.begin(),
+        m_tests.end(),
+        [] (auto &t) { return t.done; }
+    )) {
         return false;
     }
-
-    // Test the current frame
-        // TestData data = findNextEntry(m_streams.front());
-        // test(data, m_testCases.front().name);
-    for (auto [stream, testCase, idx] : std::ranges::views::zip(m_streams, m_testCases, std::ranges::views::iota(0))) {
-        TestData data = findNextEntry(stream);
-        test(data, testCase.name, idx);
-    }
-
-    // return m_sync;
     return true;
 }
 
-void TestDirector::test(const TestData &data, std::string testName, size_t playerIdx) {
-    auto *object = Kart::KartObjectManager::Instance()->object(playerIdx);
+void TestDirector::test(const TestData &data, RunningTest test) {
+    auto *object = Kart::KartObjectManager::Instance()->object(test.idx);
     const auto &pos = object->pos();
     const auto &fullRot = object->fullRot();
     const auto &extVel = object->extVel();
@@ -145,35 +148,35 @@ void TestDirector::test(const TestData &data, std::string testName, size_t playe
     const auto &mainRot = object->mainRot();
     const auto &angVel2 = object->angVel2();
 
-    const auto &player = System::RaceManager::Instance()->player(playerIdx);
+    const auto &player = System::RaceManager::Instance()->player(test.idx);
     f32 raceCompletion = player.raceCompletion();
     u16 checkpointId = player.checkpointId();
     u8 jugemId = player.jugemId();
 
     switch (m_versionMinor) {
     case Changelog::AddedCheckpoints:
-        checkDesync(testName, data.raceCompletion, raceCompletion, "raceCompletion");
-        checkDesync(testName, data.checkpointId, checkpointId, "checkpointId");
-        checkDesync(testName, data.jugemId, jugemId, "jugemId");
+        checkDesync(test, data.raceCompletion, raceCompletion, "raceCompletion");
+        checkDesync(test, data.checkpointId, checkpointId, "checkpointId");
+        checkDesync(test, data.jugemId, jugemId, "jugemId");
         [[fallthrough]];
     case Changelog::AddedRotation:
-        checkDesync(testName, data.mainRot, mainRot, "mainRot");
-        checkDesync(testName, data.angVel2, angVel2, "angVel2");
+        checkDesync(test, data.mainRot, mainRot, "mainRot");
+        checkDesync(test, data.angVel2, angVel2, "angVel2");
         [[fallthrough]];
     case Changelog::AddedSpeed:
-        checkDesync(testName, data.speed, speed, "speed");
-        checkDesync(testName, data.acceleration, acceleration, "acceleration");
-        checkDesync(testName, data.softSpeedLimit, softSpeedLimit, "softSpeedLimit");
+        checkDesync(test, data.speed, speed, "speed");
+        checkDesync(test, data.acceleration, acceleration, "acceleration");
+        checkDesync(test, data.softSpeedLimit, softSpeedLimit, "softSpeedLimit");
         [[fallthrough]];
     case Changelog::AddedIntVel:
-        checkDesync(testName, data.intVel, intVel, "intVel");
+        checkDesync(test, data.intVel, intVel, "intVel");
         [[fallthrough]];
     case Changelog::AddedExtVel:
-        checkDesync(testName, data.extVel, extVel, "extVel");
+        checkDesync(test, data.extVel, extVel, "extVel");
         [[fallthrough]];
     default:
-        checkDesync(testName, data.pos, pos, "pos");
-        checkDesync(testName, data.fullRot, fullRot, "fullRot");
+        checkDesync(test, data.pos, pos, "pos");
+        checkDesync(test, data.fullRot, fullRot, "fullRot");
     }
 }
 
@@ -189,7 +192,7 @@ void TestDirector::writeTestOutput() const {
 // Also free the KRKG buffer for that test case.
 // Returns whether or not there are remaining test cases.
 bool TestDirector::popTestCase() {
-    ASSERT(m_testCases.size() > 0);
+    // ASSERT(m_tests.size() > 0);
     std::println("poppi");
     exit(42);
     // m_testCases.pop();
@@ -268,10 +271,10 @@ TestData TestDirector::findNextEntry(EGG::RamStream &stream) {
 
 void TestDirector::OnInit(System::RaceConfig *config, void * /* arg */) {
     const auto *testDirector = Host::KSystem::Instance().testDirector();
-    for (auto [idx, testCase]: ENUMERATE(testDirector->m_testCases)) {
+    for (auto &test: testDirector->m_tests) {
         size_t size;
-        u8 *rkg = Abstract::File::Load(testCase.rkgPath.data(), size);
-        config->setGhost(rkg, idx);
+        u8 *rkg = Abstract::File::Load(test.testCase.rkgPath.data(), size);
+        config->setGhost(rkg, test.idx);
         delete[] rkg;
     }
 
@@ -282,14 +285,14 @@ void TestDirector::OnInit(System::RaceConfig *config, void * /* arg */) {
     players.back().type = System::RaceConfig::Player::Type::Ghost;
 }
 
-void TestDirector::readHeader(EGG::RamStream &stream) {
+void TestDirector::readHeader(RunningTest & test) {
     constexpr u32 KRKG_SIGNATURE = 0x4b524b47; // KRKG
 
-    ASSERT(stream.read_u32() == KRKG_SIGNATURE);
-    stream.skip(2);
-    m_frameCount = stream.read_u16();
-    m_versionMajor = stream.read_u16();
-    m_versionMinor = stream.read_u16();
+    ASSERT(test.stream.read_u32() == KRKG_SIGNATURE);
+    test.stream.skip(2);
+    test.frameCount = test.stream.read_u16();
+    m_versionMajor = test.stream.read_u16();
+    m_versionMinor = test.stream.read_u16();
 }
 
 } // namespace Test

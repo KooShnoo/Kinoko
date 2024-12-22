@@ -19,6 +19,16 @@ struct TestCase {
     u16 targetFrame;
 };
 
+struct RunningTest {
+    RunningTest(TestCase t, size_t i) : testCase(t), idx(i) {}
+    TestCase testCase;
+    EGG::RamStream stream;
+    bool sync = false;
+    bool done = false;
+    size_t idx;
+    size_t frameCount;
+};
+
 /// @brief Maintains a set of test cases to check for desyncs.
 
 /// In its current state, the TestDirector takes in a span of data and parses it into a set of test
@@ -36,7 +46,7 @@ public:
     void parseSuite(EGG::RamStream &stream);
     void init();
     [[nodiscard]] bool calc();
-    void test(const TestData &data, std::string testName, size_t playerIdx);
+    void test(const TestData &data, RunningTest test);
     void writeTestOutput() const;
     bool popTestCase();
 
@@ -47,19 +57,18 @@ public:
 
     static void OnInit(System::RaceConfig *config, void *arg);
 
-// private:
-    void readHeader(EGG::RamStream &stream);
+private:
+    void readHeader(RunningTest & test);
 
     template <IntegralType T>
-    void checkDesync(std::string testName, const T &t0, const T &t1, const char *name) {
+    void checkDesync(RunningTest test, const T &t0, const T &t1, const char *name) {
         if (t0 == t1) {
             return;
         }
 
-        // if (m_sync) {
-            REPORT("Test Case Failed: %s [%d / %d]", testName.c_str(), m_currentFrame,
-                    m_frameCount);
-        // }
+        if (test.sync) {
+            REPORT("Test Case Failed: %s [%d / %d]", test.testCase.name, m_currentFrame, test.testCase.targetFrame);
+        }
 
         REPORT("DESYNC! Name: %s", name);
         REPORT("Expected: %d", t0);
@@ -69,15 +78,14 @@ public:
     }
 
     template <typename T>
-    void checkDesync(std::string testName, const T &t0, const T &t1, const char *name) {
+    void checkDesync(RunningTest test, const T &t0, const T &t1, const char *name) {
         if (t0 == t1) {
             return;
         }
 
-        // if (m_sync) {
-            REPORT("Test Case Failed: %s [%d / %d]", testName.c_str(), m_currentFrame,
-                    m_frameCount);
-        // }
+        if (test.sync) {
+            REPORT("Test Case Failed: %s [%d / %d]", test.testCase.name, m_currentFrame, test.testCase.targetFrame);
+        }
 
         REPORT("DESYNC! Name: %s", name);
         std::string s0(t0);
@@ -88,15 +96,14 @@ public:
         // m_sync = false;
     }
 
-    void checkDesync(std::string testName, const f32 &t0, const f32 &t1, const char *name) {
+    void checkDesync(RunningTest test, const f32 &t0, const f32 &t1, const char *name) {
         if (t0 == t1) {
             return;
         }
 
-        // if (m_sync) {
-            REPORT("Test Case Failed: %s [%d / %d]", testName.c_str(), m_currentFrame,
-                    m_frameCount);
-        // }
+        if (test.sync) {
+            REPORT("Test Case Failed: %s [%d / %d]", test.testCase.name.c_str(), m_currentFrame, test.testCase.targetFrame);
+        }
 
         REPORT("DESYNC! Name: %s", name);
         std::string s0 = std::to_string(t0);
@@ -107,15 +114,11 @@ public:
         // m_sync = false;
     }
 
-    std::vector<TestCase> m_testCases;
-
-    std::vector<EGG::RamStream> m_streams;
+    std::vector<RunningTest> m_tests;
 
     u16 m_versionMajor;
     u16 m_versionMinor;
-    u16 m_frameCount;
     u16 m_currentFrame;
-    // bool m_sync;
 };
 
 } // namespace Test
