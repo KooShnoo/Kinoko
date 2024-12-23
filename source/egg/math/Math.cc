@@ -321,7 +321,7 @@ f32 sqrt(f32 x) {
 /// @addr{0x80085040}
 f32 frsqrt(f32 x) {
     // frsqrte instruction
-    f64 est = frsqrte(x);
+    f64 est = frsqrte(static_cast<f64>(x));
 
     // Newton-Raphson refinement
     f32 tmp0 = static_cast<f32>(est * force25Bit(est));
@@ -419,7 +419,7 @@ f32 cos(f32 x) {
 
 /// @addr{0x8022F8C0}
 f32 acos(f32 x) {
-    return ::acosl(x);
+    return ::acosl(static_cast<f64>(x));
 }
 
 /// @addr{0x8022F8E4}

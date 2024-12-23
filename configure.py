@@ -23,7 +23,8 @@ n.variable('builddir', 'build')
 n.variable('outdir', 'out')
 n.newline()
 
-n.variable('compiler', 'g++')
+# n.variable('compiler', 'g++')
+n.variable('compiler', 'clang++')
 n.newline()
 
 common_ccflags = [
@@ -46,6 +47,8 @@ common_ccflags = [
     '-Wno-delete-non-virtual-dtor',
     '-Wno-packed-bitfield-compat',
     '-Wsuggest-override',
+    # for clang, which gives warnings we haven't addressed
+    '-Wno-everything',
 ]
 
 target_cflags = [
@@ -58,7 +61,12 @@ debug_cflags = [
     '-ggdb',
 ]
 
-common_ldflags = []
+common_ldflags = [
+    # i hate apple!
+    # (for some reason apple's stupid default-installed clang, which doesn't support cpp23, blocks brew clang's libdir)
+    # (so i have to manually specify it)
+    "-L/usr/local/Cellar/llvm/19.1.3/lib/c++/",
+]
 
 n.rule(
     'cc',
@@ -89,15 +97,15 @@ for in_file in code_in_files:
     debug_out_file = os.path.join('$builddir', in_file + 'D.o')
     debug_code_out_files.append(debug_out_file)
 
-    n.build(
-        target_out_file,
-        ext[1:],
-        in_file,
-        variables={
-            'ccflags': ' '.join([*common_ccflags, *target_cflags])
-        }
-    )
-    n.newline()
+    # n.build(
+    #     target_out_file,
+    #     ext[1:],
+    #     in_file,
+    #     variables={
+    #         'ccflags': ' '.join([*common_ccflags, *target_cflags])
+    #     }
+    # )
+    # n.newline()
 
     n.build(
         debug_out_file,
@@ -110,16 +118,16 @@ for in_file in code_in_files:
     n.newline()
 
 
-n.build(
-    os.path.join('$outdir', f'kinoko{file_extension}'),
-    'ld',
-    target_code_out_files,
-    variables={
-        'ldflags': ' '.join([
-            *common_ldflags,
-        ])
-    },
-)
+# n.build(
+#     os.path.join('$outdir', f'kinoko{file_extension}'),
+#     'ld',
+#     target_code_out_files,
+#     variables={
+#         'ldflags': ' '.join([
+#             *common_ldflags,
+#         ])
+#     },
+# )
 
 n.build(
     os.path.join('$outdir', f'kinokoD{file_extension}'),

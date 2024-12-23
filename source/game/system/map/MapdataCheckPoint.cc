@@ -3,8 +3,6 @@
 #include "game/system/CourseMap.hh"
 #include "game/system/map/MapdataCheckPath.hh"
 
-#include <ranges>
-
 namespace System {
 
 /// @addr{0x805154E4}
@@ -41,8 +39,7 @@ void MapdataCheckPoint::initCheckpointLinks(MapdataCheckPointAccessor &accessor,
         MapdataCheckPath *checkpath = checkPathAccessor->findCheckpathForCheckpoint(id);
         if (checkpath) {
             m_prevCount = 0;
-
-            for (auto [i, prevID] : std::views::enumerate(checkpath->prev())) {
+            for (auto [i, prevID] : ENUMERATE(checkpath->prev())) {
                 if (prevID == 0xFF) {
                     continue;
                 }
@@ -63,8 +60,7 @@ void MapdataCheckPoint::initCheckpointLinks(MapdataCheckPointAccessor &accessor,
         MapdataCheckPath *checkpath = checkPathAccessor->findCheckpathForCheckpoint(id);
         if (checkpath) {
             m_nextCount = 0;
-
-            for (auto [i, nextID] : std::views::enumerate(checkpath->next())) {
+            for (auto [i, nextID] : ENUMERATE(checkpath->next())) {
                 if (nextID == 0xFF) {
                     continue;
                 }
@@ -79,7 +75,7 @@ void MapdataCheckPoint::initCheckpointLinks(MapdataCheckPointAccessor &accessor,
     }
 
     // Form the checkpoint's quadrilateral(s)
-    for (auto [i, next] : std::views::enumerate(m_nextPoints)) {
+    for (auto [i, next] : ENUMERATE(m_nextPoints)) {
         if (i < m_nextCount) {
             auto &nextLinked = m_nextPoints[i];
             auto *nextPoint = nextLinked.checkpoint;
