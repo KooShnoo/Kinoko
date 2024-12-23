@@ -5,8 +5,6 @@
 #include "game/field/ObjectHitTable.hh"
 #include "game/field/obj/ObjectCollidable.hh"
 
-#include <vector>
-
 namespace Field {
 
 class ObjectDirector : EGG::Disposer {

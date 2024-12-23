@@ -6,9 +6,6 @@
 
 #include <egg/math/Matrix.hh>
 
-#include <array>
-#include <span>
-
 /// @brief Pertains to kart-related functionality.
 namespace Kart {
 

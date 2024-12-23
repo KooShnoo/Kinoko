@@ -296,7 +296,7 @@ void KartMove::calc() {
 void KartMove::calcRespawnStart() {
     constexpr float RESPAWN_HEIGHT = 700.0f;
 
-    const auto *jugemPoint = System::RaceManager::Instance()->jugemPoint();
+    const auto *jugemPoint = System::RaceManager::Instance()->jugemPoint(playerIdx());
     const EGG::Vector3f &jugemPos = jugemPoint->pos();
     const EGG::Vector3f &jugemRot = jugemPoint->rot();
 

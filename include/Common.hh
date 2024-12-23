@@ -7,14 +7,13 @@
 
 #include <egg/core/Heap.hh>
 
-#ifdef __clang__
-#include <bit>
-#include <span>
-#endif
-#include <ranges>
 #include <array>
+#include <bit>
 #include <cassert>
 #include <limits>
+#include <ranges>
+#include <span>
+#include <vector>
 
 typedef int8_t s8;
 typedef int16_t s16;
@@ -89,6 +88,7 @@ enum class Course {
     Lose_Demo = 56,
     Draw_Demo = 57,
     Ending_Demo = 58,
+    Max_Value,
 };
 
 enum class Vehicle {

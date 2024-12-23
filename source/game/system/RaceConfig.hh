@@ -3,6 +3,7 @@
 #include "game/system/GhostFile.hh"
 
 #include <functional>
+#include <map>
 
 namespace System {
 
@@ -37,8 +38,7 @@ public:
 
         void init();
 
-        std::array<Player, 12> players;
-        u8 playerCount;
+        std::vector<Player> players;
         Course course;
     };
 
@@ -47,7 +47,7 @@ public:
     void init();
     void initRace();
     void initControllers();
-    void initGhost();
+    void initGhost(size_t playerIdx, Player &player);
 
     [[nodiscard]] const Scenario &raceScenario() const {
         return m_raceScenario;
@@ -57,9 +57,7 @@ public:
         return m_raceScenario;
     }
 
-    void setGhost(const u8 *rkg) {
-        m_ghost = rkg;
-    }
+    void setGhost(const u8 *rkg, size_t playerIdx);
 
     static void RegisterInitCallback(const InitCallback &callback, void *arg);
 
@@ -72,7 +70,7 @@ private:
     ~RaceConfig() override;
 
     Scenario m_raceScenario;
-    RawGhostFile m_ghost;
+    std::map<size_t, RawGhostFile> m_ghosts;
 
     static RaceConfig *s_instance; ///< @addr{0x809BD728}
     static InitCallback s_onInitCallback;

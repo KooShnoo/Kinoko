@@ -5,7 +5,6 @@
 #include <egg/math/Matrix.hh>
 
 #include <list>
-#include <vector>
 
 namespace Field {
 
@@ -55,6 +54,8 @@ struct KartAccessor {
     std::vector<KartTire *> tires;
 
     Field::BoxColUnit *boxColUnit;
+
+    size_t m_playerIdx;
 };
 
 /// @brief Base class for most kart-related objects.
@@ -73,6 +74,8 @@ public:
     /// @endSetters
 
     /// @beginGetters
+    [[nodiscard]] size_t playerIdx() const { return m_accessor->m_playerIdx; }
+
     [[nodiscard]] KartBody *body();
     [[nodiscard]] const KartBody *body() const;
     [[nodiscard]] KartCollide *collide();

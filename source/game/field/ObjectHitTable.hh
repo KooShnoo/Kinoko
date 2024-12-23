@@ -4,8 +4,6 @@
 
 #include "game/kart/KartCollide.hh"
 
-#include <span>
-
 namespace Field {
 
 class ObjectHitTable {

@@ -397,6 +397,7 @@ KPad::~KPad() = default;
 
 /// @addr{0x80521198}
 void KPad::calc() {
+    m_controller->calc();
     m_lastInputState = m_currentInputState;
     m_currentInputState = m_controller->raceInputState();
 }
@@ -432,6 +433,7 @@ void KPadPlayer::setGhostController(KPadGhostController *controller, const u8 *i
     m_controller = controller;
 
     if (inputs) {
+        m_ghostBuffer = new u8[RKG_UNCOMPRESSED_INPUT_DATA_SECTION_SIZE];
         memcpy(m_ghostBuffer, inputs, RKG_UNCOMPRESSED_INPUT_DATA_SECTION_SIZE);
     }
 

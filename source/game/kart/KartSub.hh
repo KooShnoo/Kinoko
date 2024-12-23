@@ -13,7 +13,7 @@ public:
     KartSub();
     ~KartSub();
 
-    void createSubsystems(bool isBike);
+    void createSubsystems(bool isBike, size_t playerIdx);
     void copyPointers(KartAccessor &pointers);
 
     void init();

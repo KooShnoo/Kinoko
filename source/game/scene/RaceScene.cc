@@ -76,7 +76,11 @@ void RaceScene::configure() {
     auto *commonArc = resMgr->load(0, nullptr);
     appendResource(commonArc, 0);
 
-    auto *courseArc = resMgr->load(raceCfg->raceScenario().course);
+    auto course = raceCfg->raceScenario().course;
+    if (course >= Course::Max_Value) {
+        PANIC("You forgot to set the course. Consult the documentation, you have to have a callback or something blah labh");
+    }
+    auto *courseArc = resMgr->load(course);
     appendResource(courseArc, 1);
 }
 

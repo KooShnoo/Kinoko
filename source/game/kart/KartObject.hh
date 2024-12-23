@@ -20,7 +20,7 @@ public:
     void prepare();
     void prepareTiresAndSuspensions();
 
-    void createSub();
+    void createSub(size_t playerIdx);
     void createModel();
 
     void calcSub();

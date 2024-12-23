@@ -314,7 +314,7 @@ void KTestSystem::testFrame(const TestData &data) {
     const auto &mainRot = object->mainRot();
     const auto &angVel2 = object->angVel2();
 
-    const auto &player = System::RaceManager::Instance()->player();
+    const auto &player = System::RaceManager::Instance()->player(0);
     f32 raceCompletion = player.raceCompletion();
     u16 checkpointId = player.checkpointId();
     u8 jugemId = player.jugemId();
@@ -382,8 +382,9 @@ const KTestSystem::TestCase &KTestSystem::getCurrentTestCase() const {
 void KTestSystem::OnInit(System::RaceConfig *config, void * /* arg */) {
     size_t size;
     u8 *rkg = Abstract::File::Load(Instance()->getCurrentTestCase().rkgPath.data(), size);
-    config->setGhost(rkg);
+    config->setGhost(rkg, 0);
     delete[] rkg;
 
-    config->raceScenario().players[0].type = System::RaceConfig::Player::Type::Ghost;
+    config->raceScenario().players.emplace_back();
+    config->raceScenario().players.back().type = System::RaceConfig::Player::Type::Ghost;
 }

@@ -2,7 +2,11 @@
 
 #include "game/system/KPadDirector.hh"
 
+#include <Logger.hh>
 #include <abstract/File.hh>
+#include <algorithm>
+#include <map>
+#include <vector>
 
 namespace System {
 
@@ -15,8 +19,8 @@ void RaceConfig::init() {
 /// @details Normally we copy the menu scenario into the race scenario.
 /// However, Kinoko doesn't support menus, so we use a callback.
 void RaceConfig::initRace() {
-    m_raceScenario.playerCount = 1;
-
+    new (&m_ghosts) std::map<size_t, RawGhostFile>;
+    m_raceScenario.players.clear();
     if (s_onInitCallback) {
         s_onInitCallback(this, s_onInitCallbackArg);
     }
@@ -28,32 +32,37 @@ void RaceConfig::initRace() {
 /// @brief Initializes the controllers.
 /// @details This is normally scoped within RaceConfig::Scenario, but Kinoko doesn't support menus.
 void RaceConfig::initControllers() {
-    switch (m_raceScenario.players[0].type) {
-    case Player::Type::Ghost:
-        initGhost();
-        break;
-    case Player::Type::Local:
-        KPadDirector::Instance()->setHostPad(m_raceScenario.players[0].driftIsAuto);
-        break;
-    default:
-        PANIC("Players must be either local or ghost!");
-        break;
+    for (auto [idx, player] : ENUMERATE(m_raceScenario.players)) {
+        switch (player.type) {
+        case Player::Type::Ghost:
+            initGhost(idx, player);
+            break;
+        case Player::Type::Local:
+            KPadDirector::Instance()->pushHostPad(player.driftIsAuto);
+            break;
+        default:
+            PANIC("Players must be either local or ghost!");
+            break;
+        }
     }
 }
 
 /// @addr{0x8052EEF0}
 /// @brief Initializes the ghost.
 /// @details This is normally scoped within RaceConfig::Scenario, but Kinoko doesn't support menus.
-void RaceConfig::initGhost() {
-    GhostFile ghost(m_ghost);
+void RaceConfig::initGhost(size_t playerIdx, Player &player) {
+    GhostFile ghost(m_ghosts.at(playerIdx));
 
     m_raceScenario.course = ghost.course();
-    Player &player = m_raceScenario.players[0];
     player.character = ghost.character();
     player.vehicle = ghost.vehicle();
     player.driftIsAuto = ghost.driftIsAuto();
 
-    KPadDirector::Instance()->setGhostPad(ghost.inputs(), ghost.driftIsAuto());
+    KPadDirector::Instance()->pushGhostPad(ghost.inputs(), ghost.driftIsAuto());
+}
+
+void RaceConfig::setGhost(const u8 *rkg, size_t playerIdx) {
+    m_ghosts.insert_or_assign(playerIdx, RawGhostFile(rkg));
 }
 
 void RaceConfig::RegisterInitCallback(const InitCallback &callback, void *arg) {
@@ -93,15 +102,7 @@ RaceConfig::~RaceConfig() {
 
 /// @addr{Inlined in 0x8052DD40}
 void RaceConfig::Scenario::init() {
-    playerCount = 0;
-    course = Course::GCN_Mario_Circuit;
-
-    for (size_t i = 0; i < players.size(); ++i) {
-        Player &player = players[i];
-        player.character = Character::Mario;
-        player.vehicle = Vehicle::Standard_Kart_M;
-        player.type = Player::Type::None;
-    }
+    this->course = Course::Max_Value;
 }
 
 RaceConfig *RaceConfig::s_instance = nullptr; ///< @addr{0x809BD728}

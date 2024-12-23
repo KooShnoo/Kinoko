@@ -19,7 +19,7 @@ class RaceManager : EGG::Disposer {
 public:
     class Player {
     public:
-        Player();
+        Player(size_t playerIdx);
         virtual ~Player() {}
 
         void init();
@@ -40,6 +40,7 @@ public:
         void decrementLap();
         void incrementLap();
 
+        size_t m_playerIdx;
         u16 m_checkpointId;
         f32 m_raceCompletion;
         f32 m_checkpointFactor; ///< The proportion of a lap for the current checkpoint
@@ -66,11 +67,11 @@ public:
     void calc();
 
     [[nodiscard]] bool isStageReached(Stage stage) const;
-    [[nodiscard]] MapdataJugemPoint *jugemPoint() const;
+    [[nodiscard]] MapdataJugemPoint *jugemPoint(size_t playerIdx) const;
 
     /// @beginGetters
     [[nodiscard]] int getCountdownTimer() const;
-    [[nodiscard]] const Player &player() const;
+    [[nodiscard]] const Player &player(size_t i) const;
     [[nodiscard]] Stage stage() const;
     /// @endGetters
 
@@ -82,7 +83,7 @@ private:
     RaceManager();
     ~RaceManager() override;
 
-    Player m_player;
+    std::vector<Player> m_players;
     Stage m_stage;
     u16 m_introTimer;
     u32 m_timer;

@@ -13,7 +13,7 @@ public:
     void calc();
 
     /// @beginGetters
-    [[nodiscard]] KartObject *object(size_t i) const;
+    [[nodiscard]] KartObject *object(size_t i);
     /// @endGetters
 
     static KartObjectManager *CreateInstance();
@@ -24,8 +24,7 @@ private:
     KartObjectManager();
     ~KartObjectManager() override;
 
-    size_t m_count;
-    KartObject **m_objects;
+    std::vector<KartObject *> m_objects;
 
     static KartObjectManager *s_instance; ///< @addr{0x809C18F8}
 };

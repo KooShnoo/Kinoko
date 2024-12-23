@@ -4,49 +4,50 @@ namespace System {
 
 /// @addr{0x805238F0}
 void KPadDirector::calc() {
-    calcPads();
-    m_playerInput.calc();
-}
-
-/// @addr{0x805237E8}
-void KPadDirector::calcPads() {
-    m_ghostController->calc();
-    m_hostController->calc();
+    for (auto &playerInput : m_playerInputs) {
+        playerInput.calc();
+    }
 }
 
 /// @addr{0x80523724}
-void KPadDirector::clear() {}
+void KPadDirector::clear() {
+    m_playerInputs.clear();
+}
 
 /// @addr{0x80523690}
 void KPadDirector::reset() {
-    m_playerInput.reset();
+    for (auto &playerInput : m_playerInputs) {
+        playerInput.reset();
+    }
 }
 
 /// @addr{0x80524580}
 void KPadDirector::startGhostProxies() {
-    m_playerInput.startGhostProxy();
+    for (auto &playerInput : m_playerInputs) {
+        playerInput.startGhostProxy();
+    }
 }
 
 /// @addr{0x805245DC}
 void KPadDirector::endGhostProxies() {
-    m_playerInput.endGhostProxy();
+    for (auto &playerInput : m_playerInputs) {
+        playerInput.endGhostProxy();
+    }
 }
 
-const KPadPlayer &KPadDirector::playerInput() const {
-    return m_playerInput;
-}
-
-KPadHostController *KPadDirector::hostController() {
-    return m_hostController;
+const KPadPlayer &KPadDirector::playerInputs(size_t i) const {
+    return m_playerInputs[i];
 }
 
 /// @addr{0x8052453C}
-void KPadDirector::setGhostPad(const u8 *inputs, bool driftIsAuto) {
-    m_playerInput.setGhostController(m_ghostController, inputs, driftIsAuto);
+void KPadDirector::pushGhostPad(const u8 *inputs, bool driftIsAuto) {
+    m_playerInputs.emplace_back();
+    m_playerInputs.back().setGhostController(new KPadGhostController, inputs, driftIsAuto);
 }
 
-void KPadDirector::setHostPad(bool driftIsAuto) {
-    m_playerInput.setHostController(m_hostController, driftIsAuto);
+void KPadDirector::pushHostPad(bool driftIsAuto) {
+    m_playerInputs.emplace_back();
+    m_playerInputs.back().setHostController(new KPadHostController, driftIsAuto);
 }
 
 /// @addr{0x8052313C}
@@ -68,10 +69,7 @@ KPadDirector *KPadDirector::Instance() {
 }
 
 /// @addr{0x805232F0}
-KPadDirector::KPadDirector() {
-    m_ghostController = new KPadGhostController;
-    m_hostController = new KPadHostController;
-}
+KPadDirector::KPadDirector() = default;
 
 /// @addr{0x805231DC}
 KPadDirector::~KPadDirector() {

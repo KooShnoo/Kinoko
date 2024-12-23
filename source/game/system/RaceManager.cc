@@ -4,6 +4,7 @@
 #include "game/system/KPadDirector.hh"
 #include "game/system/map/MapdataCheckPath.hh"
 #include "game/system/map/MapdataStartPoint.hh"
+#include "game/system/RaceConfig.hh"
 
 #include "game/kart/KartObjectManager.hh"
 #include "game/kart/KartState.hh"
@@ -12,7 +13,9 @@ namespace System {
 
 /// @addr{0x80532F88}
 void RaceManager::init() {
-    m_player.init();
+    for (auto &player : m_players) {
+        player.init();
+    }
 }
 
 /// @addr{0x805362DC}
@@ -36,7 +39,9 @@ void RaceManager::findKartStartPoint(EGG::Vector3f &pos, EGG::Vector3f &angles) 
 void RaceManager::calc() {
     constexpr u16 STAGE_INTRO_DURATION = 172;
 
-    m_player.calc();
+    for (auto &player : m_players) {
+        player.calc();
+    }
 
     switch (m_stage) {
     case Stage::Intro:
@@ -65,8 +70,8 @@ bool RaceManager::isStageReached(Stage stage) const {
 }
 
 /// @addr{0x8053621C}
-MapdataJugemPoint *RaceManager::jugemPoint() const {
-    s8 jugemId = std::max<s8>(m_player.jugemId(), 0);
+MapdataJugemPoint *RaceManager::jugemPoint(size_t playerIdx) const {
+    s8 jugemId = std::max<s8>(m_players.at(playerIdx).jugemId(), 0);
     return System::CourseMap::Instance()->getJugemPoint(static_cast<u16>(jugemId));
 }
 
@@ -75,8 +80,9 @@ int RaceManager::getCountdownTimer() const {
     return STAGE_COUNTDOWN_DURATION - m_timer;
 }
 
-const RaceManager::Player &RaceManager::player() const {
-    return m_player;
+const RaceManager::Player &RaceManager::player(size_t i) const {
+    ASSERT(i < m_players.size());
+    return m_players[i];
 }
 
 RaceManager::Stage RaceManager::stage() const {
@@ -103,7 +109,13 @@ void RaceManager::DestroyInstance() {
 }
 
 /// @addr{0x805327A0}
-RaceManager::RaceManager() : m_stage(Stage::Intro), m_introTimer(0), m_timer(0) {}
+RaceManager::RaceManager() : m_stage(Stage::Intro), m_introTimer(0), m_timer(0) {
+    size_t playerCount = RaceConfig::Instance()->raceScenario().players.size();
+    m_players.reserve(playerCount);
+    for (auto i : std::views::iota(0uz, playerCount)) {
+        m_players.emplace_back(i);
+    }
+}
 
 /// @addr{0x80532E3C}
 RaceManager::~RaceManager() {
@@ -111,10 +123,16 @@ RaceManager::~RaceManager() {
         s_instance = nullptr;
         WARN("RaceManager instance not explicitly handled!");
     }
+
+    // for (auto *&obj : m_objects) {
+    //     delete obj;
+    // }
+    m_players.clear();
 }
 
 /// @addr{0x80533ED8}
-RaceManager::Player::Player() {
+RaceManager::Player::Player(size_t playerIdx) {
+    m_playerIdx = playerIdx;
     m_checkpointId = 0;
     m_raceCompletion = 0.0f;
     m_checkpointFactor = -1.0f;
@@ -130,7 +148,8 @@ RaceManager::Player::Player() {
     }
 
     m_currentLap = 0;
-    m_inputs = &KPadDirector::Instance()->playerInput();
+
+    m_inputs = &KPadDirector::Instance()->playerInputs(playerIdx);
 }
 
 /// @addr{0x80534194}
@@ -138,7 +157,7 @@ void RaceManager::Player::init() {
     auto *courseMap = CourseMap::Instance();
 
     if (courseMap->getCheckPointCount() != 0 && courseMap->getCheckPathCount() != 0) {
-        const EGG::Vector3f &pos = Kart::KartObjectManager::Instance()->object(0)->pos();
+        const EGG::Vector3f &pos = Kart::KartObjectManager::Instance()->object(m_playerIdx)->pos();
         f32 distanceRatio;
         s16 checkpointId = courseMap->findSector(pos, 0, distanceRatio);
 
@@ -152,7 +171,7 @@ void RaceManager::Player::init() {
 /// @addr{0x80535304}
 void RaceManager::Player::calc() {
     auto *courseMap = CourseMap::Instance();
-    const auto *kart = Kart::KartObjectManager::Instance()->object(0);
+    const auto *kart = Kart::KartObjectManager::Instance()->object(m_playerIdx);
 
     if (courseMap->getCheckPointCount() == 0 || courseMap->getCheckPathCount() == 0 ||
             kart->state()->isBeforeRespawn()) {
