@@ -92,7 +92,7 @@ public:
     [[nodiscard]] bool driftIsAuto() const;
     /// @endGetters
 
-private:
+// private:
     std::array<wchar_t, 11> m_userData;
     std::array<u8, 76> m_miiData;
     u8 m_lapCount;
