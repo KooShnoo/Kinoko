@@ -8,6 +8,7 @@
 
 #include "game/kart/KartObjectManager.hh"
 #include "game/kart/KartState.hh"
+#include <print>
 
 namespace System {
 
@@ -285,6 +286,7 @@ void RaceManager::Player::decrementLap() {
 void RaceManager::Player::incrementLap() {
     m_maxKcp = 0;
     ++m_currentLap;
+    std::println("player {} reached lap {}", m_playerIdx + 1, m_currentLap);
 }
 
 RaceManager *RaceManager::s_instance = nullptr; ///< @addr{0x809BD730}
