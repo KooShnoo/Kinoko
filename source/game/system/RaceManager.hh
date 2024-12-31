@@ -25,10 +25,15 @@ public:
         void init();
         void calc();
 
+        [[nodiscard]] Timer getLapSplit(size_t idx) const;
+
         /// @beginGetters
         [[nodiscard]] u16 checkpointId() const;
         [[nodiscard]] f32 raceCompletion() const;
         [[nodiscard]] s8 jugemId() const;
+        [[nodiscard]] const std::array<Timer, 3> &lapTimers() const;
+        [[nodiscard]] const Timer &lapTimer(size_t idx) const;
+        [[nodiscard]] const Timer &raceTimer() const;
         [[nodiscard]] const KPad *inputs() const;
         /// @endGetters
 
@@ -39,6 +44,7 @@ public:
 
         void decrementLap();
         void incrementLap();
+        void endRace(const Timer &finishTime);
 
         size_t m_playerIdx;
         u16 m_checkpointId;
@@ -48,7 +54,10 @@ public:
         f32 m_lapCompletion;
         s8 m_jugemId;
         s16 m_currentLap;
+        s8 m_maxLap;
         s8 m_maxKcp;
+        std::array<Timer, 3> m_lapTimers;
+        Timer m_raceTimer;
         const KPad *m_inputs;
     };
 
@@ -63,6 +72,7 @@ public:
     void init();
 
     void findKartStartPoint(EGG::Vector3f &pos, EGG::Vector3f &angles);
+    void endPlayerRace(u32 idx);
 
     void calc();
 
@@ -72,6 +82,7 @@ public:
     /// @beginGetters
     [[nodiscard]] int getCountdownTimer() const;
     [[nodiscard]] const Player &player(size_t i) const;
+    [[nodiscard]] const TimerManager &timerManager() const;
     [[nodiscard]] Stage stage() const;
     /// @endGetters
 
@@ -84,6 +95,7 @@ private:
     ~RaceManager() override;
 
     std::vector<Player> m_players;
+    TimerManager m_timerManager;
     Stage m_stage;
     u16 m_introTimer;
     u32 m_timer;
