@@ -151,6 +151,7 @@ RaceManager::Player::Player(size_t playerIdx) {
     m_checkpointFactor = -1.0f;
     m_checkpointStartLapCompletion = 0.0f;
     m_lapCompletion = 0.999999f;
+    m_bFinished = false;
 
     auto *courseMap = CourseMap::Instance();
 
@@ -183,6 +184,8 @@ void RaceManager::Player::init() {
 
 /// @addr{0x80535304}
 void RaceManager::Player::calc() {
+    didFinishLapThisFrame = false;
+
     auto *courseMap = CourseMap::Instance();
     const auto *kart = Kart::KartObjectManager::Instance()->object(m_playerIdx);
 
@@ -347,6 +350,8 @@ void RaceManager::Player::incrementLap() {
     ASSERT(static_cast<size_t>(m_maxLap - 1) < m_lapTimers.size());
     m_lapTimers[m_maxLap - 1] = timer;
 
+    didFinishLapThisFrame = true;
+
     if (m_maxLap >= 3) {
         endRace(timer);
     } else {
@@ -356,6 +361,7 @@ void RaceManager::Player::incrementLap() {
 
 /// @addr{0x805347F4}
 void RaceManager::Player::endRace(const Timer &finishTime) {
+    m_bFinished = true;
     m_raceTimer = finishTime;
     RaceManager::Instance()->endPlayerRace(0);
 }

@@ -37,7 +37,17 @@ public:
         [[nodiscard]] const KPad *inputs() const;
         /// @endGetters
 
-    private:
+        bool didFinishLapThisFrame;
+        /// @name raceManagerPlayerFlags
+        /// The bitfield at offset 0x38.
+        /// @{
+        // bool m_bInRace;          ///< field 0x01
+        bool m_bFinished;        ///< field 0x02
+        // bool m_bDrivingWrongWay; ///< field 0x04
+        // bool m_bStopped;         ///< field 0x20
+        /// @}
+
+    // private:
         MapdataCheckPoint *calcCheckpoint(u16 checkpointId, f32 distanceRatio);
         [[nodiscard]] bool areCheckpointsSubsequent(const MapdataCheckPoint *checkpoint,
                 u16 nextCheckpointId) const;

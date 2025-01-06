@@ -8,6 +8,7 @@
 #include <game/system/RaceManager.hh>
 
 #include <iomanip>
+#include <sstream>
 
 /// @brief Initializes the system.
 void KReplaySystem::init() {
@@ -25,9 +26,7 @@ void KReplaySystem::init() {
 }
 
 /// @brief Executes a frame.
-void KReplaySystem::calc() {
-    m_sceneMgr->calc();
-}
+void KReplaySystem::calc() { m_sceneMgr->calc(); }
 
 /// @brief Executes a run.
 /// @details A run consists of replaying a ghost.
@@ -61,10 +60,12 @@ void KReplaySystem::parseOptions(int argc, char **argv) {
             ASSERT(i + 1 < argc);
 
             m_currentGhostFileName = argv[++i];
-            m_currentRawGhost = Abstract::File::Load(m_currentGhostFileName, m_currentRawGhostSize);
+            m_currentRawGhost = Abstract::File::Load(m_currentGhostFileName,
+                                                     m_currentRawGhostSize);
 
             if (m_currentRawGhostSize < System::RKG_HEADER_SIZE ||
-                    m_currentRawGhostSize > System::RKG_UNCOMPRESSED_INPUT_DATA_SECTION_SIZE) {
+                m_currentRawGhostSize >
+                    System::RKG_UNCOMPRESSED_INPUT_DATA_SECTION_SIZE) {
                 PANIC("File cannot be a ghost! Check the file size.");
             }
 
@@ -100,8 +101,8 @@ KReplaySystem *KReplaySystem::Instance() {
 }
 
 KReplaySystem::KReplaySystem()
-    : m_currentGhostFileName(nullptr), m_currentGhost(nullptr), m_currentRawGhost(nullptr),
-      m_currentRawGhostSize(0) {}
+    : m_currentGhostFileName(nullptr), m_currentGhost(nullptr),
+      m_currentRawGhost(nullptr), m_currentRawGhostSize(0) {}
 
 KReplaySystem::~KReplaySystem() {
     if (s_instance) {
@@ -144,9 +145,9 @@ void KReplaySystem::reportFail(const std::string &msg) const {
 bool KReplaySystem::success() const {
     auto format = [](const System::Timer &timer) {
         std::ostringstream oss;
-        oss << std::setw(2) << std::setfill('0') << timer.min << ":" << std::setw(2)
-            << std::setfill('0') << timer.sec << "." << std::setw(3) << std::setfill('0')
-            << timer.mil;
+        oss << std::setw(2) << std::setfill('0') << timer.min << ":"
+            << std::setw(2) << std::setfill('0') << timer.sec << "."
+            << std::setw(3) << std::setfill('0') << timer.mil;
         return oss.str();
     };
 
@@ -176,9 +177,10 @@ bool KReplaySystem::success() const {
 }
 
 /// @brief Finds the desyncing timer index, if one exists.
-/// @return -1 if there's no desync, 0 if the final timer desyncs, and 1+ if a lap timer desyncs.
+/// @return -1 if there's no desync, 0 if the final timer desyncs, and 1+ if a
+/// lap timer desyncs.
 s32 KReplaySystem::getDesyncingTimerIdx() const {
-    const auto &player = System::RaceManager::Instance()->player();
+    const auto &player = System::RaceManager::Instance()->player(0);
     if (m_currentGhost->raceTimer() != player.raceTimer()) {
         return 0;
     }
@@ -194,19 +196,23 @@ s32 KReplaySystem::getDesyncingTimerIdx() const {
 
 /// @brief Gets the desyncing timer according to the index.
 /// @param i Index to the desyncing timer. Cannot be -1.
-/// @return The pair of timers. The first is the correct one, and the second is the incorrect one.
-KReplaySystem::DesyncingTimerPair KReplaySystem::getDesyncingTimer(s32 i) const {
+/// @return The pair of timers. The first is the correct one, and the second is
+/// the incorrect one.
+KReplaySystem::DesyncingTimerPair
+KReplaySystem::getDesyncingTimer(s32 i) const {
     auto cond = i <=> 0;
     ASSERT(cond != std::strong_ordering::less);
 
     if (cond == std::strong_ordering::equal) {
         const auto &correct = m_currentGhost->raceTimer();
-        const auto &incorrect = System::RaceManager::Instance()->player().raceTimer();
+        const auto &incorrect =
+            System::RaceManager::Instance()->player(0).raceTimer();
         ASSERT(correct != incorrect);
         return DesyncingTimerPair(correct, incorrect);
     } else if (cond == std::strong_ordering::greater) {
         const auto &correct = m_currentGhost->lapTimer(i - 1);
-        const auto &incorrect = System::RaceManager::Instance()->player().lapTimer(i - 1);
+        const auto &incorrect =
+            System::RaceManager::Instance()->player(0).lapTimer(i - 1);
         ASSERT(correct != incorrect);
         return DesyncingTimerPair(correct, incorrect);
     }
@@ -219,6 +225,7 @@ KReplaySystem::DesyncingTimerPair KReplaySystem::getDesyncingTimer(s32 i) const 
 /// @param config The race configuration instance.
 /// @param arg Unused optional argument.
 void KReplaySystem::OnInit(System::RaceConfig *config, void * /* arg */) {
-    config->setGhost(Instance()->m_currentRawGhost);
-    config->raceScenario().players[0].type = System::RaceConfig::Player::Type::Ghost;
+    config->setGhost(Instance()->m_currentRawGhost, 0);
+    config->raceScenario().players[0].type =
+        System::RaceConfig::Player::Type::Ghost;
 }
