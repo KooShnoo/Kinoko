@@ -11,16 +11,16 @@
 #include <game/system/GhostFile.hh>
 #include <game/system/RaceConfig.hh>
 #include <game/system/RaceManager.hh>
-#include <host/SceneCreatorDynamic.hh>
 #include <host/KSpamSystem.hh>
+#include <host/SceneCreatorDynamic.hh>
 #include <print>
 #include <ranges>
 #include <sstream>
 
-constexpr char* rkgPaths[] = 
+constexpr char *rkgPaths[] =
 #include "rkglist.txt"
 
-static std::vector<GhostTimers> s_ghostTimers;
+    static std::vector<GhostTimers> s_ghostTimers;
 
 std::string formatTimer(const System::Timer &timer) {
     return std::format("{:02d}:{:02d}.{:03d}", timer.min, timer.sec, timer.mil);
@@ -31,7 +31,8 @@ void KSpamSystem::OnInit(System::RaceConfig *config, void *arg) {
 
     config->raceScenario().course = Course::Luigi_Circuit;
 
-    // for (const auto [i, path] : ENUMERATE(std::filesystem::directory_iterator("../rkgs"))) {
+    // for (const auto [i, path] :
+    // ENUMERATE(std::filesystem::directory_iterator("../rkgs"))) {
     for (const auto [i, path] : ENUMERATE(rkgPaths)) {
 
         if (i > 40) {
@@ -47,7 +48,7 @@ void KSpamSystem::OnInit(System::RaceConfig *config, void *arg) {
         file.seekg(0, std::ios::beg);
 
         auto rkg = new u8[fileSize];
-        file.read((char *) rkg, fileSize);
+        file.read((char *)rkg, fileSize);
         file.close();
 
         auto rawGhost = System::RawGhostFile(rkg);
@@ -70,7 +71,8 @@ void KSpamSystem::OnInit(System::RaceConfig *config, void *arg) {
         delete[] rkg;
 
         config->raceScenario().players.emplace_back();
-        config->raceScenario().players.back().type = System::RaceConfig::Player::Type::Ghost;
+        config->raceScenario().players.back().type =
+            System::RaceConfig::Player::Type::Ghost;
     }
 }
 
@@ -82,7 +84,8 @@ bool KSpamSystem::run() {
     auto *sceneMgr = new EGG::SceneManager(sceneCreator);
     System::RaceConfig::RegisterInitCallback(OnInit, nullptr);
 
-    // Creates the root scene, which creates the race scene, which is a game scene
+    // Creates the root scene, which creates the race scene, which is a game
+    // scene
     sceneMgr->changeScene(0);
 
     for (auto _ : std::ranges::views::iota(5000)) {
@@ -99,13 +102,14 @@ bool KSpamSystem::run() {
                 continue;
             }
 
-            if (player.m_bFinished && player.raceTimer() != correctTimers.raceTimer) {
+            if (player.m_bFinished &&
+                player.raceTimer() != correctTimers.raceTimer) {
                 desynced = true;
                 std::println("race timer desync for player {} {}: \n{} "
-                           "measured,\n{} expected.",
-                           i, correctTimers.ghostPath,
-                           formatTimer(player.raceTimer()),
-                           formatTimer(correctTimers.raceTimer));
+                             "measured,\n{} expected.",
+                             i, correctTimers.ghostPath,
+                             formatTimer(player.raceTimer()),
+                             formatTimer(correctTimers.raceTimer));
                 continue;
             }
 
@@ -115,11 +119,10 @@ bool KSpamSystem::run() {
             if (actualTimer != correctTimer) {
                 desynced = true;
                 std::println("lap timer {} desync for player {} {}: \n{} "
-                            "measured,\n{} expected.",
-                            newlap,
-                            i, correctTimers.ghostPath,
-                            formatTimer(actualTimer),
-                            formatTimer(correctTimer));
+                             "measured,\n{} expected.",
+                             newlap, i, correctTimers.ghostPath,
+                             formatTimer(actualTimer),
+                             formatTimer(correctTimer));
             }
         }
 
