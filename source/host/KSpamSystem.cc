@@ -17,13 +17,13 @@
 #include <ranges>
 #include <sstream>
 
-auto formatTimer(const System::Timer &timer) {
+constexpr char* rkgPaths[] = 
+#include "rkglist.txt"
 
-    std::ostringstream oss;
-    oss << std::setw(2) << std::setfill('0') << timer.min << ":" << std::setw(2)
-        << std::setfill('0') << timer.sec << "." << std::setw(3)
-        << std::setfill('0') << timer.mil;
-    return oss.str();
+static std::vector<GhostTimers> s_ghostTimers;
+
+std::string formatTimer(const System::Timer &timer) {
+    return std::format("{:02d}:{:02d}.{:03d}", timer.min, timer.sec, timer.mil);
 }
 
 void KSpamSystem::OnInit(System::RaceConfig *config, void *arg) {
@@ -31,14 +31,20 @@ void KSpamSystem::OnInit(System::RaceConfig *config, void *arg) {
 
     config->raceScenario().course = Course::Luigi_Circuit;
 
-    for (const auto [i, path] : ENUMERATE(std::filesystem::directory_iterator("../rkgs"))) {
+    // for (const auto [i, path] : ENUMERATE(std::filesystem::directory_iterator("../rkgs"))) {
+    for (const auto [i, path] : ENUMERATE(rkgPaths)) {
 
         if (i > 40) {
             return;
         }
 
-        auto fileSize = path.file_size();
-        auto file = std::ifstream(path.path());
+        // auto fileSize = path.file_size();
+        // auto file = std::ifstream(path.path());
+
+        auto file = std::ifstream(path);
+        file.seekg(0, std::ios::end);
+        auto fileSize = file.tellg();
+        file.seekg(0, std::ios::beg);
 
         auto rkg = new u8[fileSize];
         file.read((char *) rkg, fileSize);
@@ -55,7 +61,8 @@ void KSpamSystem::OnInit(System::RaceConfig *config, void *arg) {
                     ghost.lapTimer(2),
                 },
             .raceTimer = ghost.raceTimer(),
-            .ghostPath = path.path(),
+            .ghostPath = path,
+            // .ghostPath = path.path(),
         };
         s_ghostTimers.emplace_back(ghostTimers);
 
@@ -102,9 +109,9 @@ bool KSpamSystem::run() {
                 continue;
             }
 
-            auto newlap = player.m_currentLap;
-            const auto &correctTimer = correctTimers.lapTimers[newlap];
-            const auto &actualTimer = player.lapTimers()[newlap];
+            auto newlap = player.m_currentLap - 1;
+            const auto &correctTimer = correctTimers.lapTimers[newlap - 1];
+            const auto &actualTimer = player.lapTimers()[newlap - 1];
             if (actualTimer != correctTimer) {
                 desynced = true;
                 std::println("lap timer {} desync for player {} {}: \n{} "

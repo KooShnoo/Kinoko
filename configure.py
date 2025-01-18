@@ -42,10 +42,10 @@ common_ccflags = [
     '-std=c++23',
     '-Wall',
     '-Wdouble-promotion',
-    '-Werror',
+    # '-Werror',
     '-Wextra',
     '-Wno-delete-non-virtual-dtor',
-    '-Wno-packed-bitfield-compat',
+    # '-Wno-packed-bitfield-compat',
     '-Wsuggest-override',
     # for clang, which gives warnings we haven't addressed
     '-Wno-everything',
@@ -63,7 +63,8 @@ debug_cflags = [
 
 common_ldflags = [
     # i hate apple!
-    # (for some reason apple's stupid default-installed clang, which doesn't support cpp23, blocks brew clang's libdir)
+    # (for some reason apple's stupid default-installed clang,
+    # which doesn't support cpp23, blocks brew clang's libdir)
     # (so i have to manually specify it)
     "-L/usr/local/Cellar/llvm/19.1.3/lib/c++/",
 ]

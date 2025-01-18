@@ -27,6 +27,4 @@ public:
     }
     static void OnInit(System::RaceConfig *config, void *arg);
     static KSpamSystem *CreateInstance();
-
-    inline static std::vector<GhostTimers> s_ghostTimers;
 };
