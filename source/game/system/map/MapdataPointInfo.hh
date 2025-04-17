@@ -3,50 +3,35 @@
 #include "game/system/map/MapdataAccessorBase.hh"
 
 #include <egg/math/Vector.hh>
-#include <vector>
+#include <egg/util/Stream.hh>
+
+#include <span>
 
 namespace System {
-class MapdataPointInfoAccessor;
 
 class MapdataPointInfo {
 public:
-    friend MapdataPointInfoAccessor;
-
     struct Point {
         EGG::Vector3f pos;
-        u16 setting1;
-        u16 setting2;
-
-        void read(EGG::Stream &stream);
+        u16 setting[2];
     };
-    STATIC_ASSERT(sizeof(Point) == 0x10);
 
     struct SData {
         u16 pointCount;
-        u8 setting1;
-        u8 setting2;
+        u8 settings[2];
         Point points[];
     };
     STATIC_ASSERT(sizeof(SData) == 0x4);
 
     MapdataPointInfo(const SData *data);
+    ~MapdataPointInfo();
 
-    void read(EGG::Stream &stream);
+    void read(EGG::RamStream &stream);
 
-    u16 count() {
-        return m_pointCount;
-    }
+    [[nodiscard]] size_t pointCount() const;
 
-    u8 setting2() {
-        return m_setting2;
-    }
-
-    inline bool isIdxValidU(u32 idx) {
-        return (idx < m_pointCount);
-    }
-
-    inline bool isIdxValid(s32 idx) {
-        return (idx < m_pointCount);
+    inline bool isIdxValid(u32 idx) {
+        return (idx < pointCount());
     }
 
     inline const Point &get(u16 idx) {
@@ -55,10 +40,8 @@ public:
 
 private:
     const SData *m_rawData;
-    u16 m_pointCount; ///< number of points comprising this route
-    u8 m_setting1;
-    u8 m_setting2;
-    std::vector<Point> m_points;
+    std::array<u8, 2> m_settings;
+    std::span<Point> m_points;
 };
 
 class MapdataPointInfoAccessor
@@ -66,22 +49,8 @@ class MapdataPointInfoAccessor
 public:
     MapdataPointInfoAccessor(const MapSectionHeader *header);
     ~MapdataPointInfoAccessor() override;
-    void init(const MapdataPointInfo::SData *start, u16 count) {
-        if (count != 0) {
-            m_entryCount = count;
-            m_entries = new MapdataPointInfo *[count];
-        }
 
-        auto *rawData = start;
-        for (u16 i = 0; i < count; ++i) {
-            auto *route = new MapdataPointInfo(rawData);
-            m_entries[i] = route;
-            // @todo unsafe pointer arithmetic
-            rawData++;
-            rawData = reinterpret_cast<const MapdataPointInfo::SData *>(
-                    &route->m_rawData->points[route->m_pointCount]);
-        }
-    }
+    void init(const MapdataPointInfo::SData *start, u16 count);
 };
 
 } // namespace System

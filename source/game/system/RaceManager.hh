@@ -1,21 +1,12 @@
 #pragma once
 
 #include "game/system/KPadController.hh"
+#include "game/system/map/MapdataCheckPoint.hh"
+#include "game/system/map/MapdataJugemPoint.hh"
 
 #include <egg/math/Vector.hh>
 
 namespace System {
-
-class RaceManagerPlayer {
-public:
-    RaceManagerPlayer();
-    virtual ~RaceManagerPlayer() {}
-
-    [[nodiscard]] const KPad *inputs() const;
-
-private:
-    const KPad *m_inputs;
-};
 
 /// @addr{0x809BD730}
 /// @brief Manages the timers that track the stages of a race.
@@ -26,6 +17,70 @@ private:
 /// @nosubgrouping
 class RaceManager : EGG::Disposer {
 public:
+    class Player {
+    public:
+        Player();
+        virtual ~Player() {}
+
+        void init();
+        void calc();
+
+        [[nodiscard]] Timer getLapSplit(size_t idx) const;
+
+        /// @beginGetters
+        [[nodiscard]] u16 checkpointId() const {
+            return m_checkpointId;
+        }
+
+        [[nodiscard]] f32 raceCompletion() const {
+            return m_raceCompletion;
+        }
+
+        [[nodiscard]] s8 jugemId() const {
+            return m_jugemId;
+        }
+
+        [[nodiscard]] const std::array<Timer, 3> &lapTimers() const {
+            return m_lapTimers;
+        }
+
+        [[nodiscard]] const Timer &lapTimer(size_t idx) const {
+            ASSERT(idx < m_lapTimers.size());
+            return m_lapTimers[idx];
+        }
+
+        [[nodiscard]] const Timer &raceTimer() const {
+            return m_raceTimer;
+        }
+
+        [[nodiscard]] const KPad *inputs() const {
+            return m_inputs;
+        }
+        /// @endGetters
+
+    private:
+        MapdataCheckPoint *calcCheckpoint(u16 checkpointId, f32 distanceRatio);
+        [[nodiscard]] bool areCheckpointsSubsequent(const MapdataCheckPoint *checkpoint,
+                u16 nextCheckpointId) const;
+
+        void decrementLap();
+        void incrementLap();
+        void endRace(const Timer &finishTime);
+
+        u16 m_checkpointId;
+        f32 m_raceCompletion;
+        f32 m_checkpointFactor; ///< The proportion of a lap for the current checkpoint
+        f32 m_checkpointStartLapCompletion;
+        f32 m_lapCompletion;
+        s8 m_jugemId;
+        s16 m_currentLap;
+        s8 m_maxLap;
+        s8 m_maxKcp;
+        std::array<Timer, 3> m_lapTimers;
+        Timer m_raceTimer;
+        const KPad *m_inputs;
+    };
+
     enum class Stage {
         Intro = 0,
         Countdown = 1,
@@ -34,27 +89,57 @@ public:
         FinishGlobal = 4,
     };
 
+    void init();
+
     void findKartStartPoint(EGG::Vector3f &pos, EGG::Vector3f &angles);
+    void endPlayerRace(u32 idx);
 
     void calc();
 
-    [[nodiscard]] bool isStageReached(Stage stage) const;
+    /// @addr{0x80536230}
+    [[nodiscard]] bool isStageReached(Stage stage) const {
+        return static_cast<std::underlying_type_t<Stage>>(m_stage) >=
+                static_cast<std::underlying_type_t<Stage>>(stage);
+    }
+
+    [[nodiscard]] MapdataJugemPoint *jugemPoint() const;
 
     /// @beginGetters
-    [[nodiscard]] int getCountdownTimer() const;
-    [[nodiscard]] const RaceManagerPlayer &player() const;
-    [[nodiscard]] Stage stage() const;
+    /// @addr{0x80533090}
+    [[nodiscard]] int getCountdownTimer() const {
+        return STAGE_COUNTDOWN_DURATION - m_timer;
+    }
+
+    [[nodiscard]] const Player &player() const {
+        return m_player;
+    }
+
+    [[nodiscard]] const TimerManager &timerManager() const {
+        return m_timerManager;
+    }
+
+    [[nodiscard]] Stage stage() const {
+        return m_stage;
+    }
+
+    [[nodiscard]] u32 timer() const {
+        return m_timer;
+    }
     /// @endGetters
 
     static RaceManager *CreateInstance();
-    [[nodiscard]] static RaceManager *Instance();
     static void DestroyInstance();
+
+    [[nodiscard]] static RaceManager *Instance() {
+        return s_instance;
+    }
 
 // private:
     RaceManager();
     ~RaceManager() override;
 
-    RaceManagerPlayer m_player;
+    Player m_player;
+    TimerManager m_timerManager;
     Stage m_stage;
     u16 m_introTimer;
     u32 m_timer;

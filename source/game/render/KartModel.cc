@@ -16,15 +16,31 @@ KartModel::KartModel() {
     _54 = 1.0f;
     _5c = 0.0f;
     _64 = 0.0f;
+    _2e8 = 0.0f;
 }
 
 KartModel::~KartModel() = default;
 
 /// @addr{0x807CD32C}
 void KartModel::vf_1c() {
-    _58 *= 0.9f;
+    if (state()->isBurnout()) {
+        _54 = 1.0f;
+
+        f32 pitch = move()->burnout().pitch();
+        f32 fVar2 = pitch + 75.0f * (pitch - _2e8);
+        f32 fVar4 = std::min(0.2f, 0.04f * EGG::Mathf::abs(fVar2));
+        fVar4 = fVar2 > 0.0f ? fVar4 : -fVar4;
+
+        _2e8 = pitch;
+        _58 += fVar4;
+    } else {
+        _2e8 = 0.0f;
+        _58 *= 0.9f;
+    }
+
     f32 xStick = inputs()->currentState().stick.x;
-    f32 fVar2 = 0.1f;
+    bool isInCannon = state()->isInCannon();
+    f32 fVar2 = isInCannon ? 0.02f : 0.1f;
 
     f32 local_f31 = _58;
     if (xStick <= 0.2f) {
@@ -36,6 +52,11 @@ void KartModel::vf_1c() {
     }
 
     xStick = EGG::Mathf::abs(xStick);
+
+    if (isInCannon) {
+        xStick *= 0.8f;
+        fVar2 = 0.05f;
+    }
 
     _54 += fVar2 * (xStick - _54);
 
@@ -98,6 +119,8 @@ void KartModel::vf_1c() {
 /// @addr{0x807C8758}
 void KartModel::init() {
     FUN_807C7828(param()->playerIdx(), isBike());
+
+    _2e8 = 0.0f;
 }
 
 /// @addr{0x807CB360}

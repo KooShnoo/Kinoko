@@ -1,6 +1,7 @@
 #include "ObjectDirector.hh"
 
 #include "game/field/BoxColManager.hh"
+#include "game/field/ObjectDrivableDirector.hh"
 #include "game/field/obj/ObjectRegistry.hh"
 
 #include "game/kart/KartObject.hh"
@@ -15,6 +16,8 @@ void ObjectDirector::init() {
         obj->init();
         obj->calcModel();
     }
+
+    ObjectDrivableDirector::Instance()->init();
 }
 
 /// @addr{0x8082A8F4}
@@ -26,6 +29,8 @@ void ObjectDirector::calc() {
     for (auto *&obj : m_calcObjects) {
         obj->calcModel();
     }
+
+    ObjectDrivableDirector::Instance()->calc();
 }
 
 /// @addr{0x8082B0E8}
@@ -42,6 +47,10 @@ void ObjectDirector::addObject(ObjectCollidable *obj) {
         }
     }
 
+    m_objects.push_back(obj);
+}
+
+void ObjectDirector::addObjectNoImpl(ObjectNoImpl *obj) {
     m_objects.push_back(obj);
 }
 
@@ -80,7 +89,7 @@ size_t ObjectDirector::checkKartObjectCollision(Kart::KartObject *kartObj,
             obj->onObjectCollision(kartObj);
         }
 
-        m_collisionObjects[count] = obj;
+        m_collidingObjects[count] = obj;
         if (m_hitDepths[count].y < 0.0f) {
             m_hitDepths[count].y = 0.0f;
         }
@@ -91,26 +100,12 @@ size_t ObjectDirector::checkKartObjectCollision(Kart::KartObject *kartObj,
     return count;
 }
 
-const ObjectFlowTable &ObjectDirector::flowTable() const {
-    return m_flowTable;
-}
-
-Kart::Reaction ObjectDirector::reaction(size_t idx) const {
-    ASSERT(idx < m_reactions.size());
-
-    return m_reactions[idx];
-}
-
-const EGG::Vector3f &ObjectDirector::hitDepth(size_t idx) const {
-    ASSERT(idx < m_hitDepths.size());
-
-    return m_hitDepths[idx];
-}
-
 /// @addr{0x8082A784}
 ObjectDirector *ObjectDirector::CreateInstance() {
     ASSERT(!s_instance);
     s_instance = new ObjectDirector;
+
+    ObjectDrivableDirector::CreateInstance();
 
     s_instance->createObjects();
 
@@ -123,10 +118,8 @@ void ObjectDirector::DestroyInstance() {
     auto *instance = s_instance;
     s_instance = nullptr;
     delete instance;
-}
 
-ObjectDirector *ObjectDirector::Instance() {
-    return s_instance;
+    ObjectDrivableDirector::DestroyInstance();
 }
 
 /// @addr{0x8082A38C}
@@ -150,9 +143,13 @@ ObjectDirector::~ObjectDirector() {
 void ObjectDirector::createObjects() {
     const auto *courseMap = System::CourseMap::Instance();
     size_t objectCount = courseMap->getGeoObjCount();
-    m_objects.reserve(objectCount);
-    m_calcObjects.reserve(objectCount);
-    m_collisionObjects.reserve(objectCount);
+
+    // It's possible for the KMP to specify settings for objects that aren't tracked here
+    // MAX_UNIT_COUNT is the upper bound for tracked object count, so we reserve the minimum
+    size_t maxCount = std::min(objectCount, MAX_UNIT_COUNT);
+    m_objects.reserve(maxCount);
+    m_calcObjects.reserve(maxCount);
+    m_collisionObjects.reserve(maxCount);
 
     for (size_t i = 0; i < objectCount; ++i) {
         const auto *pObj = courseMap->getGeoObj(i);
@@ -181,6 +178,19 @@ ObjectBase *ObjectDirector::createObject(const System::MapdataGeoObj &params) {
         return new ObjectDokan(params);
     case ObjectId::OilSFC:
         return new ObjectOilSFC(params);
+    case ObjectId::ParasolR:
+        return new ObjectParasolR(params);
+    case ObjectId::PuchiPakkun:
+        return new ObjectPuchiPakkun(params);
+    case ObjectId::Aurora:
+        return new ObjectAurora(params);
+    // Non-specified objects are stock collidable objects by default
+    // However, we need to specify an impl, so we don't use default
+    case ObjectId::DummyPole:
+    case ObjectId::CastleTree1c:
+    case ObjectId::PalmTree:
+    case ObjectId::DKtreeA64c:
+        return new ObjectCollidable(params);
     default:
         return new ObjectNoImpl(params);
     }

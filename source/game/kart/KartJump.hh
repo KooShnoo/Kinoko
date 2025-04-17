@@ -44,7 +44,7 @@ public:
     KartJump(KartMove *move);
     virtual ~KartJump();
 
-    virtual void calcRot() {}
+    virtual void calcRot();
 
     void setupProperties();
     void reset();
@@ -57,18 +57,31 @@ public:
     void setAngle(const EGG::Vector3f &left);
 
     /// @beginSetters
-    void setBoostRampEnabled(bool isSet);
+    void setBoostRampEnabled(bool isSet) {
+        m_boostRampEnabled = isSet;
+    }
     /// @endSetters
 
     /// @beginGetters
-    [[nodiscard]] bool isBoostRampEnabled() const;
+    [[nodiscard]] bool isBoostRampEnabled() const {
+        return m_boostRampEnabled;
+    }
 
-    [[nodiscard]] TrickType type() const;
-    [[nodiscard]] SurfaceVariant variant() const;
-    [[nodiscard]] s16 cooldown() const;
+    [[nodiscard]] TrickType type() const {
+        return m_type;
+    }
+    [[nodiscard]] SurfaceVariant variant() const {
+        return m_variant;
+    }
+    [[nodiscard]] s16 cooldown() const {
+        return m_cooldown;
+    }
     /// @endGetters
 
 protected:
+    virtual void start(const EGG::Vector3f &left);
+    virtual void init();
+
     TrickType m_type;
     SurfaceVariant m_variant;
     System::Trick m_nextTrick;
@@ -84,9 +97,6 @@ protected:
     KartMove *m_move;
 
 private:
-    virtual void start(const EGG::Vector3f & /*left*/) {}
-    virtual void init() {}
-
     s16 m_nextAllowTimer;
     bool m_boostRampEnabled;
 };

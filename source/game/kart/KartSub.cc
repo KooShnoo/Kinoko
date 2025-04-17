@@ -1,5 +1,6 @@
 #include "KartSub.hh"
 
+#include "game/kart/KartAction.hh"
 #include "game/kart/KartBody.hh"
 #include "game/kart/KartCollide.hh"
 #include "game/kart/KartMove.hh"
@@ -28,11 +29,13 @@ KartSub::~KartSub() {
     delete m_collide;
     delete m_state;
     delete m_move;
+    delete m_action;
 }
 
 /// @addr{0x80595D48}
 void KartSub::createSubsystems(bool isBike) {
     m_move = isBike ? new KartMoveBike : new KartMove;
+    m_action = new KartAction;
     m_move->createSubsystems();
     m_state = new KartState;
     m_collide = new KartCollide;
@@ -44,6 +47,7 @@ void KartSub::copyPointers(KartAccessor &pointers) {
     pointers.collide = m_collide;
     pointers.state = m_state;
     pointers.move = m_move;
+    pointers.action = m_action;
 }
 
 /// @addr{0x80595F78}
@@ -52,6 +56,7 @@ void KartSub::init() {
     body()->reset();
     m_state->init();
     move()->setTurnParams();
+    action()->init();
     m_collide->init();
 }
 
@@ -107,6 +112,15 @@ void KartSub::calcPass0() {
     }
 
     state()->calc();
+
+    if (state()->isTriggerRespawn()) {
+        setInertiaScale(EGG::Vector3f(1.0f, 1.0f, 1.0f));
+        resetPhysics();
+        state()->reset();
+        move()->setTurnParams();
+        move()->calcRespawnStart();
+    }
+
     physics()->setPos(dynamics()->pos());
     physics()->setVelocity(dynamics()->velocity());
     dynamics()->setGravity(-1.3f);
@@ -114,6 +128,7 @@ void KartSub::calcPass0() {
 
     state()->calcInput();
     move()->calc();
+    action()->calc();
     collide()->waterCurrent().calc();
 
     if (state()->isSkipWheelCalc()) {
@@ -198,7 +213,7 @@ void KartSub::calcPass1() {
         collide()->setMovement(collide()->movement() + effectiveSpeed);
     }
 
-    const auto &colData = collisionData();
+    auto &colData = collisionData();
     if (colData.bWallAtLeftCloser || colData.bWallAtRightCloser || m_sideCollisionTimer > 0) {
         EGG::Vector3f right = dynamics()->mainRot().rotateVector(EGG::Vector3f::ex);
 
@@ -222,14 +237,19 @@ void KartSub::calcPass1() {
             KCL_TYPE_VEHICLE_INTERACTABLE, 0);
 
     if (!state()->isInCannon()) {
-        collide()->findCollision();
-        body()->calcTargetSinkDepth();
-        const auto &colData = collisionData();
-        if (colData.bWall || colData.bWall3) {
-            collide()->setMovement(collide()->movement() + colData.movement);
+        if (!state()->isZipperStick()) {
+            collide()->findCollision();
+            body()->calcTargetSinkDepth();
+
+            if (colData.bWall || colData.bWall3) {
+                collide()->setMovement(collide()->movement() + colData.movement);
+            }
+        } else {
+            colData.reset();
         }
 
         collide()->calcFloorEffect();
+        collide()->calcFloorMomentRate();
 
         if (colData.bFloor) {
             // Update floor count
@@ -262,9 +282,9 @@ void KartSub::calcPass1() {
         dynamics()->setPos(dynamics()->pos() + vehicleCompensation);
 
         if (!collisionData().bFloor) {
-            EGG::Vector3f relPos;
-            EGG::Vector3f vel;
-            EGG::Vector3f floorNrm;
+            EGG::Vector3f relPos = EGG::Vector3f::zero;
+            EGG::Vector3f vel = EGG::Vector3f::zero;
+            EGG::Vector3f floorNrm = EGG::Vector3f::zero;
             u32 count = 0;
 
             for (u16 wheelIdx = 0; wheelIdx < tireCount(); ++wheelIdx) {
@@ -314,10 +334,9 @@ void KartSub::calcPass1() {
 
 /// @addr{0x80598338}
 void KartSub::resizeAABB(f32 radiusScale) {
-    f32 radius = radiusScale * collide()->boundingRadius();
+    f32 radius = radiusScale * collisionGroup()->boundingRadius();
     boxColUnit()->resize(radius + 25.0f, move()->hardSpeedLimit());
 }
-
 
 /// @addr{0x80597D4C}
 void KartSub::calcWaterCurrent() {
@@ -334,15 +353,15 @@ void KartSub::calcWaterCurrent() {
         physics()->decayMovingWaterVel(0.7f, movingWaterVel, m_floorCollisionCount != 0);
 
     } else {
-        EGG::Vector3f flowDir = EGG::Vector3f(-0.325806796550750732421875, -0.029049418866634368896484375, 0.94499003887176513671875);
-
+        EGG::Vector3f flowDir = EGG::Vector3f(-0.325806796550750732421875,
+                -0.029049418866634368896484375, 0.94499003887176513671875);
 
         f32 waterRatio = static_cast<f32>(m_waterCollisionCount) / m_floorCollisionCount;
-        EGG::Vector3f local_48 =
-                flowDir.perpInPlane(move()->smoothedUp(), true);
-                // collide()->waterCurrent().flowDir().perpInPlane(move()->smoothedUp(), true);
-        REPORT("flowdir: %s",static_cast<std::string>(collide()->waterCurrent().flowDir()).c_str());
-        // f32 routeWaterCurrentStrength = collide()->waterCurrent().m_routeWaterCurrentStrength;
+        EGG::Vector3f local_48 = flowDir.perpInPlane(move()->smoothedUp(), true);
+        // collide()->waterCurrent().flowDir().perpInPlane(move()->smoothedUp(), true);
+        // REPORT("flowdir:
+        // %s",static_cast<std::string>(collide()->waterCurrent().flowDir()).c_str()); f32
+        // routeWaterCurrentStrength = collide()->waterCurrent().m_routeWaterCurrentStrength;
         f32 routeWaterCurrentStrength = 15.0f;
         if (state()->m_bWaterCurrent2) {
             // f32 parallelWaterCurrentStrength =
@@ -358,7 +377,8 @@ void KartSub::calcWaterCurrent() {
 
     if (state()->m_bWaterCurrentCliff) {
         // strongly pull the player downwards
-        EGG::Vector3f foo = collide()->waterCurrent().flowDir().perpInPlane(move()->smoothedUp(), true);
+        EGG::Vector3f foo =
+                collide()->waterCurrent().flowDir().perpInPlane(move()->smoothedUp(), true);
         // dynamics()->waterCurrentVel().y = foo.y * 50.0f;
         auto tmp = dynamics()->waterCurrentVel();
         tmp.y = foo.y * 50.0f;
@@ -400,7 +420,7 @@ void KartSub::tryEndHWG() {
                 state()->isAllWheelsCollision()) {
             state()->setSoftWallDrift(false);
         } else if (state()->isTouchingGround()) {
-            if (componentXAxis().dot(EGG::Vector3f::ey) > 0.8f) {
+            if (EGG::Mathf::abs(componentXAxis().dot(EGG::Vector3f::ey)) > 0.8f) {
                 state()->setSoftWallDrift(false);
             }
         }
@@ -412,11 +432,9 @@ void KartSub::tryEndHWG() {
         }
     }
 
-    dynamics()->setForceUpright(!state()->isSoftWallDrift());
-}
-
-f32 KartSub::someScale() {
-    return m_someScale;
+    if (!state()->isInAction()) {
+        dynamics()->setForceUpright(!state()->isSoftWallDrift());
+    }
 }
 
 } // namespace Kart

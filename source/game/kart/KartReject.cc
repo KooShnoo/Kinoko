@@ -26,6 +26,10 @@ void KartReject::reset() {
 
 /// @addr{0x80585AF8}
 void KartReject::calcRejectRoad() {
+    if (state()->isInAction()) {
+        return;
+    }
+
     if (state()->isRejectRoadTrigger()) {
         EGG::Vector3f down = -EGG::Vector3f::ey;
         down = down.perpInPlane(move()->up(), true);
@@ -59,14 +63,17 @@ void KartReject::calcRejectRoad() {
 
         state()->setHop(false);
 
-        if (!calcRejection()) {
+        bool didReject = calcRejection();
+
+        if (!state()->isNoSparkInvisibleWall() && !didReject) {
             state()->setRejectRoadTrigger(false);
         }
-    } else {
-        if (!state()->isRejectRoad()) {
-            return;
-        }
 
+        return;
+    }
+
+    if (state()->isRejectRoad() && !state()->isZipperInvisibleWall() && !state()->isOverZipper() &&
+            !state()->isHalfPipeRamp()) {
         EGG::Vector3f upXZ = move()->up();
         upXZ.y = 0.0f;
 
@@ -87,8 +94,9 @@ void KartReject::calcRejectRoad() {
 
 /// @addr{0x805860BC}
 bool KartReject::calcRejection() {
-    Field::CourseColMgr::CollisionInfo colInfo;
+    Field::CollisionInfo colInfo;
     Field::KCLTypeMask mask = KCL_NONE;
+    state()->setNoSparkInvisibleWall(false);
     EGG::Vector3f worldUpPos = dynamics()->pos() + bodyUp() * 100.0f;
     f32 posScalar = 100.0f;
     f32 radius = posScalar;
@@ -109,16 +117,31 @@ bool KartReject::calcRejection() {
 
         bool hasFloorCollision = false;
         bool hasRejectCollision = false;
-        EGG::Vector3f tangentOff;
+        bool hasInvisibleWallCollision = false;
+        EGG::Vector3f tangentOff = EGG::Vector3f::zero;
 
-        if (mask & KCL_TYPE_DRIVER_FLOOR) {
-            hasFloorCollision = colDir->findClosestCollisionEntry(&mask, KCL_TYPE_DRIVER_FLOOR);
+        if (mask & KCL_TYPE_INVISIBLE_WALL) {
+            hasInvisibleWallCollision =
+                    colDir->findClosestCollisionEntry(&mask, KCL_TYPE_INVISIBLE_WALL);
         }
 
         const auto *closestColEntry = colDir->closestCollisionEntry();
-        if (hasFloorCollision && closestColEntry->attribute & 0x4000) {
+        if (hasInvisibleWallCollision && KCL_VARIANT_TYPE(closestColEntry->attribute) == 0) {
             hasRejectCollision = true;
-            tangentOff = colInfo.floorNrm;
+            tangentOff = colInfo.wallNrm;
+            state()->setNoSparkInvisibleWall(true);
+        } else {
+            if (!(mask & KCL_TYPE_DRIVER_FLOOR)) {
+                hasFloorCollision = false;
+            } else {
+                hasFloorCollision = colDir->findClosestCollisionEntry(&mask, KCL_TYPE_DRIVER_FLOOR);
+            }
+
+            closestColEntry = colDir->closestCollisionEntry();
+            if (hasFloorCollision && closestColEntry->attribute & 0x4000) {
+                hasRejectCollision = true;
+                tangentOff = colInfo.floorNrm;
+            }
         }
 
         if (!hasRejectCollision) {
@@ -130,16 +153,20 @@ bool KartReject::calcRejection() {
         move()->setSmoothedUp(move()->up());
 
         bool bVar15 = tangentOff.dot(EGG::Vector3f::ey) < -0.17f;
-        if (bVar15 || extVel().y < 0.0f) {
+        if (bVar15 || extVel().y < 0.0f || state()->isNoSparkInvisibleWall()) {
             radius = -radius;
             colInfo.tangentOff += worldPos;
 
             f32 yOffset = bsp().initialYPos * scale().y;
-            f32 speedScalar = bVar15 ? 1.0f : EGG::Mathf::abs(speed()) * 0.01f - 0.3f;
+            f32 speedScalar = bVar15 ?
+                    1.0f :
+                    static_cast<f32>(static_cast<f64>(EGG::Mathf::abs(speed()) * 0.01f) - 0.3d);
             speedScalar = std::min(1.0f, std::max(0.0f, speedScalar));
 
             EGG::Vector3f posOffset =
-                    (colInfo.tangentOff + radius * tangentOff + yOffset * tangentOff) - pos();
+                    colInfo.tangentOff + radius * tangentOff + yOffset * tangentOff;
+            posOffset.y += move()->hopPosY();
+            posOffset -= pos();
             setPos(pos() + posOffset * speedScalar);
         }
 

@@ -5,28 +5,6 @@
 
 namespace EGG {
 
-Vector2f::Vector2f(f32 x_, f32 y_) : x(x_), y(y_) {}
-
-Vector2f::Vector2f() = default;
-
-Vector2f::~Vector2f() = default;
-
-f32 Vector2f::cross(const Vector2f &rhs) const {
-    return x * rhs.y - y * rhs.x;
-}
-
-f32 Vector2f::dot(const Vector2f &rhs) const {
-    return x * rhs.x + y * rhs.y;
-}
-
-f32 Vector2f::dot() const {
-    return x * x + y * y;
-}
-
-f32 Vector2f::length() const {
-    return dot() > std::numeric_limits<f32>::epsilon() ? Mathf::sqrt(dot()) : 0.0f;
-}
-
 /// @addr{0x80243A00}
 f32 Vector2f::normalise() {
     f32 len = length();
@@ -37,21 +15,15 @@ f32 Vector2f::normalise() {
     return len;
 }
 
-/// @brief The dot product between the vector and itself.
-f32 Vector3f::dot() const {
-    return x * x + y * y + z * z;
-}
-
-/// @brief The dot product between two vectors.
-f32 Vector3f::dot(const Vector3f &rhs) const {
-    return x * rhs.x + y * rhs.y + z * rhs.z;
+/// @brief Initializes a Vector2f by reading 8 bytes from the stream.
+void Vector2f::read(Stream &stream) {
+    x = stream.read_f32();
+    y = stream.read_f32();
 }
 
 /// @brief Paired-singles dot product implementation.
 f32 Vector3f::ps_dot() const {
-    f32 y_ = y * y;
-    f32 xy = Mathf::fma(x, x, y_);
-    return xy + z * z;
+    return ps_dot(*this);
 }
 
 /// @addr{0x8019ACAC}
@@ -62,23 +34,22 @@ f32 Vector3f::ps_dot(const Vector3f &rhs) const {
     return xy + z * rhs.z;
 }
 
-/// @addr{0x80214968}
-Vector3f Vector3f::cross(const Vector3f &rhs) const {
-    return Vector3f(y * rhs.z - z * rhs.y, z * rhs.x - x * rhs.z, x * rhs.y - y * rhs.x);
-}
-
-/// @brief The square root of the vector's dot product.
-f32 Vector3f::length() const {
-    return Mathf::sqrt(dot());
+/// @brief Differs from ps_dot due to variation in which operands are fused.
+f32 Vector3f::ps_squareMag() const {
+    f32 x_ = x * x;
+    f32 zx = Mathf::fma(z, z, x_);
+    return zx + y * y;
 }
 
 /// @addr{0x80243ADC}
 /// @brief Normalizes the vector and returns the original length.
 /// @return (optional) The length of the vector before normalisation.
 f32 Vector3f::normalise() {
-    f32 len = length();
-    if (std::numeric_limits<f32>::epsilon() < dot()) {
-        *this = *this * (1.0f / len);
+    f32 len = 0.0f;
+
+    if (squaredLength() > std::numeric_limits<f32>::epsilon()) {
+        len = length();
+        *this *= (1.0f / len);
     }
 
     return len;
@@ -108,39 +79,11 @@ Vector3f Vector3f::minimize(const Vector3f &rhs) const {
     return out;
 }
 
-/// @addr{0x805AEB88}
-/// @brief The projection of this vector onto rhs.
-Vector3f Vector3f::proj(const Vector3f &rhs) const {
-    return rhs * rhs.dot(*this);
-}
-
-/// @addr{0x805AEBD0}
-/// @brief The rejection of this vector onto rhs.
-Vector3f Vector3f::rej(const Vector3f &rhs) const {
-    return *this - proj(rhs);
-}
-
-/// @addr{0x805AEC24}
-std::pair<Vector3f, Vector3f> Vector3f::projAndRej(const Vector3f &rhs) const {
-    return std::pair(proj(rhs), rej(rhs));
-}
-
-/// @brief The square of the distance between two vectors.
-f32 Vector3f::sqDistance(const Vector3f &rhs) const {
-    const EGG::Vector3f diff = *this - rhs;
-    return diff.dot();
-}
-
 /// @addr{0x8019ADE0}
 /// @brief Paired-singles impl. of @ref sqDistance.
 f32 Vector3f::ps_sqDistance(const Vector3f &rhs) const {
     const EGG::Vector3f diff = *this - rhs;
     return diff.ps_dot();
-}
-
-/// @brief Returns the absolute value of each element of the vector.
-Vector3f Vector3f::abs() const {
-    return Vector3f(Mathf::abs(x), Mathf::abs(y), Mathf::abs(z));
 }
 
 /// @brief Calculates the orthogonal vector, based on the plane defined by this vector and rhs.
@@ -170,11 +113,10 @@ std::pair<bool, Vector3f> Vector3f::surfNormal(const EGG::Vector3f &rhs) const {
         Vector3f surfNormal = cross(rhs);
         surfNormal.normalise();
         return std::pair(false, surfNormal);
-
     }
 }
 
-/// @brief Constructs a Vector3f by reading 12 bytes from the stream.
+/// @brief Initializes a Vector3f by reading 12 bytes from the stream.
 void Vector3f::read(Stream &stream) {
     x = stream.read_f32();
     y = stream.read_f32();

@@ -42,18 +42,6 @@ void KartBody::calcTargetSinkDepth() {
     m_targetSinkDepth = 3.0f * static_cast<f32>(collisionData().intensity);
 }
 
-void KartBody::setAngle(f32 val) {
-    m_anAngle = val;
-}
-
-KartPhysics *KartBody::physics() const {
-    return m_physics;
-}
-
-f32 KartBody::sinkDepth() const {
-    return m_sinkDepth;
-}
-
 /// @addr{0x8056CCC0}
 KartBodyKart::KartBodyKart(KartPhysics *physics) : KartBody(physics) {}
 
@@ -84,13 +72,13 @@ EGG::Matrix34f KartBodyBike::wheelMatrix(u16 wheelIdx) {
     }
 
     EGG::Vector3f position = param()->bikeDisp().m_handlePos * scale();
-    EGG::Vector3f rotation = param()->bikeDisp().m_handleRot * DEG2RAD;
+    EGG::Vector3f rotation = DEG2RAD * param()->bikeDisp().m_handleRot;
 
     EGG::Matrix34f handleMatrix;
     handleMatrix.makeRT(rotation, position);
     EGG::Matrix34f tmp = mat.multiplyTo(handleMatrix);
 
-    EGG::Vector3f yRotation = EGG::Vector3f(0.0f, m_anAngle * DEG2RAD, 0.0f);
+    EGG::Vector3f yRotation = EGG::Vector3f(0.0f, DEG2RAD * m_anAngle, 0.0f);
     EGG::Matrix34f yRotMatrix;
     yRotMatrix.makeR(yRotation);
     mat = tmp.multiplyTo(yRotMatrix);

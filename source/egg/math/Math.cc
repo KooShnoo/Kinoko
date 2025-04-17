@@ -1,7 +1,5 @@
 #include "Math.hh"
 
-#include <cmath>
-
 namespace EGG::Mathf {
 
 // sin/cos struct
@@ -312,11 +310,6 @@ static constexpr AtanEntry sArcTanTbl[32 + 1] = {
         {32.000000000f, 0.626776175f},
 };
 
-/// @addr{0x8022F80C}
-f32 sqrt(f32 x) {
-    return x > 0.0 ? frsqrt(x) * x : 0.0;
-}
-
 /// CREDIT: Hanachan
 /// @addr{0x80085040}
 f32 frsqrt(f32 x) {
@@ -325,8 +318,9 @@ f32 frsqrt(f32 x) {
 
     // Newton-Raphson refinement
     f32 tmp0 = static_cast<f32>(est * force25Bit(est));
-    f32 tmp1 = static_cast<f32>(est * 0.5f);
-    f32 tmp2 = static_cast<f32>(3.0f - static_cast<f64>(tmp0) * static_cast<f64>(x));
+    f32 tmp1 = static_cast<f32>(est * static_cast<f64>(0.5f));
+    f32 tmp2 =
+            static_cast<f32>(static_cast<f64>(3.0f) - static_cast<f64>(tmp0) * static_cast<f64>(x));
     return tmp1 * tmp2;
 }
 
@@ -402,48 +396,6 @@ f32 Atan2FIdx(f32 y, f32 x) {
             }
         }
     }
-}
-
-/// Takes in radians
-/// @addr{0x8022F860}
-f32 sin(f32 x) {
-    return SinFIdx(x * RAD2FIDX);
-}
-
-/// Takes in radians
-/// @addr{0x8022F86C}
-f32 cos(f32 x) {
-    return CosFIdx(x * RAD2FIDX);
-}
-
-/// @addr{0x8022F8C0}
-f32 acos(f32 x) {
-    return ::acosl(x);
-}
-
-/// @addr{0x8022F8E4}
-f32 atan2(f32 y, f32 x) {
-    return Atan2FIdx(y, x) * FIDX2RAD;
-}
-
-f32 abs(f32 x) {
-    return std::abs(x);
-}
-
-/// @brief Fused multiply-add operation.
-/// @details We cannot use std::fma due to the Wii computing at 64-bit precision.
-f32 fma(f32 x, f32 y, f32 z) {
-    return static_cast<f32>(
-            static_cast<f64>(x) * force25Bit(static_cast<f64>(y)) + static_cast<f64>(z));
-}
-
-/// @brief This is used to mimic the Wii's floating-point unit.
-/// @details This handles the edgecase where double-precision floating-point numbers are passed into
-/// single-precision floating-point operands in assembly.
-f64 force25Bit(f64 x) {
-    u64 bits = std::bit_cast<u64>(x);
-    bits = (bits & 0xfffffffff8000000ULL) + (bits & 0x8000000);
-    return std::bit_cast<f64>(bits);
 }
 
 } // namespace EGG::Mathf

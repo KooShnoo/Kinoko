@@ -17,18 +17,20 @@ void CollisionData::reset() {
     intensity = 0.0f;
     colPerpendicularity = 0.0f;
 
-    bFloor= false;
-    bWall= false;
-    bWaterCurrent0= false;
-    bWall3= false;
-    bWaterCurrent2= false;
-    bSoftWall= false;
-    bWaterCurrentCliff= false;
-    bWaterCurrentNoAcceleration= false;
-    bTrickable= false;
-    bWallAtLeftCloser= false;
-    bWallAtRightCloser= false;
-    bWaterCurrent3= false;
+    bFloor = false;
+    bWall = false;
+    bInvisibleWall = false;
+    bWaterCurrent0 = false;
+    bWall3 = false;
+    bInvisibleWallOnly = false;
+    bWaterCurrent2 = false;
+    bSoftWall = false;
+    bWaterCurrentCliff = false;
+    bWaterCurrentNoAcceleration = false;
+    bTrickable = false;
+    bWallAtLeftCloser = false;
+    bWallAtRightCloser = false;
+    bWaterCurrent3 = false;
 }
 
 /// @addr{0x805B7F48}
@@ -64,23 +66,6 @@ void Hitbox::reset() {
     m_relPos.setZero();
 }
 
-void Hitbox::setRadius(f32 radius) {
-    m_radius = radius;
-}
-
-void Hitbox::setBspHitbox(const BSP::Hitbox *hitbox, bool owns) {
-    m_ownsBSP = owns;
-    m_bspHitbox = hitbox;
-}
-
-void Hitbox::setWorldPos(const EGG::Vector3f &pos) {
-    m_worldPos = pos;
-}
-
-void Hitbox::setLastPos(const EGG::Vector3f &pos) {
-    m_lastPos = pos;
-}
-
 /// @addr{0x805B80A8}
 void Hitbox::setLastPos(const EGG::Vector3f &scale, const EGG::Matrix34f &pose) {
     f32 yScaleFactor = scale.y;
@@ -95,26 +80,6 @@ void Hitbox::setLastPos(const EGG::Vector3f &scale, const EGG::Matrix34f &pose) 
 
     scaledPos.y *= yScaleFactor;
     m_lastPos = pose.ps_multVector(scaledPos);
-}
-
-const BSP::Hitbox *Hitbox::bspHitbox() const {
-    return m_bspHitbox;
-}
-
-const EGG::Vector3f &Hitbox::worldPos() const {
-    return m_worldPos;
-}
-
-const EGG::Vector3f &Hitbox::lastPos() const {
-    return m_lastPos;
-}
-
-const EGG::Vector3f &Hitbox::relPos() const {
-    return m_relPos;
-}
-
-f32 Hitbox::radius() const {
-    return m_radius;
 }
 
 /// @addr{0x805B82BC}
@@ -158,7 +123,7 @@ f32 CollisionGroup::initHitboxes(const std::array<BSP::Hitbox, 16> &hitboxes) {
 /// @addr{0x805B883C}
 /// @return The furthest point of all the hitboxes' spheres
 f32 CollisionGroup::computeCollisionLimits() {
-    EGG::Vector3f max;
+    EGG::Vector3f max = EGG::Vector3f::zero;
 
     for (const auto &hitbox : m_hitboxes) {
         const BSP::Hitbox *bspHitbox = hitbox.bspHitbox();
@@ -226,26 +191,6 @@ void CollisionGroup::setHitboxScale(f32 scale) {
     for (auto &hitbox : m_hitboxes) {
         hitbox.setRadius(hitbox.bspHitbox()->radius * m_hitboxScale);
     }
-}
-
-f32 CollisionGroup::boundingRadius() const {
-    return m_boundingRadius;
-}
-
-Hitbox &CollisionGroup::hitbox(u16 hitboxIdx) {
-    return m_hitboxes[hitboxIdx];
-}
-
-u16 CollisionGroup::hitboxCount() const {
-    return m_hitboxes.size();
-}
-
-CollisionData &CollisionGroup::collisionData() {
-    return m_collisionData;
-}
-
-const CollisionData &CollisionGroup::collisionData() const {
-    return m_collisionData;
 }
 
 } // namespace Kart

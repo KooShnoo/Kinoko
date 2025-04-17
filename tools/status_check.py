@@ -168,8 +168,11 @@ def main():
     exec = os.path.join('.', 'kinoko')
     args = [
         exec,
+        "-m",
+        "test",
         "-s",
-        "testCases.bin"] if sys.platform.startswith('win32') else exec + " -s testCases.bin"
+        "testCases.bin",
+    ] if sys.platform.startswith('win32') else exec + " -m test -s testCases.bin"
     result = subprocess.run(args, cwd='out', shell=True, capture_output=True, text=True)
     if result.returncode != 0 and result.returncode != 1:
         print(f"Kinoko exited with non-zero return code {result.returncode}.")

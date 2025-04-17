@@ -36,6 +36,22 @@ void KartObjectProxy::setRot(const EGG::Quatf &q) {
     dynamics()->setMainRot(q);
 }
 
+/// @addr{0x80591664}
+void KartObjectProxy::setInertiaScale(const EGG::Vector3f &scale) {
+    const EGG::Vector3f *cuboids = bsp().cuboids;
+    dynamics()->setInertia(cuboids[0] * scale, cuboids[1] * scale);
+}
+
+/// @addr{0x80590D20}
+KartAction *KartObjectProxy::action() {
+    return m_accessor->action;
+}
+
+/// @addr{0x80590D20}
+const KartAction *KartObjectProxy::action() const {
+    return m_accessor->action;
+}
+
 /// @addr{0x8059069C}
 KartBody *KartObjectProxy::body() {
     return m_accessor->body;
@@ -74,6 +90,14 @@ KartMove *KartObjectProxy::move() {
 /// @addr{0x8059077C}
 const KartMove *KartObjectProxy::move() const {
     return m_accessor->move;
+}
+
+KartHalfPipe *KartObjectProxy::halfPipe() {
+    return m_accessor->move->halfPipe();
+}
+
+const KartHalfPipe *KartObjectProxy::halfPipe() const {
+    return m_accessor->move->halfPipe();
 }
 
 /// @addr{0x80591914}
@@ -285,6 +309,11 @@ const EGG::Vector3f &KartObjectProxy::pos() const {
     return dynamics()->pos();
 }
 
+/// @addr{0x80590224}
+const EGG::Vector3f &KartObjectProxy::prevPos() const {
+    return physics()->pos();
+}
+
 const EGG::Quatf &KartObjectProxy::fullRot() const {
     return dynamics()->fullRot();
 }
@@ -363,13 +392,14 @@ f32 KartObjectProxy::speedRatio() const {
     return move()->speedRatio();
 }
 
-/// @addr{80590DC0}
+/// @addr{0x80590DC0}
 f32 KartObjectProxy::speedRatioCapped() const {
     return move()->speedRatioCapped();
 }
 
-std::list<KartObjectProxy *> &KartObjectProxy::proxyList() {
-    return s_proxyList;
+/// @addr{0x805914F4}
+bool KartObjectProxy::isInRespawn() const {
+    return move()->respawnTimer() > 0 || move()->respawnPostLandTimer() > 0;
 }
 
 /// @addr{0x805901D0}

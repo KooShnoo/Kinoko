@@ -24,9 +24,11 @@ namespace Kart {
 
 class CollisionGroup;
 struct CollisionData;
+class KartAction;
 class KartBody;
 class KartCollide;
 class KartDynamics;
+class KartHalfPipe;
 class KartJump;
 class KartMove;
 class KartParam;
@@ -46,6 +48,7 @@ struct KartAccessor {
     Render::KartModel *model;
     KartSub *sub;
     KartMove *move;
+    KartAction *action;
     KartCollide *collide;
     Field::ObjectCollisionKart *objectCollisionKart;
     KartState *state;
@@ -68,9 +71,12 @@ public:
     /// @beginSetters
     void setPos(const EGG::Vector3f &pos);
     void setRot(const EGG::Quatf &q);
+    void setInertiaScale(const EGG::Vector3f &scale);
     /// @endSetters
 
     /// @beginGetters
+    [[nodiscard]] KartAction *action();
+    [[nodiscard]] const KartAction *action() const;
     [[nodiscard]] KartBody *body();
     [[nodiscard]] const KartBody *body() const;
     [[nodiscard]] KartCollide *collide();
@@ -79,6 +85,8 @@ public:
     [[nodiscard]] const CollisionGroup *collisionGroup() const;
     [[nodiscard]] KartMove *move();
     [[nodiscard]] const KartMove *move() const;
+    [[nodiscard]] KartHalfPipe *halfPipe();
+    [[nodiscard]] const KartHalfPipe *halfPipe() const;
     [[nodiscard]] KartJump *jump();
     [[nodiscard]] const KartJump *jump() const;
     [[nodiscard]] KartParam *param();
@@ -123,6 +131,7 @@ public:
     [[nodiscard]] const EGG::Vector3f &componentZAxis() const;
 
     [[nodiscard]] const EGG::Vector3f &pos() const;
+    [[nodiscard]] const EGG::Vector3f &prevPos() const;
     [[nodiscard]] const EGG::Quatf &fullRot() const;
     [[nodiscard]] const EGG::Vector3f &extVel() const;
     [[nodiscard]] const EGG::Vector3f &intVel() const;
@@ -139,8 +148,11 @@ public:
     [[nodiscard]] std::pair<EGG::Vector3f, EGG::Vector3f> getCannonPosRot();
     [[nodiscard]] f32 speedRatio() const;
     [[nodiscard]] f32 speedRatioCapped() const;
+    [[nodiscard]] bool isInRespawn() const;
 
-    [[nodiscard]] static std::list<KartObjectProxy *> &proxyList();
+    [[nodiscard]] static std::list<KartObjectProxy *> &proxyList() {
+        return s_proxyList;
+    }
     /// @endGetters
 
 protected:

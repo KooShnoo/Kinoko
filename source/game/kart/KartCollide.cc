@@ -10,6 +10,7 @@
 #include "game/field/ObjectCollisionKart.hh"
 #include "game/field/ObjectDirector.hh"
 
+#include <egg/math/BoundBox.hh>
 #include <egg/math/Math.hh>
 #include <game/field/KCollisionTypes.hh>
 #include <game/kart/KartJump.hh>
@@ -29,13 +30,17 @@ KartCollide::~KartCollide() = default;
 /// @addr{0x8056E624}
 void KartCollide::init() {
     calcBoundingRadius();
+    m_floorMomentRate = 0.8f;
     m_surfaceFlags.makeAllZero();
     m_respawnTimer = 0;
+    m_solidOobTimer = 0;
     m_smoothedBack = 0.0f;
     m_suspBottomHeightNonSoftWall = 0.0f;
     m_suspBottomHeightSoftWall = 0.0f;
     m_someNonSoftWallTimer = 0;
     m_someSoftWallTimer = 0;
+    m_poleAngVelTimer = 0;
+    m_poleYaw = 0.0f;
     m_colPerpendicularity = 0.0f;
 }
 
@@ -61,7 +66,8 @@ void KartCollide::calcHitboxes() {
 /// @stage All
 /// @addr{0x80572C20}
 void KartCollide::findCollision() {
-    calcBodyCollision(move()->totalScale(), body()->sinkDepth(), fullRot(), scale());
+    const EGG::Quatf &rot = state()->isEndHalfPipe() ? mainRot() : fullRot();
+    calcBodyCollision(move()->totalScale(), body()->sinkDepth(), rot, scale());
 
     auto &colData = collisionData();
     bool existingWallCollision = colData.bWall || colData.bWall3;
@@ -87,18 +93,7 @@ void KartCollide::findCollision() {
         colData.wallNrm.normalise();
     }
 
-    f32 fVar1;
-    if (state()->isBoost()) {
-        fVar1 = 0.0f;
-    } else {
-        fVar1 = 0.05f;
-    }
-
-    f32 dVar14 = fVar1;
-    fVar1 = 0.01f;
-    bool resetXZ = dVar14 > 0.0f && state()->isAirtimeOver20() && dynamics()->velocity().y < -50.0f;
-
-    FUN_805B72B8(fVar1, dVar14, resetXZ, true);
+    FUN_80572F4C();
 }
 
 /// @stage 2
@@ -107,7 +102,9 @@ void KartCollide::findCollision() {
 void KartCollide::FUN_80572F4C() {
     f32 fVar1;
 
-    if (state()->isBoost()) {
+    if (isInRespawn() || state()->isBoost() || state()->isOverZipper() ||
+            state()->isZipperInvisibleWall() || state()->isNoSparkInvisibleWall() ||
+            state()->isHalfPipeRamp()) {
         fVar1 = 0.0f;
     } else {
         fVar1 = 0.05f;
@@ -115,7 +112,8 @@ void KartCollide::FUN_80572F4C() {
 
     bool resetXZ = fVar1 > 0.0f && state()->isAirtimeOver20() && dynamics()->velocity().y < -50.0f;
 
-    FUN_805B72B8(0.01f, fVar1, resetXZ, !state()->isJumpPadDisableYsusForce());
+    FUN_805B72B8(state()->isInAction() ? 0.3f : 0.01f, fVar1, resetXZ,
+            !state()->isJumpPadDisableYsusForce());
 }
 
 /// @stage All
@@ -219,9 +217,9 @@ void KartCollide::calcBodyCollision(f32 totalScale, f32 sinkDepth, const EGG::Qu
     CollisionData &collisionData = hitboxGroup->collisionData();
     collisionData.reset();
 
-    EGG::Vector3f posRel;
+    EGG::Vector3f posRel = EGG::Vector3f::zero;
     s32 count = 0;
-    Field::CourseColMgr::CollisionInfo colInfo;
+    Field::CollisionInfo colInfo;
     colInfo.bbox.setDirect(EGG::Vector3f::zero, EGG::Vector3f::zero);
     Field::KCLTypeMask maskOut;
     Field::CourseColMgr::NoBounceWallColInfo noBounceWallInfo;
@@ -240,8 +238,8 @@ void KartCollide::calcBodyCollision(f32 totalScale, f32 sinkDepth, const EGG::Qu
 
         hitbox.calc(totalScale, sinkDepth, scale, rot, pos());
 
-        if (Field::CollisionDirector::Instance()->checkSphereCachedFullPush(hitbox.worldPos(),
-                    hitbox.lastPos(), flags, &colInfo, &maskOut, hitbox.radius(), 0)) {
+        if (Field::CollisionDirector::Instance()->checkSphereCachedFullPush(hitbox.radius(),
+                    hitbox.worldPos(), hitbox.lastPos(), flags, &colInfo, &maskOut, 0)) {
             if (!!(maskOut & KCL_TYPE_VEHICLE_COLLIDEABLE)) {
                 Field::CollisionDirector::Instance()->findClosestCollisionEntry(&maskOut,
                         KCL_TYPE_VEHICLE_COLLIDEABLE);
@@ -271,8 +269,9 @@ void KartCollide::calcFloorEffect() {
     }
 
     m_suspBottomHeightNonSoftWall = 0.0f;
-    m_surfaceFlags.resetBit(eSurfaceFlags::BoostRamp, eSurfaceFlags::Offroad,
-            eSurfaceFlags::Trickable, eSurfaceFlags::NotTrickable);
+    m_surfaceFlags.resetBit(eSurfaceFlags::Wall, eSurfaceFlags::SolidOOB, eSurfaceFlags::BoostRamp,
+            eSurfaceFlags::Offroad, eSurfaceFlags::Trickable, eSurfaceFlags::NotTrickable,
+            eSurfaceFlags::StopHalfPipeState);
     m_suspBottomHeightSoftWall = 0.0f;
     m_someNonSoftWallTimer = 0;
     m_someSoftWallTimer = 0;
@@ -280,15 +279,28 @@ void KartCollide::calcFloorEffect() {
     Field::KCLTypeMask mask = KCL_NONE;
     calcTriggers(&mask, pos(), false);
 
+    if (m_solidOobTimer >= 3 && m_surfaceFlags.onBit(eSurfaceFlags::SolidOOB) &&
+            m_surfaceFlags.offBit(eSurfaceFlags::Wall)) {
+        if (mask & KCL_TYPE_BIT(COL_TYPE_SOLID_OOB)) {
+            Field::CollisionDirector::Instance()->findClosestCollisionEntry(&mask,
+                    KCL_TYPE_BIT(COL_TYPE_SOLID_OOB));
+        }
+
+        activateOob(true, &mask, false, false);
+    }
+
     mask = KCL_NONE;
     calcTriggers(&mask, pos(), true);
+
+    m_solidOobTimer =
+            m_surfaceFlags.onBit(eSurfaceFlags::SolidOOB) ? std::min(3, m_solidOobTimer + 1) : 0;
 }
 
 /// @addr{0x805718D4}
 void KartCollide::calcTriggers(Field::KCLTypeMask *mask, const EGG::Vector3f &pos, bool twoPoint) {
     EGG::Vector3f v1 = twoPoint ? physics()->pos() : EGG::Vector3f::inf;
     Field::KCLTypeMask typeMask = twoPoint ? KCL_TYPE_DIRECTIONAL : KCL_TYPE_NON_DIRECTIONAL;
-    f32 fVar1 = twoPoint ? 80.0f : 100.0f * move()->totalScale();
+    f32 radius = twoPoint ? 80.0f : 100.0f * move()->totalScale();
     f32 scalar = -bsp().initialYPos * move()->totalScale() * 0.3f;
     EGG::Vector3f scaledPos = pos + scalar * componentYAxis();
     EGG::Vector3f back = dynamics()->mainRot().rotateVector(EGG::Vector3f::ez);
@@ -298,8 +310,8 @@ void KartCollide::calcTriggers(Field::KCLTypeMask *mask, const EGG::Vector3f &po
     scalar = m_smoothedBack * -physics()->fc() * 1.8f * move()->totalScale();
     scaledPos += scalar * back;
 
-    bool collide = Field::CollisionDirector::Instance()->checkSphereCachedPartialPush(scaledPos, v1,
-            typeMask, nullptr, mask, fVar1, 0);
+    bool collide = Field::CollisionDirector::Instance()->checkSphereCachedPartialPush(radius,
+            scaledPos, v1, typeMask, nullptr, mask, 0);
 
     if (!collide) {
         return;
@@ -307,14 +319,36 @@ void KartCollide::calcTriggers(Field::KCLTypeMask *mask, const EGG::Vector3f &po
 
     if (twoPoint) {
         handleTriggers(mask);
-    } else if (*mask & KCL_TYPE_FLOOR) {
-        Field::CollisionDirector::Instance()->findClosestCollisionEntry(mask, KCL_TYPE_FLOOR);
+    } else {
+        if (*mask & KCL_TYPE_FLOOR) {
+            Field::CollisionDirector::Instance()->findClosestCollisionEntry(mask, KCL_TYPE_FLOOR);
+        }
+
+        if (*mask & KCL_TYPE_WALL) {
+            m_surfaceFlags.setBit(eSurfaceFlags::Wall);
+        }
+
+        if (*mask & KCL_TYPE_BIT(COL_TYPE_SOLID_OOB)) {
+            m_surfaceFlags.setBit(eSurfaceFlags::SolidOOB);
+        }
     }
 }
 
 /// @addr{0x8056F510}
 void KartCollide::handleTriggers(Field::KCLTypeMask *mask) {
     calcFallBoundary(mask, false);
+    processCannon(mask);
+
+    if (*mask & KCL_TYPE_BIT(COL_TYPE_EFFECT_TRIGGER)) {
+        auto *colDir = Field::CollisionDirector::Instance();
+        if (colDir->findClosestCollisionEntry(mask, KCL_TYPE_BIT(COL_TYPE_EFFECT_TRIGGER))) {
+            if (KCL_VARIANT_TYPE(colDir->closestCollisionEntry()->attribute) == 4) {
+                halfPipe()->end(true);
+                state()->setEndHalfPipe(true);
+                m_surfaceFlags.setBit(eSurfaceFlags::StopHalfPipeState);
+            }
+        }
+    }
 }
 
 /// @addr{0x80571D98}
@@ -329,6 +363,25 @@ void KartCollide::calcFallBoundary(Field::KCLTypeMask *mask, bool /*shortBoundar
     }
 
     activateOob(false, mask, false, false);
+}
+
+/// @addr{0x80573ED4}
+void KartCollide::calcBeforeRespawn() {
+    if (pos().y < 0.0f) {
+        activateOob(true, nullptr, false, false);
+    }
+
+    if (!state()->isBeforeRespawn()) {
+        return;
+    }
+
+    if (--m_respawnTimer > 0) {
+        return;
+    }
+
+    state()->setBeforeRespawn(false);
+    m_respawnTimer = 0;
+    move()->triggerRespawn();
 }
 
 /// @addr{0x80573B00}
@@ -362,15 +415,15 @@ void KartCollide::calcWheelCollision(u16 /*wheelIdx*/, CollisionGroup *hitboxGro
     hitboxGroup->resetCollision();
     firstHitbox.setWorldPos(center);
 
-    Field::CourseColMgr::CollisionInfo colInfo;
+    Field::CollisionInfo colInfo;
     colInfo.bbox.setZero();
     Field::KCLTypeMask kclOut;
     Field::CourseColMgr::NoBounceWallColInfo noBounceWallInfo;
     Field::CourseColMgr::Instance()->setNoBounceWallInfo(&noBounceWallInfo);
 
     bool collided = Field::CollisionDirector::Instance()->checkSphereCachedFullPush(
-            firstHitbox.worldPos(), firstHitbox.lastPos(), KCL_TYPE_VEHICLE_COLLIDEABLE, &colInfo,
-            &kclOut, firstHitbox.radius(), 0);
+            firstHitbox.radius(), firstHitbox.worldPos(), firstHitbox.lastPos(),
+            KCL_TYPE_VEHICLE_COLLIDEABLE, &colInfo, &kclOut, 0);
 
     CollisionData &collisionData = hitboxGroup->collisionData();
 
@@ -409,7 +462,7 @@ void KartCollide::calcWheelCollision(u16 /*wheelIdx*/, CollisionGroup *hitboxGro
 /// @stage 2
 /// @addr{0x8056F26C}
 void KartCollide::calcSideCollision(CollisionData &collisionData, Hitbox &hitbox,
-        Field::CourseColMgr::CollisionInfo *colInfo) {
+        Field::CollisionInfo *colInfo) {
     if (colInfo->perpendicularity <= 0.0f) {
         return;
     }
@@ -441,12 +494,12 @@ void KartCollide::calcSideCollision(CollisionData &collisionData, Hitbox &hitbox
         f32 sign = i == 1 ? -1.0f : 1.0f;
         f32 effectiveRadius = sign * hitbox.radius();
         EGG::Vector3f effectivePos = hitbox.worldPos() + effectiveRadius * right;
-        Field::CourseColMgr::CollisionInfo tempColInfo;
+        Field::CollisionInfoPartial tempColInfo;
 
-        if (Field::CollisionDirector::Instance()->checkSphereCachedPartial(effectivePos,
-                    hitbox.lastPos(), KCL_TYPE_DRIVER_WALL, &tempColInfo, nullptr,
-                    hitbox.radius())) {
-            tangents[i] = colInfo->tangentOff.dot();
+        if (Field::CollisionDirector::Instance()->checkSphereCachedPartial(hitbox.radius(),
+                    effectivePos, hitbox.lastPos(), KCL_TYPE_DRIVER_WALL, &tempColInfo, nullptr,
+                    0)) {
+            tangents[i] = colInfo->tangentOff.squaredLength();
         }
     }
 
@@ -466,6 +519,10 @@ void KartCollide::calcBoundingRadius() {
 
 /// @addr{0x80571F10}
 void KartCollide::calcObjectCollision() {
+    constexpr f32 COS_PI_OVER_4 = 0.707f;
+    constexpr s32 DUMMY_POLE_ANG_VEL_TIME = 3;
+    constexpr f32 DUMMY_POLE_ANG_VEL = 0.005f;
+
     m_totalReactionWallNrm = EGG::Vector3f::zero;
     m_surfaceFlags.resetBit(eSurfaceFlags::ObjectWall, eSurfaceFlags::ObjectWall3);
 
@@ -477,8 +534,11 @@ void KartCollide::calcObjectCollision() {
         Reaction reaction = objectDirector->reaction(i);
         if (reaction != Reaction::None && reaction != Reaction::UNK_7) {
             size_t handlerIdx = static_cast<std::underlying_type_t<Reaction>>(reaction);
-            Action action = (this->*s_objectCollisionHandlers[handlerIdx])(i);
-            static_cast<void>(action); // Ignore for now
+            Action newAction = (this->*s_objectCollisionHandlers[handlerIdx])(i);
+            if (newAction != Action::None) {
+                action()->setHitDepth(objectDirector->hitDepth(i));
+                action()->start(newAction);
+            }
 
             if (reaction != Reaction::SmallBump && reaction != Reaction::BigBump) {
                 const EGG::Vector3f &hitDepth = objectDirector->hitDepth(i);
@@ -486,54 +546,75 @@ void KartCollide::calcObjectCollision() {
                 m_movement += hitDepth;
             }
         }
+
+        if (objectDirector->collidingObject(i)->id() == Field::ObjectId::DummyPole) {
+            EGG::Vector3f hitDirection = objectCollisionKart()->GetHitDirection(i);
+            const EGG::Vector3f &lastDir = move()->lastDir();
+
+            if (lastDir.dot(hitDirection) < -COS_PI_OVER_4) {
+                EGG::Vector3f angVel = hitDirection.cross(lastDir);
+                f32 sign = angVel.y > 0.0f ? -1.0f : 1.0f;
+
+                m_poleAngVelTimer = DUMMY_POLE_ANG_VEL_TIME;
+                m_poleYaw = DUMMY_POLE_ANG_VEL * sign;
+            }
+        }
     }
+
+    calcPoleTimer();
+}
+
+/// @addr{Inlined in 0x80571F10}
+void KartCollide::calcPoleTimer() {
+    if (m_poleAngVelTimer > 0 && (state()->isAccelerate() || state()->isBrake())) {
+        EGG::Vector3f angVel2 = dynamics()->angVel2();
+        angVel2.y += m_poleYaw;
+        dynamics()->setAngVel2(angVel2);
+    }
+
+    m_poleAngVelTimer = std::max(0, m_poleAngVelTimer - 1);
 }
 
 /// @stage All
 /// @brief Processes moving water and floor collision effects
 /// @addr{0x8056E8D4}
 void KartCollide::processWheel(CollisionData &collisionData, Hitbox &hitbox,
-        Field::CourseColMgr::CollisionInfo *colInfo, Field::KCLTypeMask *maskOut) {
+        Field::CollisionInfo *colInfo, Field::KCLTypeMask *maskOut) {
     processMovingWater(collisionData, maskOut);
     processFloor(collisionData, hitbox, colInfo, maskOut, true);
 }
 
 /// @addr{0x8056E930}
-void Kart::KartCollide::processMovingWater(CollisionData &collisionData, Field::KCLTypeMask *flags) {
+void Kart::KartCollide::processMovingWater(CollisionData &collisionData,
+        Field::KCLTypeMask *flags) {
     auto *colDir = Field::CollisionDirector::Instance();
-    if (!colDir->findClosestCollisionEntry(flags ,KCL_TYPE_BIT(COL_TYPE_MOVING_WATER))) {
-    return;
+    if (!colDir->findClosestCollisionEntry(flags, KCL_TYPE_BIT(COL_TYPE_MOVING_WATER))) {
+        return;
     }
     state()->setStickyRoad(true);
     // uVar1 = closestCollisionEntry->attribute >> 5 & 7;
     u32 v = KCL_VARIANT_TYPE(colDir->closestCollisionEntry()->attribute);
-    
 
     if (v == 1) {
-    //        (MOVING_WATER_V0|MOVING_WATER_STRONG_CURRENT|MOVING_WATER_DISABLE_ACC);
+        // (MOVING_WATER_V0|MOVING_WATER_STRONG_CURRENT|MOVING_WATER_DISABLE_ACC);
         collisionData.bWaterCurrent0 = true;
         collisionData.bWaterCurrentCliff = true;
         collisionData.bWaterCurrentNoAcceleration = true;
-    }
-    else if (v == 2) {
+    } else if (v == 2) {
         collisionData.bWaterCurrent2 = true;
-    }
-    else if (v == 3) {
-        //    collisionData->types | (MOVING_WATER_V2|MOVING_WATER_DISABLE_ACC|MOVING_WATER_V3);
+    } else if (v == 3) {
+        // collisionData->types | (MOVING_WATER_V2|MOVING_WATER_DISABLE_ACC|MOVING_WATER_V3);
         collisionData.bWaterCurrent2 = true;
         collisionData.bWaterCurrentNoAcceleration = true;
         collisionData.bWaterCurrent3 = true;
-    }
-    else {
+    } else {
         collisionData.bWaterCurrent0 = true;
     }
 }
 
-
 /// @addr{0x8056E764}
 void KartCollide::processBody(CollisionData &collisionData, Hitbox &hitbox,
-        Field::CourseColMgr::CollisionInfo *colInfo, Field::KCLTypeMask *maskOut) {
-    
+        Field::CollisionInfo *colInfo, Field::KCLTypeMask *maskOut) {
     processMovingWater(collisionData, maskOut);
     bool hasWallCollision = processWall(collisionData, maskOut);
 
@@ -543,12 +624,7 @@ void KartCollide::processBody(CollisionData &collisionData, Hitbox &hitbox,
         calcSideCollision(collisionData, hitbox, colInfo);
     }
 
-    auto *colDirector = Field::CollisionDirector::Instance();
-    if (colDirector->findClosestCollisionEntry(maskOut, KCL_TYPE_BIT(COL_TYPE_CANNON_TRIGGER))) {
-        state()->setCannonPointId(
-                KCL_VARIANT_TYPE(colDirector->closestCollisionEntry()->attribute));
-        state()->setCannonStart(true);
-    }
+    processCannon(maskOut);
 }
 
 /// @addr{0x8056F184}
@@ -581,7 +657,7 @@ bool KartCollide::processWall(CollisionData &collisionData, Field::KCLTypeMask *
 /// @param maskOut Stores the flags from the floor KCL
 /// @param wheel Differentiates between body and wheel floor collision (boost panels)
 void KartCollide::processFloor(CollisionData &collisionData, Hitbox &hitbox,
-        Field::CourseColMgr::CollisionInfo * /*colInfo*/, Field::KCLTypeMask *maskOut, bool wheel) {
+        Field::CollisionInfo * /*colInfo*/, Field::KCLTypeMask *maskOut, bool wheel) {
     constexpr Field::KCLTypeMask BOOST_RAMP_MASK = KCL_TYPE_BIT(COL_TYPE_BOOST_RAMP);
 
     if (collisionData.bSoftWall) {
@@ -646,6 +722,16 @@ void KartCollide::processFloor(CollisionData &collisionData, Hitbox &hitbox,
         state()->setStickyRoad(true);
     }
 
+    Field::KCLTypeMask halfPipeRampMask = KCL_TYPE_BIT(COL_TYPE_HALFPIPE_RAMP);
+    if ((*maskOut & halfPipeRampMask) &&
+            colDirector->findClosestCollisionEntry(maskOut, halfPipeRampMask)) {
+        state()->setHalfPipeRamp(true);
+        state()->setHalfPipeInvisibilityTimer(2);
+        if (KCL_VARIANT_TYPE(colDirector->closestCollisionEntry()->attribute) == 1) {
+            move()->padType().setBit(KartMove::ePadType::BoostPanel);
+        }
+    }
+
     Field::KCLTypeMask jumpPadMask = KCL_TYPE_BIT(COL_TYPE_JUMP_PAD);
     if (*maskOut & jumpPadMask && colDirector->findClosestCollisionEntry(maskOut, jumpPadMask)) {
         if (!state()->isTouchingGround() || !state()->isJumpPad()) {
@@ -654,6 +740,17 @@ void KartCollide::processFloor(CollisionData &collisionData, Hitbox &hitbox,
             state()->setJumpPadVariant(KCL_VARIANT_TYPE(closestColEntry->attribute));
         }
         collisionData.bTrickable = true;
+    }
+}
+
+/// @addr{0x8056F490}
+/// @brief Checks if we are colliding with a cannon trigger and sets the state flag if so.
+void KartCollide::processCannon(Field::KCLTypeMask *maskOut) {
+    auto *colDirector = Field::CollisionDirector::Instance();
+    if (colDirector->findClosestCollisionEntry(maskOut, KCL_TYPE_BIT(COL_TYPE_CANNON_TRIGGER))) {
+        state()->setCannonPointId(
+                KCL_VARIANT_TYPE(colDirector->closestCollisionEntry()->attribute));
+        state()->setCannonStart(true);
     }
 }
 
@@ -695,7 +792,7 @@ void KartCollide::applySomeFloorMoment(f32 down, f32 rate, CollisionGroup *hitbo
     crossVec = colData.floorNrm.cross(negSpeed);
     crossVec = crossVec.cross(colData.floorNrm);
 
-    if (std::numeric_limits<f32>::epsilon() >= crossVec.dot()) {
+    if (std::numeric_limits<f32>::epsilon() >= crossVec.squaredLength()) {
         return;
     }
 
@@ -766,19 +863,35 @@ void KartCollide::applySomeFloorMoment(f32 down, f32 rate, CollisionGroup *hitbo
 /// @rename
 bool KartCollide::FUN_805B6A9C(CollisionData &collisionData, const Hitbox &hitbox,
         EGG::BoundBox3f &minMax, EGG::Vector3f &relPos, s32 &count,
-        const Field::KCLTypeMask &maskOut, const Field::CourseColMgr::CollisionInfo &colInfo) {
+        const Field::KCLTypeMask &maskOut, const Field::CollisionInfo &colInfo) {
     if (maskOut & KCL_TYPE_WALL) {
         if (!(maskOut & KCL_TYPE_FLOOR) && state()->isHWG() &&
                 state()->softWallSpeed().dot(colInfo.wallNrm) < 0.3f) {
             return true;
         }
 
+        bool skipWalls = false;
+
         collisionData.wallNrm += colInfo.wallNrm;
 
-        if (maskOut & KCL_TYPE_BIT(COL_TYPE_WALL_2)) {
-            collisionData.bWall3 = true;
-        } else {
-            collisionData.bWall = true;
+        if (maskOut & KCL_TYPE_ANY_INVISIBLE_WALL) {
+            collisionData.bInvisibleWall = true;
+
+            if (!(maskOut & KCL_TYPE_4010D000)) {
+                collisionData.bInvisibleWallOnly = true;
+
+                if (maskOut & KCL_TYPE_BIT(COL_TYPE_HALFPIPE_INVISIBLE_WALL)) {
+                    skipWalls = true;
+                }
+            }
+        }
+
+        if (!skipWalls) {
+            if (maskOut & KCL_TYPE_BIT(COL_TYPE_WALL_2)) {
+                collisionData.bWall3 = true;
+            } else {
+                collisionData.bWall = true;
+            }
         }
     }
 
@@ -831,6 +944,16 @@ void KartCollide::applyBodyCollision(CollisionData &collisionData, const EGG::Ve
         }
         collisionData.floorNrm.normalise();
     }
+}
+
+/// @addr{0x805713D8}
+void KartCollide::startFloorMomentRate() {
+    m_floorMomentRate = 0.01f;
+}
+
+/// @addr{0x805713FC}
+void KartCollide::calcFloorMomentRate() {
+    m_floorMomentRate = state()->isInAction() ? 0.01f : std::min(m_floorMomentRate + 0.01f, 0.8f);
 }
 
 /// @addr{0x8056E564}
@@ -923,63 +1046,6 @@ Action KartCollide::handleReactCrushRespawn(size_t /*idx*/) {
 /// @addr{0x805735E4}
 Action KartCollide::handleReactExplosionLoseItem(size_t /*idx*/) {
     return Action::UNK_7;
-}
-
-/// @addr{0x805B78D0}
-void KartCollide::setFloorColInfo(CollisionData &collisionData, const EGG::Vector3f &relPos,
-        const EGG::Vector3f &vel, const EGG::Vector3f &floorNrm) {
-    collisionData.relPos = relPos;
-    collisionData.vel = vel;
-    collisionData.floorNrm = floorNrm;
-    collisionData.bFloor = true;
-}
-
-void KartCollide::setTangentOff(const EGG::Vector3f &v) {
-    m_tangentOff = v;
-}
-
-void KartCollide::setMovement(const EGG::Vector3f &v) {
-    m_movement = v;
-}
-
-f32 KartCollide::boundingRadius() const {
-    return m_boundingRadius;
-}
-
-KartWaterCurrent &KartCollide::waterCurrent() const {
-    return *m_waterCurrent;
-}
-
-const KartCollide::SurfaceFlags &KartCollide::surfaceFlags() const {
-    return m_surfaceFlags;
-}
-
-const EGG::Vector3f &KartCollide::tangentOff() const {
-    return m_tangentOff;
-}
-
-const EGG::Vector3f &KartCollide::movement() const {
-    return m_movement;
-}
-
-f32 KartCollide::suspBottomHeightSoftWall() const {
-    return m_suspBottomHeightSoftWall;
-}
-
-u16 KartCollide::someSoftWallTimer() const {
-    return m_someSoftWallTimer;
-}
-
-f32 KartCollide::suspBottomHeightNonSoftWall() const {
-    return m_suspBottomHeightNonSoftWall;
-}
-
-u16 KartCollide::someNonSoftWallTimer() const {
-    return m_someNonSoftWallTimer;
-}
-
-f32 KartCollide::colPerpendicularity() const {
-    return m_colPerpendicularity;
 }
 
 std::array<KartCollide::ObjectCollisionHandler, 33> KartCollide::s_objectCollisionHandlers = {{

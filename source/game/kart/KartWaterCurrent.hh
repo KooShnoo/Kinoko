@@ -23,7 +23,7 @@ public:
         return m_flowDir;
     }
 
-// private:
+    // private:
     u32 m_routeId = -1;
     f32 m_weirdFloat = -1.0f;
     System::MapdataPointInfo *m_route = nullptr;

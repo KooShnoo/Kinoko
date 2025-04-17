@@ -67,30 +67,8 @@ void KartPhysics::calc(f32 dt, f32 maxSpeed, const EGG::Vector3f & /*scale*/, bo
     m_instantaneousExtraRot = EGG::Quatf::ident;
 }
 
-void KartPhysics::setPos(const EGG::Vector3f &pos) {
-    m_pos = pos;
-}
-
-void KartPhysics::setVelocity(const EGG::Vector3f &vel) {
-    m_velocity = vel;
-}
-
-void KartPhysics::set_fc(f32 val) {
-    m_fc = val;
-}
-
-/// @addr{0x8059FC48}
-void KartPhysics::composeStuntRot(const EGG::Quatf &rot) {
-    m_instantaneousStuntRot *= rot;
-}
-
-/// @addr{0x8059FDD0}
-void KartPhysics::composeDecayingRot(const EGG::Quatf &rot) {
-    m_decayingStuntRot *= rot;
-}
-
 /// @addr{0x805A02B8}
-void KartPhysics::decayMovingWaterVel(float param_1,float param_2,bool param_4) {
+void KartPhysics::decayMovingWaterVel(float param_1, float param_2, bool param_4) {
     f32 velDecayFactor = param_4 ? param_1 : param_2;
     m_waterCurrentVel *= velDecayFactor;
     dynamics()->setWaterCurrentVel(m_waterCurrentVel);
@@ -105,54 +83,13 @@ void KartPhysics::setMovingWaterVel(float factor, const EGG::Vector3f &newVel) {
 /// @addr{0x805A01CC}
 void KartPhysics::shiftDecayMovingWaterVel(float velDecayFactor, const EGG::Vector3f &deltaVel) {
     m_waterCurrentVel += deltaVel;
-    if (m_waterCurrentVel.dot() <= 0.00000011920928955078125f) {
+    // if (m_waterCurrentVel.dot() <= 0.00000011920928955078125f) {
+    if (m_waterCurrentVel.squaredLength() <= 0.00000011920928955078125f) {
         return;
     }
     velDecayFactor = std::min(m_waterCurrentVel.normalise(), velDecayFactor);
     m_waterCurrentVel *= velDecayFactor;
     dynamics()->setWaterCurrentVel(m_waterCurrentVel);
-}
-
-/// @addr{0x805A0410}
-void KartPhysics::clearDecayingRot() {
-    m_decayingStuntRot = EGG::Quatf::ident;
-    m_decayingExtraRot = EGG::Quatf::ident;
-}
-
-KartDynamics *KartPhysics::dynamics() {
-    return m_dynamics;
-}
-
-const KartDynamics *KartPhysics::dynamics() const {
-    return m_dynamics;
-}
-
-const EGG::Matrix34f &KartPhysics::pose() const {
-    return m_pose;
-}
-
-CollisionGroup *KartPhysics::hitboxGroup() {
-    return m_hitboxGroup;
-}
-
-const EGG::Vector3f &KartPhysics::xAxis() const {
-    return m_xAxis;
-}
-
-const EGG::Vector3f &KartPhysics::yAxis() const {
-    return m_yAxis;
-}
-
-const EGG::Vector3f &KartPhysics::zAxis() const {
-    return m_zAxis;
-}
-
-const EGG::Vector3f &KartPhysics::pos() const {
-    return m_pos;
-}
-
-f32 KartPhysics::fc() const {
-    return m_fc;
 }
 
 /// @addr{0x805A04A0}
