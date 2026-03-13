@@ -6,6 +6,7 @@
 #include <game/field/ObjectDirector.hh>
 #include <game/field/ObjectDrivableDirector.hh>
 #include <game/field/RailManager.hh>
+#include <game/field/jugem/JugemDirector.hh>
 
 #include <game/item/ItemDirector.hh>
 
@@ -34,6 +35,7 @@ Context::Context() {
     m_ptrs.m_boxColMgr = Field::BoxColManager::s_instance;
     m_ptrs.m_colDir = Field::CollisionDirector::s_instance;
     m_ptrs.m_courseColMgr = Field::CourseColMgr::s_instance;
+    m_ptrs.m_jugemDir = Field::JugemDirector::s_instance;
     m_ptrs.m_objDir = Field::ObjectDirector::s_instance;
     m_ptrs.m_objDrivableDir = Field::ObjectDrivableDirector::s_instance;
     m_ptrs.m_railMgr = Field::RailManager::s_instance;
@@ -101,6 +103,7 @@ bool Context::operator==(const Context &rhs) const {
     ret = ret && m_ptrs.m_boxColMgr == rhs.m_ptrs.m_boxColMgr;
     ret = ret && m_ptrs.m_colDir == rhs.m_ptrs.m_colDir;
     ret = ret && m_ptrs.m_courseColMgr == rhs.m_ptrs.m_courseColMgr;
+    ret = ret && m_ptrs.m_jugemDir == rhs.m_ptrs.m_jugemDir;
     ret = ret && m_ptrs.m_objDir == rhs.m_ptrs.m_objDir;
     ret = ret && m_ptrs.m_objDrivableDir == rhs.m_ptrs.m_objDrivableDir;
     ret = ret && m_ptrs.m_railMgr == rhs.m_ptrs.m_railMgr;
@@ -131,6 +134,7 @@ void Context::SetActiveContext(const Context &rhs) {
     Field::BoxColManager::s_instance = rhs.m_ptrs.m_boxColMgr;
     Field::CollisionDirector::s_instance = rhs.m_ptrs.m_colDir;
     Field::CourseColMgr::s_instance = rhs.m_ptrs.m_courseColMgr;
+    Field::JugemDirector::s_instance = rhs.m_ptrs.m_jugemDir;
     Field::ObjectDirector::s_instance = rhs.m_ptrs.m_objDir;
     Field::ObjectDrivableDirector::s_instance = rhs.m_ptrs.m_objDrivableDir;
     Field::RailManager::s_instance = rhs.m_ptrs.m_railMgr;
